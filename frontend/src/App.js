@@ -58,15 +58,44 @@ const AppContent = () => {
   const [installPrompt, setInstallPrompt] = useState(null);
 
   useEffect(() => {
-    const handler = e => {
-      e.preventDefault();
-      console.log("we are installable");
-      setInstallPrompt(e);
-    };
-    window.addEventListener("beforeinstallprompt", handler);
+  const checkLoginStatus = async () => {
+    const token = localStorage.getItem('accessToken');
+    const currentPath = window.location.pathname;
+    
+    if (token) {
+      try {
+        const userData = await apiGet('/users/me/');
+        
+        // 유저 정보가 없으면 문제가 있는 것
+        if (!userData || !userData.id) {
+          throw new Error('Invalid user data');
+        }
+        
+        setUser(userData);
+        localStorage.setItem("bandicon_user", JSON.stringify(userData));
+        
+      } catch (error) {
+        console.error("토큰 검증 실패:", error);
+        
+        // 로그인/회원가입 페이지가 아닌 경우에만 리다이렉트
+        if (currentPath !== '/login' && currentPath !== '/signup') {
+          handleLogout();
+        }
+      }
+    } else {
+      // 토큰이 없고 보호된 페이지에 있으면 로그인으로
+      const isPublicPage = currentPath === '/login' || 
+                          currentPath === '/signup' || 
+                          currentPath === '/';
+      
+      if (!isPublicPage) {
+        navigate('/login');
+      }
+    }
+  };
 
-    return () => window.removeEventListener("beforeinstallprompt", handler);
-  }, []);
+  checkLoginStatus();
+}, []); // handleLogout을 의존성에서 제거
   // ===== 여기까지 추가 =====
   const checkAlerts = useCallback(async (currentUser) => {
       if (!currentUser?.nickname) return;

@@ -11,14 +11,24 @@ const ClanHome = ({ user }) => {
   const [description, setDescription] = useState("");
   const [error, setError] = useState("");
 
+
+  
   const load = useCallback(async () => {
-    try {
-      const data = await apiGet("/clans");
-      setClans(data || []);
-    } catch (e) {
-      console.error(e);
+  console.log("클랜 목록 로딩 시작");
+  console.log("현재 토큰:", localStorage.getItem('accessToken'));
+  
+  try {
+    const data = await apiGet("/clans");
+    console.log("클랜 데이터 로드 성공:", data);
+    setClans(data || []);
+  } catch (e) {
+    console.error("클랜 로드 에러:", e.response?.status, e.response?.data);
+    
+    if (e.response?.status === 401) {
+      alert("인증 에러 발생!");
     }
-  }, []);
+  }
+}, []);
 
   useEffect(() => {
     load();
@@ -43,6 +53,7 @@ const ClanHome = ({ user }) => {
     }
   };
 
+  
   return (
     <div style={{ maxWidth: 800, margin: "auto" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -96,4 +107,6 @@ const ClanHome = ({ user }) => {
   );
 };
 
+
 export default ClanHome;
+

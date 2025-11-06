@@ -14,7 +14,7 @@ from django.shortcuts import get_object_or_404
 from .models import Clan, ClanBoard, ClanJoinRequest, ClanAnnouncement, ClanEvent, ClanChat
 from user_app.models import User
 from .serializers import (
-    ClanInfoSerializer, ClanDetailSerializer, ClanJoinRequestSerializer, ClanAnnouncementSerializer
+    ClanInfoSerializer, ClanDetailSerializer, ClanJoinRequestSerializer, ClanAnnouncementSerializer,ClanChatSerializer
 )
 from room_app.serializers import (RoomInfoForActivitySerializer,
     MemberActivitySerializer) # 활동 현황용
@@ -43,7 +43,8 @@ class ClanListCreateView(generics.ListCreateAPIView):
     """
     queryset = Clan.objects.all()
     serializer_class = ClanInfoSerializer
-    
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
     # 권한 설정:
     # IsAuthenticatedOrReadOnly
     # - GET (읽기) 요청은 누구나 (로그인 안 해도) 허용

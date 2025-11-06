@@ -14,6 +14,7 @@ from pathlib import Path
 import os
 import dj_database_url
 from dotenv import load_dotenv
+from datetime import timedelta  # 이 import를 파일 상단에 추가
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -191,8 +192,25 @@ REST_FRAMEWORK = {
 
 # simple-jwt가 username 필드 (즉, FastAPI의 'id')를 사용하도록 설정
 SIMPLE_JWT = {
-    'USER_ID_FIELD': 'username',
-    'USER_AUTHENTICATION_RULE': 'rest_framework_simplejwt.authentication.default_user_authentication_rule',
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),  # 액세스 토큰 유효기간 60분
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),     # 리프레시 토큰 유효기간 7일
+    'ROTATE_REFRESH_TOKENS': True,                   # 리프레시 토큰 재발급 시 새 토큰 생성
+    'BLACKLIST_AFTER_ROTATION': False,               # 기존 리프레시 토큰 블랙리스트 처리 (일단 False)
+    'UPDATE_LAST_LOGIN': True,                       # 로그인 시 last_login 필드 업데이트
+    
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
+    'VERIFYING_KEY': None,
+    'AUDIENCE': None,
+    'ISSUER': None,
+    
+    'AUTH_HEADER_TYPES': ('Bearer',),                # Authorization: Bearer <token>
+    'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
+    'USER_ID_FIELD': 'id',                          # 토큰 페이로드의 user_id
+    'USER_ID_CLAIM': 'user_id',
+    
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+    'TOKEN_TYPE_CLAIM': 'token_type',
 }
 # --- 👆 여기까지 추가 ---
 
@@ -205,3 +223,51 @@ MEDIA_URL = '/media/'
 # (BASE_DIR은 'manage.py'가 있는 폴더입니다)
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # --- 👆 여기까지 추가 ---
+
+# 추가로 CORS 관련 설정
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
+
+# DEBUG 모드에서 더 자세한 에러 정보 표시
+DEBUG = True
+
+# LOGGING 설정 추가 (500 에러 자세히 보기)
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+    },
+}

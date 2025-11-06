@@ -301,3 +301,68 @@ export const adminPut = async (url, body) => {
     throw err;
   }
 };
+
+// 4-1. [★신규★] 응답 인터셉터 (401 에러 처리)
+/*api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    
+    // 401 에러이고, 재시도하지 않은 요청인 경우
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      
+      // refreshToken으로 토큰 갱신 시도
+      const refreshToken = localStorage.getItem('refreshToken');
+      
+      if (refreshToken) {
+        try {
+          const response = await axios.post(
+            `${API_BASE_SERVER}/api/v1/users/token/refresh/`,
+            { refresh: refreshToken }
+          );
+          
+          const { access } = response.data;
+          localStorage.setItem('accessToken', access);
+          
+          // 원래 요청을 새 토큰으로 재시도
+          originalRequest.headers['Authorization'] = `Bearer ${access}`;
+          return api(originalRequest);
+          
+        } catch (refreshError) {
+          // 리프레시도 실패하면 로그아웃
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('bandicon_user');
+          window.location.href = '/login';
+          return Promise.reject(refreshError);
+        }
+      }
+      
+      // refreshToken이 없으면 로그인 페이지로
+      window.location.href = '/login';
+    }
+    
+    return Promise.reject(error);
+  }
+);*/
+
+// src/api/api.js에서 수정
+
+// API 호출 시 끝에 슬래시(/)를 일관성 있게 처리
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+    
+    // URL 끝에 슬래시가 없으면 추가 (301 리다이렉트 방지)
+    if (config.url && !config.url.endsWith('/') && !config.url.includes('?')) {
+      config.url += '/';
+    }
+    
+    return config;
+  },
+  (error) => Promise.reject(error)
+);

@@ -40,6 +40,10 @@ urlpatterns = [
     # path('alerts/<int:alert_id>/read/', views.AlertReadView.as_view(), name='alert_read'), 
     # path('alerts/read-by-url/', views.AlertReadByUrlView.as_view(), name='alert_read_by_url'), 
     path('register-device/', views.RegisterDeviceView.as_view(), name='register_device'), # <-- 77단계에서 이미 활성화됨
+
+    path('notifications/counts', views.NotificationCountsView.as_view(), name='notification-counts'),
+    path('counts', views.UserCountsView.as_view(), name='user-counts'),
+    path('alerts/<str:nickname>/', views.AlertListView.as_view(), name='alert-list'),
 ]
 
 """    # 1. 인증 (JWT 토큰 발급/재발급)

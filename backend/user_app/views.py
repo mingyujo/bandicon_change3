@@ -530,3 +530,36 @@ class UploadProfileImageView(views.APIView):
 
         except Exception as e:
             return Response({"detail": f"파일 저장 실패: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class NotificationCountsView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request):
+        """알림 카운트 API"""
+        nickname = request.query_params.get('nickname', request.user.nickname)
+        
+        # 간단한 구현 (실제로는 DB에서 카운트 조회)
+        return Response({
+            'chat': 0,
+            'profile': 0
+        })
+
+class UserCountsView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request):
+        """사용자별 카운트 API"""
+        nickname = request.query_params.get('nickname')
+        
+        return Response({
+            'posts': 0,
+            'comments': 0,
+            'likes': 0
+        })
+
+class AlertListView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request, nickname):
+        """알림 목록 API"""
+        return Response([])  # 빈 리스트 반환
