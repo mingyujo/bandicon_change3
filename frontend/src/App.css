@@ -1,0 +1,682 @@
+/* [전체 코드] src/App.css */
+
+/* --- 전체 레이아웃 --- */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh; /* 화면 전체 높이를 차지하도록 변경 */
+  overflow: hidden; /* 불필요한 전체 스크롤 방지 */
+}
+
+.app-header {
+  background-color: var(--white);
+  border-bottom: 1px solid var(--light-gray);
+  padding: 12px 24px;
+  display: flex;
+  flex-direction: column; 
+  align-items: center;
+  justify-content: center;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  flex-shrink: 0;
+}
+
+.app-main {
+  flex: 1; /* 남은 공간을 모두 차지하도록 설정 */
+  padding: 32px;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  overflow-y: auto; /* 내용이 길어지면 이 영역만 스크롤되도록 설정 */
+  /* [제거] 아래 두 줄을 제거하여 중앙 정렬을 해제합니다. */
+  /* display: flex;  */
+  /* flex-direction: column; */
+}
+
+.header-top {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.app-header .brand {
+  font-family: 'Poppins', sans-serif;
+  font-size: 1.8em;
+  font-weight: 700;
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+.app-header .nav {
+  display: flex;
+  gap: 32px;
+  width: 100%;
+  justify-content: center;
+  border-top: 1px solid var(--light-gray);
+  padding-top: 10px;
+}
+
+.app-header .nav a {
+  text-decoration: none;
+  color: var(--text-color);
+  font-weight: 500;
+  padding: 8px 4px;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease-in-out;
+  white-space: nowrap;
+}
+
+.app-header .nav a:hover {
+  color: var(--primary-color);
+  border-bottom: 2px solid var(--primary-color);
+}
+
+.app-header__right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+/* --- 공용 컴포넌트 스타일 --- */
+.card {
+  background-color: var(--white);
+  border: 1px solid var(--light-gray);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  transition: all 0.2s;
+  overflow-wrap: break-word;
+}
+.card:hover {
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  transform: translateY(-2px);
+}
+
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  color: var(--white);
+}
+.btn-primary:hover {
+  opacity: 0.9;
+}
+
+.btn-secondary {
+  background-color: var(--light-gray);
+  color: var(--text-color);
+}
+.btn-secondary:hover {
+  background-color: #d1d5db;
+}
+
+.btn-danger {
+  background-color: #ef4444;
+  color: var(--white);
+}
+
+.form-container {
+  background: var(--white);
+  padding: 24px;
+  border-radius: 12px;
+  border: 1px solid var(--light-gray);
+  max-width: 400px;
+  margin: 40px auto;
+}
+
+.input-field {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--light-gray);
+  border-radius: 8px;
+  margin-top: 4px;
+  margin-bottom: 12px;
+}
+
+.page-title {
+  text-align: center;
+  font-size: clamp(1.5rem, 4vw, 2.25rem);
+  color: var(--text-color);
+  margin-bottom: 24px;
+}
+
+/* === 채팅 화면 통합 CSS === */
+.chat-page-container {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  background: white !important;
+  z-index: 999 !important;
+  overflow: hidden !important;
+}
+
+.chat-header {
+  position: sticky !important;
+  top: 0 !important;
+  height: 60px !important;
+  background: white !important;
+  border-bottom: 1px solid #ddd !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-weight: bold !important;
+  z-index: 10 !important;
+  flex-shrink: 0 !important;
+  padding: 15px 20px !important;
+}
+
+.message-list {
+  flex: 1 !important;
+  padding: 15px !important;
+  overflow-y: auto !important;
+  min-height: 0 !important;
+  margin-bottom: 80px !important;
+}
+
+.chat-input {
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 80px !important;
+  background: #f8f8f8 !important;
+  border-top: 1px solid #ddd !important;
+  display: flex !important;
+  align-items: center !important;
+  padding: 15px !important;
+  z-index: 1000 !important;
+}
+
+.chat-input form {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  width: 100% !important;
+}
+
+.chat-input textarea {
+  flex: 1 !important;
+  padding: 12px 15px !important;
+  border: 1px solid #ddd !important;
+  border-radius: 25px !important;
+  resize: none !important;
+  font-size: 16px !important;
+  outline: none !important;
+}
+
+.chat-input button {
+  padding: 12px 20px !important;
+  background: #00a3d2 !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 25px !important;
+  font-weight: bold !important;
+  cursor: pointer !important;
+}
+
+.chat-header small {
+  font-size: 0.8em;
+  color: #666;
+  font-weight: normal;
+  display: block;
+}
+
+.chat-back-button {
+  position: absolute;
+  top: 50%;
+  left: 20px;
+  transform: translateY(-50%);
+  background: rgba(0,0,0,0.1);
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  font-size: 1.2em;
+  color: #333;
+}
+
+/* 여기가 핵심! 각 메시지 줄은 전체 너비를 차지하는 투명한 flex 컨테이너가 됩니다. */
+.message-container {
+  display: flex; /* 자식 요소(말풍선)를 정렬하기 위해 flex로 설정 */
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+/* 내 메시지는 오른쪽 정렬 */
+.my-message.message-container {
+  justify-content: flex-end; /* 내용을 오른쪽 끝으로 보냅니다. */
+}
+
+/* 상대방 메시지는 왼쪽 정렬 */
+.their-message.message-container {
+  justify-content: flex-start; /* 내용을 왼쪽 끝으로 보냅니다. */
+}
+
+.message-bubble {
+  max-width: 70%; /* 말풍선이 너무 길어지지 않도록 최대 너비 설정 */
+  padding: 10px 14px;
+  border-radius: 20px;
+  font-size: 1rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: break-word; /* 긴 단어가 있어도 줄바꿈 처리 */
+  text-align: left;
+}
+
+/* 내 말풍선 스타일 (카카오톡 노란색) */
+.my-message .message-bubble {
+  background-color: #00a3d2;
+  color: #ffffff;
+  border-bottom-right-radius: 5px; /* 오른쪽 아래 모서리를 뾰족하게 */
+}
+
+/* 상대방 말풍선 스타일 (흰색) */
+.their-message .message-bubble {
+  background-color: #ffffff;
+  color: #191919;
+  border: 1px solid #191919;
+  border-bottom-left-radius: 5px; /* 왼쪽 아래 모서리를 뾰족하게 */
+}
+
+.message-sender {
+  font-size: 0.8em;
+  color: #333;
+  margin-bottom: 4px;
+  padding: 0 5px;
+}
+
+/* 홈 페이지 스타일 */
+.home-hero {
+  text-align: center;
+  padding: 48px 20px;
+  background-color: var(--primary-color-light);
+  border-radius: 12px;
+  margin-bottom: 32px;
+}
+
+.home-hero h1 {
+  font-family: 'Poppins', sans-serif;
+  font-size: clamp(2.5rem, 10vw, 4rem);
+  color: var(--primary-color);
+  margin: 0;
+}
+
+.home-hero p {
+  font-size: 1.2em;
+  color: #64748b;
+  margin-top: 10px;
+}
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 24px;
+  max-width: 900px;
+  margin: auto;
+}
+
+.feature-card {
+  text-align: center;
+  padding: 24px;
+}
+
+.feature-card .icon {
+  font-size: 2.5rem;
+  margin-bottom: 12px;
+  line-height: 1;
+}
+
+.feature-card h3 {
+  color: var(--primary-color);
+  margin-top: 0;
+}
+
+/* 중앙 팝업 (모달) 스타일 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+.modal-content p {
+    white-space: pre-wrap;
+}
+.modal-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* ================================================= */
+/* 모바일 반응형 스타일 (화면이 768px보다 작을 때) */
+/* ================================================= */
+@media (max-width: 768px) {
+  .app-header {
+    padding: 10px 16px;
+  }
+  
+  .header-top {
+    margin-bottom: 8px;
+  }
+  
+  .app-header .brand {
+      font-size: 1.5em;
+  }
+
+  .app-header .nav {
+    gap: 0;
+    justify-content: space-around; /* 모바일에서는 메뉴를 균등 배분 */
+    padding-top: 8px;
+  }
+  .app-header .nav a {
+      font-size: 0.9em;
+      padding: 8px 2px;
+  }
+  
+  .app-header__right span {
+      font-size: 0.9em;
+      white-space: nowrap;
+  }
+
+  .app-main {
+    padding: 16px;
+  }
+  
+  .page-title {
+    font-size: 1.5em;
+  }
+
+  .form-container {
+    margin: 20px auto;
+    padding: 20px;
+  }
+  
+  .home-hero {
+    padding: 24px 15px;
+    margin-bottom: 20px;
+  }
+  .home-hero h1 {
+    font-size: 2rem;
+  }
+  .home-hero p {
+    font-size: 1rem;
+    margin-top: 8px;
+  }
+  .feature-grid {
+    gap: 16px;
+  }
+  .feature-card {
+    padding: 16px;
+  }
+  .feature-card .icon {
+    font-size: 2rem;
+    margin-bottom: 8px;
+  }
+  .feature-card h3 {
+    font-size: 1.1rem;
+  }
+  .feature-card p {
+    font-size: 0.9rem;
+  }
+}
+
+/* --- 멤버 목록 모달 스타일 --- */
+.member-list-modal {
+  max-width: 450px;
+  text-align: left;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--light-gray);
+  margin-bottom: 12px;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.2em;
+}
+
+.close-button {
+  background: transparent;
+  border: none;
+  font-size: 1.8em;
+  line-height: 1;
+  cursor: pointer;
+  color: #888;
+  padding: 0 5px;
+}
+
+.modal-body {
+  max-height: 60vh;
+  overflow-y: auto;
+  /* 스크롤바 디자인 (선택사항) */
+  scrollbar-width: thin;
+  scrollbar-color: var(--light-gray) transparent;
+}
+
+/* === 통합된 메시지 입력 폼 스타일 === */
+.message-input-form {
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 80px !important;
+  background: #f8f8f8 !important;
+  border-top: 1px solid #ddd !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 15px !important;
+  z-index: 1000 !important;
+}
+
+.message-input-form textarea {
+  flex: 1 !important;
+  padding: 12px 15px !important;
+  border: 1px solid #ddd !important;
+  border-radius: 25px !important;
+  resize: none !important;
+  font-family: inherit !important;
+  font-size: 16px !important;
+  outline: none !important;
+  background: white !important;
+  min-height: 20px !important;
+  max-height: 60px !important;
+  overflow: hidden !important;
+}
+
+.message-input-form button {
+  padding: 12px 20px !important;
+  background: var(--primary-color) !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 25px !important;
+  font-weight: bold !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}
+
+.message-input-form button:disabled {
+  background: #ccc !important;
+  cursor: not-allowed !important;
+}
+
+/* 플레이스홀더 텍스트에 대한 반응형 글자 크기 설정 */
+.message-input-form textarea::placeholder {
+  color: #999;
+  font-size: 16px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+/* 첨부파일 버튼 스타일 */
+.attach-button {
+  width: 35px !important;
+  height: 35px !important;
+  border: none !important;
+  background: #f0f0f0 !important;
+  border-radius: 50% !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 16px !important;
+  color: #666 !important;
+  transition: all 0.2s !important;
+  flex-shrink: 0 !important;
+}
+
+.attach-button:hover {
+  background: #e0e0e0 !important;
+  color: #333 !important;
+}
+
+/* RoomDetail 채팅 깜빡임 방지 */
+.card {
+  transition: none !important;
+  transform: none !important;
+  animation: none !important;
+}
+
+/* 채팅 컨테이너 안정화 */
+.message-list {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 채팅창이 다른 요소를 가리지 않도록 */
+.chat-header {
+  position: relative !important;
+  z-index: 1;
+}
+
+/* RoomDetail 내부 채팅 전용 스타일 */
+.room-chat-wrapper {
+  position: relative !important;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.room-chat-wrapper .chat-header {
+  position: relative !important;
+  height: 45px !important;
+  border-bottom: 1px solid #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  padding: 10px;
+}
+
+.room-chat-wrapper .message-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 15px;
+  margin-bottom: 0;
+}
+
+.room-chat-wrapper .message-input-form {
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  background: #f8f8f8;
+  border-top: 1px solid #ddd;
+}
+
+/* 버튼과 네비게이션만 줄바꿈 방지 */
+button, .nav a, .brand {
+  white-space: nowrap;
+}
+
+/* 제목들 말줄임 처리 */
+h1, h2, h3, h4, h5, h6 {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 게시판 제목 셀 말줄임 처리 - 실제 클래스명 사용 */
+.post-title-cell {
+  max-width: 0;  /* 테이블 셀에서 말줄임 작동하게 하는 트릭 */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.post-title-cell a {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 작성일 줄바꿈 방지 */
+td[style*="whiteSpace"] {
+  white-space: nowrap !important;
+}
+
+/* 클랜 카드 크기 유지 */
+.clan-card {
+  min-width: 280px;
+}
+
+/* 필요한 경우에만 줄바꿈 허용 */
+.allow-wrap {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  word-break: keep-all;
+}
+
+/* 모바일 대응 */
+@media (max-width: 768px) {
+  .board-list-item .post-title {
+    max-width: 60%;
+  }
+}
