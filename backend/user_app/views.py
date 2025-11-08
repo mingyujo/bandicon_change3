@@ -2,9 +2,10 @@ from django.shortcuts import render
 # user_app/views.py
 # user_app/views.py (파일 최상단)
 
-from rest_framework import generics, status, views, parsers
+from rest_framework import generics, status, views, parsers, permissions
 from rest_framework.response import Response
 from rest_framework.request import Request
+from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.shortcuts import get_object_or_404
 from django.db import IntegrityError
@@ -17,6 +18,8 @@ from .serializers import (
     FriendsListSerializer, FriendRequestSerializer, 
     NicknameUpdateSerializer, DeviceTokenSerializer
 )
+
+
 
 # SMS
 import os

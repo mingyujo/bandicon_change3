@@ -358,9 +358,9 @@ api.interceptors.request.use(
     }
     
     // URL 끝에 슬래시가 없으면 추가 (301 리다이렉트 방지)
-    if (config.url && !config.url.endsWith('/') && !config.url.includes('?')) {
+    /*if (config.url && !config.url.endsWith('/') && !config.url.includes('?')) {
       config.url += '/';
-    }
+    }*/
     
     return config;
   },
