@@ -1,30 +1,36 @@
-# user_app/admin.py
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
-# --- 👇 VerificationCode, DirectChat 임포트 추가 ---
-from .models import User, DeviceToken, FriendRequest, VerificationCode, DirectChat
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from .models import (
+    User, 
+    UserDevice, 
+    FriendRequest, 
+    VerificationCode, 
+    DirectChat,
+    Alert
+)
 
-####################################3
-class CustomUserAdmin(UserAdmin):
-    model = User
-    # admin 리스트에서 보여줄 필드 목록 (기본값에 nickname, role 추가)
+
+class UserAdmin(BaseUserAdmin):
+    fieldsets = (
+        (None, {'fields': ('username', 'password')}),
+        # --- 👇 [수정] role, status 추가 ---
+        ('Personal info', {'fields': ('nickname', 'email', 'profile_img', 'introduction', 'instruments', 'genres', 'region', 'score', 'role', 'status')}),
+        # --- 👆 [수정] ---
+        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
+        ('Important dates', {'fields': ('last_login', 'created_at')}),
+        ('Friends', {'fields': ('friends',)}),
+    )
+    # --- 👇 [수정] role, status 추가 ---
     list_display = ('username', 'nickname', 'email', 'role', 'status', 'is_staff')
-    
-    # admin에서 사용자 수정 시 보여줄 필드 목록
-    # (FastAPI 모델의 커스텀 필드들을 추가)
-    fieldsets = UserAdmin.fieldsets + (
-        ('밴디콘 추가 정보', {'fields': ('nickname', 'phone', 'skills', 'manner_score', 'badges', 'role', 'status', 'marketing_consent')}),
-    )
-    # admin에서 사용자 추가 시 보여줄 필드 목록
-    add_fieldsets = UserAdmin.add_fieldsets + (
-        ('밴디콘 추가 정보', {'fields': ('nickname', 'phone', 'skills', 'manner_score', 'badges', 'role', 'status', 'marketing_consent')}),
-    )
-# ... (CustomUserAdmin 클래스 코드는 그대로 둠) ...
+    # --- 👆 [수정] ---
+    search_fields = ('username', 'nickname', 'email')
+    readonly_fields = ('created_at',)
+    filter_horizontal = ('groups', 'user_permissions', 'friends')
 
-admin.site.register(User, CustomUserAdmin)
-admin.site.register(DeviceToken)
+
+admin.site.register(User, UserAdmin)
+admin.site.register(UserDevice) 
 admin.site.register(FriendRequest)
-
-# --- 👇 맨 아래 두 줄 추가 ---
 admin.site.register(VerificationCode)
 admin.site.register(DirectChat)
+admin.site.register(Alert)

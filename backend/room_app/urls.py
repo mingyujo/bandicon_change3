@@ -17,7 +17,7 @@ urlpatterns = [
     path('join/', views.JoinSessionView.as_view(), name='join-session'),
     
     # FastAPI의 POST /rooms/leave 
-    #path('leave/', views.LeaveSessionView.as_view(), name='leave-session'),
+    path('leave/', views.LeaveSessionView.as_view(), name='leave-session'),
     
     # FastAPI의 POST /rooms/session/reserve 
     #path('session/reserve/', views.ReserveSessionView.as_view(), name='reserve-session'),
@@ -29,10 +29,10 @@ urlpatterns = [
     #path('<int:room_id>/members/<str:member_nickname>/', views.KickMemberView.as_view(), name='kick-member'),
     
     # FastAPI의 POST /rooms/{room_id}/confirm 
-    #path('<int:room_id>/confirm/', views.ConfirmRoomView.as_view(), name='confirm-room'),
+    path('<int:room_id>/confirm/', views.ConfirmRoomView.as_view(), name='confirm-room'),
     
     # FastAPI의 POST /rooms/{room_id}/end 
-    #path('<int:room_id>/end/', views.EndRoomView.as_view(), name='end-room'),
+    path('<int:room_id>/end/', views.EndRoomView.as_view(), name='end-room'),
     
     # FastAPI의 GET, POST /rooms/{room_id}/availability 
     #path('<int:room_id>/availability/', views.RoomAvailabilityView.as_view(), name='room-availability'),

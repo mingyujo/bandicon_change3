@@ -1,165 +1,104 @@
-# user_app/models.py
-
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from django.conf import settings # AUTH_USER_MODEL을 가져오기 위해
+from django.utils import timezone 
 
-# 1. Django의 기본 User 모델을 확장(Override)합니다.
-# -----------------------------------------------------------------
+# --- (User 모델) ---
 class User(AbstractUser):
-    """
-    FastAPI의 User 모델을 Django의 AbstractUser 모델로 변환합니다.
-    username, password, email 필드는 AbstractUser에 이미 포함되어 있습니다.
-    """
-    
-    # 닉네임 (기존: String, unique=True, index=True, nullable=False)
-    # AbstractUser의 first_name, last_name은 사용하지 않고 nickname을 메인으로 사용
-    nickname = models.CharField(
-        max_length=150, 
-        unique=True, 
-        db_index=True,
-        help_text="서비스에서 사용할 고유한 별명"
-    )
-    
-    # 전화번호 (기존: String)
-    phone = models.CharField(max_length=20, blank=True, null=True)
-    
-    # 인증 여부 (기존: Boolean)
-    phone_verified = models.BooleanField(default=False)
-    email_verified = models.BooleanField(default=False)
-    
-    # 스킬 (기존: JSON)
-    skills = models.JSONField(blank=True, null=True)
-    
-    # 매너 스코어 (기존: String, default="루키")
-    manner_score = models.CharField(max_length=20, default="루키")
-    
-    # 뱃지 (기존: Integer, default=0)
-    badges = models.IntegerField(default=0)
-    
-    # 프로필 이미지 (기존: String, nullable=True)
-    profile_img = models.CharField(max_length=512, blank=True, null=True)
-    
-    # 역할 및 상태 (기존: String)
-    role = models.CharField(max_length=20, default="멤버")
-    status = models.CharField(max_length=20, default="pending")
-    
-    # 마케팅 동의 (기존: Boolean)
-    marketing_consent = models.BooleanField(default=False)
+    nickname = models.CharField(max_length=100, unique=True, blank=True, null=True)
+    email = models.EmailField(unique=True)
+    profile_img = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
+    introduction = models.TextField(blank=True) 
+    instruments = models.JSONField(default=list, blank=True) 
+    genres = models.JSONField(default=list, blank=True) 
+    region = models.CharField(max_length=100, blank=True) 
+    score = models.IntegerField(default=100)
+    created_at = models.DateTimeField(auto_now_add=True)
+    friends = models.ManyToManyField('self', blank=True) 
 
-    # 친구 관계 (기존: friendship_table)
-    # Django의 ManyToManyField("self")는 대칭적인(symmetrical)
-    # 다대다 관계를 자동으로 처리해 줍니다.
-    friends = models.ManyToManyField(
-        "self", 
-        symmetrical=True, 
-        blank=True
+    # --- 👇 [필수] 'role'과 'status' 필드 ---
+    role = models.CharField(
+        max_length=50, 
+        choices=[('MEMBER', '멤버'), ('MANAGER', '간부'), ('ADMIN', '운영자')], 
+        default='MEMBER'
     )
-    
-    # [참고]
-    # posts, comments, clan, liked_posts 등 User와 연결된
-    # 다른 모델들은 해당 앱(board_app, clan_app 등)에서
-    # User 모델을 'ForeignKey'로 참조하게 되며,
-    # Django가 자동으로 User 모델에 역참조 관계를 만들어줍니다.
+    status = models.CharField(
+        max_length=20, 
+        choices=[('pending', '대기'), ('approved', '승인'), ('rejected', '거절')], 
+        default='approved'
+    )
+    # --- 👆 [필수] ---
+
+    REQUIRED_FIELDS = ['nickname', 'email']
 
     def __str__(self):
-        return self.username
+        return self.nickname if self.nickname else self.username
 
 
-# 2. DeviceToken 모델 변환
-# -----------------------------------------------------------------
-class DeviceToken(models.Model):
-    """
-    FastAPI의 DeviceToken 모델을 변환합니다.
-    """
-    # user_id (기존: ForeignKey("users.id"))
-    # settings.AUTH_USER_MODEL은 Django 설정에 등록된 
-    # 활성 User 모델(즉, 위의 User 클래스)을 가리킵니다.
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, 
-        on_delete=models.CASCADE, 
-        related_name="device_tokens"
-    )
-    
-    # token (기존: String, unique=True, nullable=False)
-    token = models.CharField(max_length=512, unique=True)
+# --- (UserDevice 모델) ---
+class UserDevice(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='device')
+    fcm_token = models.CharField(max_length=255, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.user.username} - {self.token[:20]}..."
+        return f"{self.user.nickname} - {self.fcm_token[:10]}..."
 
 
-# 3. FriendRequest 모델 변환
-# -----------------------------------------------------------------
+# --- (FriendRequest 모델) ---
 class FriendRequest(models.Model):
-    """
-    FastAPI의 FriendRequest 모델을 변환합니다.
-    """
-    # sender_id (기존: ForeignKey("users.id"))
-    sender = models.ForeignKey(
-        settings.AUTH_USER_MODEL, 
-        on_delete=models.CASCADE, 
-        related_name="sent_friend_requests"
-    )
-    
-    # receiver_id (기존: ForeignKey("users.id"))
-    receiver = models.ForeignKey(
-        settings.AUTH_USER_MODEL, 
-        on_delete=models.CASCADE, 
-        related_name="received_friend_requests"
-    )
-    
-    # status (기존: String, default="pending")
-    status = models.CharField(max_length=20, default="pending")
+    from_user = models.ForeignKey(User, related_name='sent_friend_requests', on_delete=models.CASCADE)
+    to_user = models.ForeignKey(User, related_name='received_friend_requests', on_delete=models.CASCADE)
+    status = models.CharField(max_length=20, choices=[('pending', 'Pending'), ('accepted', 'Accepted'), ('rejected', 'Rejected')], default='pending')
+    created_at = models.DateTimeField(auto_now_add=True) 
+
+    class Meta:
+        unique_together = ('from_user', 'to_user')
 
     def __str__(self):
-        return f"{self.sender.username} -> {self.receiver.username} ({self.status})"
+        return f"{self.from_user} to {self.to_user} ({self.status})"
 
-# ... (기존 User, DeviceToken, FriendRequest 모델 코드 바로 아래) ...
-
-# 4. VerificationCode 모델 변환
-# -----------------------------------------------------------------
-class VerificationCode(models.Model):
-    """
-    FastAPI의 VerificationCode 모델을 변환합니다. 
-    """
-    phone = models.CharField(max_length=20, unique=True, db_index=True)
-    code = models.CharField(max_length=10)
-    expires_at = models.DateTimeField()
-
-    def __str__(self):
-        return f"{self.phone} - {self.code}"
-
-
-# 5. DirectChat 모델 변환
-# -----------------------------------------------------------------
+# --- (DirectChat 모델) ---
 class DirectChat(models.Model):
-    """
-    FastAPI의 DirectChat 모델을 변환합니다. 
-    """
-    sender = models.CharField(max_length=150)
-    receiver = models.CharField(max_length=150)
-    message = models.TextField(blank=True, null=True)
-    timestamp = models.CharField(max_length=100) # (기존 CharField 유지)
-    image_url = models.CharField(max_length=512, blank=True, null=True)
-    is_read = models.BooleanField(default=False)
+    sender = models.ForeignKey(User, related_name='sent_direct_chats', on_delete=models.CASCADE)
+    receiver = models.ForeignKey(User, related_name='received_direct_chats', on_delete=models.CASCADE)
+    message = models.TextField(default='')
+    timestamp = models.DateTimeField(auto_now_add=True)
+    file_url = models.URLField(blank=True, null=True)
 
     def __str__(self):
-        return f"{self.sender} -> {self.receiver}"    
+        return f"From {self.sender} to {self.receiver}: {self.message[:20]}"
 
-# ... (기존 User, DeviceToken, FriendRequest, VerificationCode, DirectChat 모델) ...
+# --- (VerificationCode 모델) ---
+class VerificationCode(models.Model):
+    email = models.EmailField(unique=True)
+    code = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
 
-# 6. Alert 모델 변환
-# -----------------------------------------------------------------
+    def is_expired(self):
+        return (timezone.now() - self.created_at).total_seconds() > 180 
+
+# --- (Alert 모델) ---
 class Alert(models.Model):
-    """
-    FastAPI의 Alert 모델을 변환합니다. 
-    """
-    # (id는 Django가 자동으로 Pk를 생성합니다)
-    user_nickname = models.CharField(max_length=150, db_index=True)
-    message = models.TextField()
-    related_url = models.CharField(max_length=512, blank=True, null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='alerts', null=True, blank=True)
+    
+    alert_type = models.CharField(
+        max_length=50,
+        choices=[
+            ('ROOM_INVITE', '합주실 초대'),
+            ('FRIEND_REQUEST', '친구 요청'),
+            ('CLAN_INVITE', '클랜 초대'),
+            ('EVALUATION_REQUEST', '매너 평가 요청'),
+            ('SYSTEM', '시스템 알림'),
+        ],
+        default='SYSTEM' 
+    )
+    
+    message = models.CharField(max_length=255, default='')
+    related_id = models.IntegerField(null=True, blank=True) 
+    related_url = models.CharField(max_length=255, null=True, blank=True) 
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"[{self.user_nickname}] {self.message[:50]}"
+        user_str = self.user.nickname if self.user else "System"
+        return f"[{user_str}] {self.message} (Read: {self.is_read})"

@@ -1,118 +1,104 @@
 # user_app/serializers.py
-
 from rest_framework import serializers
-from .models import User, FriendRequest, DeviceToken, DirectChat
-# (VerificationCode는 API로 직접 반환되지 않으므로 serializer는 불필요)
+from django.contrib.auth import get_user_model
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from .models import UserDevice, FriendRequest, DirectChat, Alert
 
-# --- User ---
+User = get_user_model() # 👈 [신규]
 
+# --- 👇 [신규] (12:42 응답) ---
 class UserBaseSerializer(serializers.ModelSerializer):
     """
-    FastAPI의 UserBase  스키마와 유사.
-    다른 Serializer에서 중첩으로 사용될 간단한 유저 정보.
+    다른 Serializer에서 중첩으로 사용될 최소한의 유저 정보
+    (board_app, clan_app 등에서 사용)
     """
     class Meta:
         model = User
         fields = ('id', 'nickname', 'profile_img')
+# --- 👆 [신규] ---
 
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        # (기존 로직 유지)
+        return token
 
 class UserCreateSerializer(serializers.ModelSerializer):
-    """
-    FastAPI의 UserCreate  스키마를 변환.
-    (id는 username으로 매핑)
-    """
-    # FastAPI의 UserCreate 스키마에서 'id' 필드를 username으로 사용했음 
-    id = serializers.CharField(source='username') 
-    skills = serializers.JSONField(required=False)
-
+    # (기존 로직 유지)
     class Meta:
         model = User
         fields = (
-            'id', 
+            'username', # 👈 [수정] id -> username
             'password', 
             'nickname', 
-            'phone', 
             'email', 
-            'skills', 
-            'role', 
+            'introduction', # 👈 [신규]
+            'instruments',  # 👈 [신규]
+            'genres',       # 👈 [신규]
+            'region',       # 👈 [신규]
             'marketing_consent'
         )
         extra_kwargs = {
-            'password': {'write_only': True} # 비밀번호는 응답에 포함되지 않도록 설정
+            'password': {'write_only': True}
         }
 
     def create(self, validated_data):
-        # Django의 create_user()를 사용해 비밀번호를 자동으로 해싱합니다.
-        # (FastAPI의 crud.create_user [cite: 689-2169] + security.get_password_hash 역할)
         user = User.objects.create_user(
             username=validated_data['username'],
             password=validated_data['password'],
             nickname=validated_data['nickname'],
-            phone=validated_data['phone'],
-            email=validated_data.get('email'),
-            skills=validated_data.get('skills', {}),
-            role=validated_data['role'],
+            email=validated_data['email'],
+            introduction=validated_data.get('introduction', ''),
+            instruments=validated_data.get('instruments', []),
+            genres=validated_data.get('genres', []),
+            region=validated_data.get('region', ''),
             marketing_consent=validated_data.get('marketing_consent', False),
-            
-            # FastAPI의 기본값(pending/approved)을 여기서 설정
-            status="pending" if validated_data['role'] == "간부" else "approved"
+            # (role은 User 모델에서 default='MEMBER'로 처리)
+            is_active=True # 👈 [수정] 간부 승인 로직 대신 기본 활성화
         )
         return user
 
-
-class UserLoginSerializer(serializers.Serializer):
-    """
-    FastAPI의 UserLogin  스키마를 변환.
-    (DB 모델과 관계없으므로 일반 Serializer 사용)
-    """
-    id = serializers.CharField()
-    password = serializers.CharField(write_only=True)
-
-
 class NicknameUpdateSerializer(serializers.Serializer):
-    """
-    FastAPI의 NicknameUpdate  스키마를 변환.
-    """
     current_nickname = serializers.CharField()
     new_nickname = serializers.CharField()
 
-
-# --- Friends ---
+class UserDeviceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserDevice
+        fields = ('fcm_token',) # 👈 [수정] token -> fcm_token
 
 class FriendRequestSerializer(serializers.ModelSerializer):
     """
-    FastAPI의 FriendRequest  스키마를 변환.
+    (12:37 응답)
     """
-    sender = UserBaseSerializer(read_only=True)
-    
+    # 👇 [수정] (12:42 응답) UserBaseSerializer 사용
+    from_user = UserBaseSerializer(read_only=True)
+    to_user = UserBaseSerializer(read_only=True)
+    # 👆 [수정]
+
     class Meta:
         model = FriendRequest
-        fields = ('id', 'sender', 'status')
-
+        fields = ('id', 'from_user', 'to_user', 'status', 'created_at')
 
 class FriendsListSerializer(serializers.Serializer):
     """
-    FastAPI의 FriendsList  스키마를 변환.
+    (12:37 응답)
     """
+    # 👇 [수정] (12:42 응답) UserBaseSerializer 사용
     friends = UserBaseSerializer(many=True, read_only=True)
     pending_requests = FriendRequestSerializer(many=True, read_only=True)
-
-
-# --- Chat & Device ---
-
-class DeviceTokenSerializer(serializers.ModelSerializer):
-    """
-    FastAPI의 DeviceTokenIn  스키마와 유사.
-    """
-    class Meta:
-        model = DeviceToken
-        fields = ('token',)
-
+    # 👆 [수정]
 
 class DirectChatSerializer(serializers.ModelSerializer):
-    """
-    FastAPI의 DirectChatMessage  스키마를 변환.
-    """
+    # (기존 로직 유지)
     class Meta:
         model = DirectChat
-        fields = ('id', 'sender', 'receiver', 'message', 'timestamp', 'image_url', 'is_read')
+        fields = ('id', 'sender', 'receiver', 'message', 'timestamp', 'file_url')
+        read_only_fields = ['id', 'timestamp']
+
+class AlertSerializer(serializers.ModelSerializer):
+    # (기존 로직 유지)
+    class Meta:
+        model = Alert
+        fields = ('id', 'user', 'alert_type', 'message', 'related_id', 'related_url', 'is_read', 'created_at')
