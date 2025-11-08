@@ -307,8 +307,8 @@ const AppContent = () => {
           {!user ? (
             <>
               {/* ===== 여기를 수정하세요 ===== */}
-              <Route path="/login" element={<LoginForm onLogin={handleLogin} installPrompt={installPrompt} />} />
-              <Route path="/signup" element={<SignupForm onLogin={handleLogin} />} />
+              {/*<Route path="/login" element={<LoginForm onLogin={handleLogin} installPrompt={installPrompt} />} />
+              <Route path="/signup" element={<SignupForm onLogin={handleLogin} />} />*/}
               {/* ===== 여기도 수정하세요 ===== */}
               <Route path="*" element={<LoginForm onLogin={handleLogin} installPrompt={installPrompt} />} />
             </>
