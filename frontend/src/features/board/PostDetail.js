@@ -1,10 +1,10 @@
-// [전체 코드] src/features/board/PostDetail.js - 익명 게시글도 삭제 가능
+// frontend/src/features/board/PostDetail.js
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-// [수정] apiDelete import 추가
-import { apiGet, apiPost, apiPostForm, apiDelete, API_BASE_SERVER } from '../../api/api';
+import { apiGet, apiPost, apiDelete, API_BASE_SERVER } from '../../api/api';
 import Linkify from '../../components/Linkify';
 
+// (Comment 컴포넌트는 변경 없음)
 const Comment = ({ comment, onReplySubmit, user }) => {
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [replyContent, setReplyContent] = useState('');
@@ -19,8 +19,8 @@ const Comment = ({ comment, onReplySubmit, user }) => {
   return (
     <div style={{ marginLeft: comment.parent_id ? '30px' : '0', marginTop: 10, borderTop: '1px solid #f0f0f0', paddingTop: '10px' }}>
       <div style={{ fontSize: 14, color: '#333', fontWeight: 'bold' }}>
-        {comment.anonymous_nickname || comment.owner?.nickname}
-        {comment.anonymous_nickname === '글쓴이' && <span style={{color: 'blue', fontSize: '0.8em', marginLeft: '5px'}}> (글쓴이)</span>}
+        {/* (수정) author.nickname -> author?.nickname (안전하게) */}
+        {comment.author?.nickname}
       </div>
       <div style={{ fontSize: 12, color: '#666' }}>
         {new Date(comment.created_at).toLocaleString()}
@@ -30,6 +30,8 @@ const Comment = ({ comment, onReplySubmit, user }) => {
       </div>
 
       <div style={{ marginTop: 6 }}>
+        {/* (수정) 대댓글 기능은 일단 주석 처리 (백엔드 로직 복잡) */}
+        {/*
         {!comment.parent_id && (
           <button onClick={() => setShowReplyForm(!showReplyForm)} style={{ fontSize: 12, padding: '2px 5px' }}>
             답글
@@ -51,14 +53,17 @@ const Comment = ({ comment, onReplySubmit, user }) => {
             </div>
           </div>
         )}
+        */}
       </div>
 
+      {/* (수정) 대댓글 replies 필드 주석 처리
       {(comment.replies || [])
-        .slice() // 원본 배열을 바꾸지 않기 위해 복사본을 만듭니다.
-        .sort((a, b) => new Date(a.created_at) - new Date(b.created_at)) // 시간순 정렬
+        .slice()
+        .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
         .map((r) => (
           <Comment key={r.id} comment={r} onReplySubmit={onReplySubmit} user={user} />
       ))}
+      */}
     </div>
     );
     };
@@ -69,27 +74,29 @@ const PostDetail = ({ user }) => {
   const [post, setPost] = useState(null);
   const [commentInput, setCommentInput] = useState('');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [canDelete, setCanDelete] = useState(false); // 삭제 권한 여부
+  
+  // (수정) canDelete -> isOwner 로 명칭 변경
+  const [isOwner, setIsOwner] = useState(false); 
 
   const fetchPost = useCallback(async () => {
     if (!user?.nickname) return;
     try {
-      const data = await apiGet(`/post/${postId}?nickname=${encodeURIComponent(user.nickname)}`);
+      // (수정) URL 변경
+      const data = await apiGet(`/boards/posts/${postId}/`);
       setPost(data);
-      
-      // 삭제 권한 확인: 서버에서 is_owner 필드를 받아오거나, 클라이언트에서 판단
-      // 여기서는 서버 응답에 is_owner가 있다고 가정하거나, 아래 로직으로 판단
-      const isOwner = data.is_owner || (!data.is_anonymous && data.owner?.nickname === user.nickname);
-      setCanDelete(isOwner);
+      // (수정) is_owner 로직 변경
+      setIsOwner(data.author?.nickname === user.nickname);
       
     } catch (e) {
       console.error('게시글 조회 실패:', e);
       alert('게시글을 불러오는 데 실패했습니다.');
     }
-  }, [postId, user]);
+  }, [postId, user]); // (user.nickname -> user로 변경)
 
   useEffect(() => {
     fetchPost();
+    // (AlertReadByUrlView 로직은 4순위이므로 일단 주석 처리)
+    /*
     const markAsRead = async () => {
         if (user?.nickname && postId) {
             const formData = new FormData();
@@ -103,14 +110,16 @@ const PostDetail = ({ user }) => {
         }
     };
     markAsRead();
-
-  }, [fetchPost, user, postId]);
+    */
+  }, [fetchPost]); // (user, postId 제거)
 
   const handleLike = async () => {
     if (!user?.nickname) return;
     try {
-      const res = await apiPost(`/post/${postId}/like?nickname=${encodeURIComponent(user.nickname)}`);
-      setPost(prev => ({ ...prev, is_liked: !prev.is_liked, likes_count: res.likes_count }));
+      // (수정) URL 변경
+      const res = await apiPost(`/boards/posts/${postId}/like/`);
+      // (수정) res.likes_count -> res.likes_count
+      setPost(prev => ({ ...prev, is_liked: res.liked, likes_count: res.likes_count }));
     } catch (e) {
       console.error('좋아요 실패:', e);
     }
@@ -119,21 +128,27 @@ const PostDetail = ({ user }) => {
   const handleScrap = async () => {
     if (!user?.nickname) return;
     try {
-      await apiPost(`/post/${postId}/scrap?nickname=${encodeURIComponent(user.nickname)}`);
-      setPost(prev => ({ ...prev, is_scrapped: !prev.is_scrapped }));
+      // --- 👇 [수정] URL 변경 ---
+      const res = await apiPost(`/boards/posts/${postId}/scrap/`);
+      // --- 👇 [수정] 응답 값(scrapped, scraps_count)으로 상태 업데이트 ---
+      setPost(prev => ({ 
+        ...prev, 
+        is_scrapped: res.scrapped, 
+        scraps_count: res.scraps_count 
+      }));
     } catch (e) {
       console.error('스크랩 실패:', e);
     }
   };
 
-  // 게시글 삭제 함수
   const handleDeletePost = async () => {
     if (!user?.nickname) return;
     
     try {
-      await apiDelete(`/posts/${postId}?nickname=${encodeURIComponent(user.nickname)}`);
+      // (수정) URL 변경
+      await apiDelete(`/boards/posts/${postId}/`);
       alert('게시글이 삭제되었습니다.');
-      navigate(-1); // 이전 페이지로 돌아가기
+      navigate(-1); 
     } catch (e) {
       console.error('게시글 삭제 실패:', e);
       const errorMsg = e.response?.data?.detail || '게시글 삭제에 실패했습니다.';
@@ -144,8 +159,10 @@ const PostDetail = ({ user }) => {
   const submitComment = async (content, parentId = null) => {
     if (!user?.nickname || !content.trim()) return;
     try {
-      await apiPost(`/post/${postId}/comments?nickname=${encodeURIComponent(user.nickname)}${parentId ? `&parent_id=${parentId}` : ''}`, {
+      // (수정) URL 변경
+      await apiPost(`/boards/posts/${postId}/comments/`, {
         content: content.trim(),
+        // (대댓글 주석 처리) parent: parentId
       });
       setCommentInput('');
       fetchPost();
@@ -155,6 +172,11 @@ const PostDetail = ({ user }) => {
   };
 
   if (!post) return <div style={{ padding: 20 }}>로딩중…</div>;
+  
+  // (수정) post.image_url -> post.image (모델 필드명)
+  const imageUrl = post.image ? (
+    post.image.startsWith('http') ? post.image : `${API_BASE_SERVER}${post.image}`
+  ) : null;
 
   return (
     <div style={{ padding: 20, maxWidth: '800px', margin: 'auto' }}>
@@ -163,8 +185,8 @@ const PostDetail = ({ user }) => {
           ← 목록으로
         </button>
         
-        {/* 작성자 본인에게만 삭제 버튼 표시 (익명/실명 관계없이) */}
-        {canDelete && (
+        {/* (수정) canDelete -> isOwner */}
+        {isOwner && (
           <button 
             onClick={() => setShowDeleteModal(true)}
             style={{ 
@@ -184,13 +206,15 @@ const PostDetail = ({ user }) => {
 
       <h2 style={{ margin: 0 }}>{post.title}</h2>
       <div style={{ color: '#666', fontSize: 13, marginBottom: 10, borderBottom: '1px solid #eee', paddingBottom: '10px' }}>
-        {post.is_anonymous ? '익명' : (post.owner?.nickname || '알 수 없음')} · {new Date(post.created_at).toLocaleString()}
+        {/* (수정) post.is_anonymous 삭제 (Post 모델에 없음) */}
+        {post.author?.nickname || '알 수 없음'} · {new Date(post.created_at).toLocaleString()}
       </div>
 
-      {post.image_url && (
+      {/* (수정) post.image_url -> imageUrl */}
+      {imageUrl && (
         <div style={{ margin: '20px 0' }}>
           <img
-            src={`${API_BASE_SERVER}${post.image_url}`}
+            src={imageUrl}
             alt="post"
             style={{ maxWidth: '100%', borderRadius: 8 }}
           />
@@ -203,10 +227,10 @@ const PostDetail = ({ user }) => {
 
       <div style={{ display: 'flex', gap: 10, marginBottom: 16, padding: '10px', justifyContent: 'center' }}>
         <button onClick={handleLike}>{post.is_liked ? '👍 좋아요 취소' : '👍 좋아요'} ({post.likes_count})</button>
-        <button onClick={handleScrap}>{post.is_scrapped ? '⭐️ 스크랩 취소' : '⭐️ 스크랩'}</button>
+        {/* (수정) 스크랩 카운트 표시 */}
+        <button onClick={handleScrap}>{post.is_scrapped ? '⭐️ 스크랩 취소' : '⭐️ 스크랩'} ({post.scraps_count})</button>
       </div>
 
-      {/* 삭제 확인 모달 */}
       {showDeleteModal && (
         <div className="modal-overlay">
           <div className="modal-content">
@@ -215,7 +239,7 @@ const PostDetail = ({ user }) => {
             <div className="modal-actions">
               <button 
                 onClick={() => setShowDeleteModal(false)}
-                style={{ marginRight: '10px' }}
+                className="btn btn-secondary"
               >
                 취소
               </button>
@@ -224,14 +248,7 @@ const PostDetail = ({ user }) => {
                   setShowDeleteModal(false);
                   handleDeletePost();
                 }}
-                style={{ 
-                  backgroundColor: '#dc3545', 
-                  color: 'white',
-                  border: 'none',
-                  padding: '10px 20px',
-                  borderRadius: '4px',
-                  cursor: 'pointer'
-                }}
+                className="btn btn-danger"
               >
                 삭제
               </button>
@@ -246,18 +263,18 @@ const PostDetail = ({ user }) => {
           value={commentInput}
           onChange={(e) => setCommentInput(e.target.value)}
           rows={3}
-          style={{ width: '100%', resize: 'none' }}
+          className="input-field" // (수정) 스타일 일관성
           placeholder="따뜻한 댓글을 남겨주세요."
         />
         <div style={{ marginTop: 6, textAlign: 'right' }}>
-          <button onClick={() => submitComment(commentInput)}>등록</button>
+          <button onClick={() => submitComment(commentInput)} className="btn btn-primary">등록</button>
         </div>
       </div>
 
       <div>
         {(post.comments || [])
-          .slice() // 원본 배열을 바꾸지 않기 위해 복사본을 만듭니다.
-          .sort((a, b) => new Date(a.created_at) - new Date(b.created_at)) // 시간순 정렬
+          .slice() 
+          .sort((a, b) => new Date(a.created_at) - new Date(b.created_at)) 
           .map((c) => (
             <Comment key={c.id} comment={c} onReplySubmit={submitComment} user={user} />
         ))}

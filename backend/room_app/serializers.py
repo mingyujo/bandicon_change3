@@ -1,148 +1,158 @@
+# room_app/serializers.py
+
 from rest_framework import serializers
-from .models import Room, Session, GroupChat, Evaluation, SessionReservation
-# --- 👇 [신규] User 모델 임포트 ---
+from .models import (
+    Room, Session, SessionReservation, Evaluation, GroupChat, RoomAvailabilitySlot
+)
 from user_app.models import User
+from user_app.serializers import UserBaseSerializer
 
-
-# --- 👇 [신규] 평가 대상 유저 정보 Serializer ---
-class LimitedUserSerializer(serializers.ModelSerializer):
+class SessionReservationSerializer(serializers.ModelSerializer):
     """
-    평가 대상 유저의 닉네임과 프로필 이미지만 반환하는 Serializer
+    세션 예약을 위한 시리얼라이저 (유저 정보 포함)
     """
-    class Meta:
-        model = User
-        fields = ['nickname', 'profile_img']
-
-# --- 👇 [신규] 평가 목록 Serializer (GET 요청용) ---
-class EvaluationListSerializer(serializers.ModelSerializer):
-    """
-    GET /evaluations/ 요청 시, 평가해야 할 대상 목록을 반환
-    """
-    target = LimitedUserSerializer(read_only=True)
+    # [수정] user_nickname을 UserBaseSerializer로
+    user = UserBaseSerializer(read_only=True)
+    user_nickname = serializers.CharField(write_only=True, required=False) # 쓰기용
 
     class Meta:
-        model = Evaluation
-        fields = ['id', 'target']
+        model = SessionReservation
+        fields = ['id', 'user', 'created_at', 'user_nickname']
+        read_only_fields = ['user', 'created_at']
+
+    def create(self, validated_data):
+        # view에서 request.user를 받아 생성 (여기서는 쓰기용 user_nickname 사용 안 함)
+        # 만약 user_nickname을 쓴다면 user = User.objects.get(nickname=validated_data.pop('user_nickname'))
+        # session = validated_data.pop('session')
+        # return SessionReservation.objects.create(session=session, user=user, **validated_data)
+        
+        # [수정] View에서 user 객체를 직접 주입하는 방식으로 변경
+        return SessionReservation.objects.create(**validated_data)
 
 
 class SessionSerializer(serializers.ModelSerializer):
+    """
+    세션 정보 (예약 목록 포함)
+    """
+    # 'reservations'는 Room 모델의 related_name
+    reservations = SessionReservationSerializer(many=True, read_only=True)
+
     class Meta:
         model = Session
-        fields = ['session_name', 'participant_nickname']
+        fields = ['id', 'session_name', 'participant_nickname', 'reservations']
 
-class RoomSerializer(serializers.ModelSerializer):
+
+class RoomAvailabilitySlotSerializer(serializers.ModelSerializer):
+    """
+    합주 일정 조율 슬롯 (투표자 목록, 현재 유저 투표 여부 포함)
+    """
+    voters = UserBaseSerializer(many=True, read_only=True)
+    voted_by_current_user = serializers.SerializerMethodField()
+
+    class Meta:
+        model = RoomAvailabilitySlot
+        fields = ['id', 'time', 'voters', 'voted_by_current_user']
+
+    def get_voted_by_current_user(self, obj):
+        user = self.context['request'].user
+        return obj.voters.filter(id=user.id).exists()
+
+
+class RoomListSerializer(serializers.ModelSerializer):
+    """
+    (GET) 합주방 목록 (세션 정보 포함)
+    """
+    # 'sessions'는 Room 모델의 related_name
     sessions = SessionSerializer(many=True, read_only=True)
-    # is_manager 필드는 SerializerMethodField로 직접 구현
-    is_manager = serializers.SerializerMethodField()
+    session_count = serializers.SerializerMethodField()
+    participant_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Room
         fields = [
-            'id', 'title', 'song', 'artist', 'description', 
-            'sessions', 'manager_nickname', 'is_private', 
-            'confirmed', 'ended', 'created_at', 'clan',
-            'is_manager' # is_manager 추가
+            'id', 'title', 'song', 'artist', 'manager_nickname', 
+            'sessions', 'session_count', 'participant_count', 
+            'created_at', 'clan'
         ]
-        
-    def get_is_manager(self, obj):
-        # 이 Serializer가 호출되는 context에서 request를 가져옴
-        request = self.context.get('request')
-        if request and hasattr(request, "user") and request.user.is_authenticated:
-             # (JWT 인증 로직이 완성되면 request.user.nickname으로 변경)
-             # 임시로 쿼리 파라미터나 다른 방식으로 현재 유저 닉네임을 받아야 함
-             # 여기서는 임시로직으로, 실제 구현 시 JWT 유저를 사용해야 함
-            current_nickname = request.query_params.get('nickname') # 예시
-            return obj.manager_nickname == current_nickname
-        
-        # 클랜 방 목록 등 [cite: 318-348] 비로그인 유저가 볼 경우
-        if request:
-            current_nickname = request.query_params.get('nickname')
-            if current_nickname:
-                return obj.manager_nickname == current_nickname
 
-        return False
+    def get_session_count(self, obj):
+        return obj.sessions.count()
 
-class RoomCreateSerializer(serializers.Serializer):
-    title = serializers.CharField(max_length=100)
-    song = serializers.CharField(max_length=100)
-    artist = serializers.CharField(max_length=100)
-    description = serializers.CharField(required=False, allow_blank=True)
-    is_private = serializers.BooleanField(default=False)
-    password = serializers.CharField(required=False, allow_blank=True, max_length=20)
-    clan_id = serializers.IntegerField(required=False, allow_null=True)
-    sessions = serializers.ListField(
-        child=serializers.CharField(max_length=50),
-        min_length=1,
-        max_length=10
-    )
-
-    def validate(self, data):
-        if data['is_private'] and not data.get('password'):
-            raise serializers.ValidationError("비공개 방은 비밀번호가 필요합니다.")
-        return data
-
-class RoomUpdateSerializer(serializers.Serializer):
-    # PUT /rooms/{room_id}
-    title = serializers.CharField(max_length=100)
-    song = serializers.CharField(max_length=100)
-    artist = serializers.CharField(max_length=100)
-    description = serializers.CharField(required=False, allow_blank=True)
-    nickname = serializers.CharField(max_length=100) # 방장 확인용
+    def get_participant_count(self, obj):
+        return obj.sessions.filter(participant_nickname__isnull=False).count()
 
 
-class GroupChatSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = GroupChat
-        fields = ['id', 'room', 'sender', 'message', 'timestamp', 'file_url']
-        read_only_fields = ['id', 'room', 'timestamp']
-
-
-class MannerEvalSerializer(serializers.ModelSerializer):
+class RoomDetailSerializer(serializers.ModelSerializer):
     """
-    [삭제] 이 Serializer는 MannerEval.js의 POST 요청과 맞지 않아 사용하지 않음
-    대신 views.py에서 POST 요청을 수동으로 처리
+    (GET) 합주방 상세 정보 (세션, 채팅, 일정 조율)
     """
-    # evaluator_nickname = serializers.CharField(write_only=True)
-    # target_nickname = serializers.CharField(write_only=True)
+    sessions = SessionSerializer(many=True, read_only=True)
+    # 'availability_slots'는 Room 모델의 related_name (models.py에서 설정)
+    availability_slots = RoomAvailabilitySlotSerializer(many=True, read_only=True)
+    
     class Meta:
-        model = Evaluation
-        fields = ['id', 'room_id', 'score', 'comment'] # 'evaluator_nickname', 'target_nickname', 
-        # (필드가 간소화됨. 실제 로직은 View에서 처리)
+        model = Room
+        fields = [
+            'id', 'title', 'song', 'artist', 'description', 
+            'manager_nickname', 'sessions', 'confirmed', 'ended', 
+            'created_at', 'confirmed_at', 'ended_at',
+            'availability_slots', # 2순위: 일정 조율 슬롯
+            'clan'
+        ]
+        read_only_fields = [
+            'manager_nickname', 'sessions', 'confirmed', 'ended', 
+            'created_at', 'confirmed_at', 'ended_at',
+            'availability_slots', 'clan'
+        ]
 
 
-# (RoomAvailability 관련 Serializer 생략)
-class UpdateAvailabilityRequestSerializer(serializers.Serializer):
-    nickname = serializers.CharField()
-    room_id = serializers.IntegerField()
-    start_time = serializers.DateTimeField()
-    end_time = serializers.DateTimeField()
-    available = serializers.BooleanField()
+class MyRoomListSerializer(RoomListSerializer):
+    """
+    (GET) /api/v1/rooms/my/
+    (내 방 목록 - RoomListSerializer와 동일하나, 혹시 몰라 분리)
+    """
+    class Meta(RoomListSerializer.Meta):
+        pass
 
-class AvailabilitySlotSerializer(serializers.Serializer):
-    start = serializers.DateTimeField()
-    end = serializers.DateTimeField()
-    available_members = serializers.ListField(child=serializers.CharField())
-    unavailable_members = serializers.ListField(child=serializers.CharField())
 
-# --- 👇👇👇 [신규] ImportError 해결을 위해 추가 (1/2) ---
 class RoomInfoForActivitySerializer(serializers.ModelSerializer):
     """
-    clan_app.views에서 Import 에러가 발생하지 않도록 추가
-    클랜 멤버 활동 내역 표시에 사용
+    (GET) /api/v1/clans/<int:pk>/activity/
+    클랜 활동용 최소한의 합주방 정보
     """
     class Meta:
         model = Room
-        fields = ['id', 'title', 'song', 'artist', 'ended_at']
+        fields = ['id', 'title', 'manager_nickname', 'confirmed', 'ended']
 
-# --- 👇👇👇 [신규] ImportError 해결을 위해 추가 (2/2) ---
-class MemberActivitySerializer(serializers.ModelSerializer):
-    """
-    clan_app.views에서 Import 에러가 발생하지 않도록 추가
-    클랜 멤버 활동 내역(참여 세션) 표시에 사용
-    """
-    # 'room' 필드를 위에서 정의한 RoomInfoSerializer로 중첩
-    room = RoomInfoForActivitySerializer(read_only=True) 
 
+class GroupChatSerializer(serializers.ModelSerializer):
+    """
+    (GET, POST) 합주방 채팅
+    """
     class Meta:
-        model = Session # 이 Serializer는 Session 모델을 기반으로 함
-        fields = ['id', 'session_name', 'participant_nickname', 'room']
+        model = GroupChat
+        fields = ['id', 'sender', 'message', 'timestamp']
+        read_only_fields = ['id', 'sender', 'timestamp'] # sender는 view에서 채움
+
+
+class EvaluationSerializer(serializers.ModelSerializer):
+    """
+    (POST) 매너 평가
+    """
+    class Meta:
+        model = Evaluation
+        fields = [
+            'id', 'room', 'evaluator', 'target', 
+            'score', 'comment', 'is_mood_maker'
+        ]
+        # view에서 room, evaluator, target을 채움
+        read_only_fields = ['id', 'room', 'evaluator', 'target'] 
+
+
+class ReserveSessionSerializer(serializers.Serializer):
+    """
+    (POST) 세션 예약/취소 (단순 쓰기용)
+    (이 Serializer는 현재 View(APIView)에서 직접 처리하여 사용되지 않음)
+    """
+    session_id = serializers.IntegerField()
+    # nickname = serializers.CharField() # -> request.user로 대체

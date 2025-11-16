@@ -1,24 +1,37 @@
-# clan_app/permissions.py
+# clan_app/permission.py
 
 from rest_framework import permissions
-from .models import Clan
 
 class IsClanOwner(permissions.BasePermission):
     """
-    요청한 유저가 URL로 전달된 클랜(pk)의 소유자인지 확인하는 권한
+    클랜 소유자(owner)만 접근을 허용하는 권한
+    (views.py에서 self.check_object_permissions(request, clan)으로 사용)
     """
-    message = "클랜 소유자만 이 작업(조회)을 수행할 수 있습니다."
-
-    def has_permission(self, request, view):
-        # URL로부터 클랜 pk를 가져옵니다.
-        clan_id = view.kwargs.get('pk')
-        if not clan_id:
-            return False
+    def has_object_permission(self, request, view, obj):
+        # obj가 Clan 모델의 인스턴스인지 확인
+        # (obj 자체를 clan 객체로 전달받아야 함)
+        if hasattr(obj, 'owner'):
+            return obj.owner == request.user
+        # (ClanJoinRequest 등 다른 모델일 경우)
+        if hasattr(obj, 'clan'):
+            return obj.clan.owner == request.user
             
-        try:
-            clan = Clan.objects.get(pk=clan_id)
-        except Clan.DoesNotExist:
-            return False # 클랜이 없으면 권한 없음
+        return False
 
-        # 클랜 소유자와 요청한 유저가 동일한지 확인합니다.
-        return clan.owner == request.user
+# --- 👇 [오류 수정] 누락된 클래스 추가 ---
+
+class IsClanOwnerOrReadOnly(permissions.BasePermission):
+    """
+    클랜 소유자(owner)는 수정/삭제 가능,
+    그 외에는 읽기(GET)만 허용하는 권한
+    """
+    def has_object_permission(self, request, view, obj):
+        # 읽기 요청(GET, HEAD, OPTIONS)은 누구나 허용
+        if request.method in permissions.SAFE_METHODS:
+            return True
+            
+        # 쓰기 요청(POST, PUT, PATCH, DELETE)은 클랜 소유자에게만 허용
+        if hasattr(obj, 'owner'):
+            return obj.owner == request.user
+            
+        return False

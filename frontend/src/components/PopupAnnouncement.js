@@ -11,13 +11,18 @@ const PopupAnnouncement = ({ user }) => {
       if (!user?.nickname) return;
       
       try {
-        const data = await apiGet(`/popup-announcements/unread?nickname=${encodeURIComponent(user.nickname)}`);
+        // --- 👇 [수정] 404 에러 해결: /support/ 경로를 추가합니다. ---
+        // Django config/urls.py에서 'api/v1/support/'로 라우팅했습니다.
+        const data = await apiGet(`/support/popup-announcements/unread/?nickname=${encodeURIComponent(user.nickname)}`);
+        // --- 👆 [수정] ---
+
         if (data && data.length > 0) {
           setAnnouncements(data);
           setCurrentIndex(0);
         }
       } catch (error) {
-        console.error('팝업 공지 조회 실패:', error);
+        // 404 에러는 정상일 수 있으므로 console.error 대신 console.debug로 변경
+        console.debug('팝업 공지 조회 실패(404는 정상일 수 있음):', error);
       }
     };
 
@@ -28,9 +33,10 @@ const PopupAnnouncement = ({ user }) => {
     const currentAnnouncement = announcements[currentIndex];
     
     try {
-      // 현재 공지를 읽음으로 표시
-      await apiPost(`/popup-announcements/${currentAnnouncement.id}/read?nickname=${encodeURIComponent(user.nickname)}`);
-      
+      // --- 👇 [수정] 404 에러 해결: /support/ 경로를 추가합니다. ---
+      await apiPost(`/support/popup-announcements/${currentAnnouncement.id}/read/?nickname=${encodeURIComponent(user.nickname)}`);
+      // --- 👆 [수정] ---
+
       // 다음 공지가 있으면 표시, 없으면 팝업 닫기
       if (currentIndex < announcements.length - 1) {
         setCurrentIndex(currentIndex + 1);

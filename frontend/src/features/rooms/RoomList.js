@@ -1,32 +1,31 @@
-// [전체 코드] src/features/rooms/RoomList.js
+// frontend/src/features/rooms/RoomList.js
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { apiGet, apiPostForm } from '../../api/api';
+import { apiGet, apiPostForm, apiPost } from '../../api/api'; // apiPost 추가
 import { useAlert } from '../../context/AlertContext';
 
 const RoomList = ({ user }) => {
     const [rooms, setRooms] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
-    const [sortBy, setSortBy] = useState('latest'); // <<< 1. 정렬 상태 추가
+    const [sortBy, setSortBy] = useState('latest');
     const navigate = useNavigate();
     const { showAlert } = useAlert();
 
-    const fetchRooms = useCallback(async (currentSearch, currentSortBy) => { // <<< 2. currentSortBy 파라미터 추가
+    const fetchRooms = useCallback(async (currentSearch, currentSortBy) => { 
         try {
-            // 👇 3. API 호출 시 sort 파라미터를 포함
-            const data = await apiGet(`/rooms?search=${encodeURIComponent(currentSearch)}&sort=${currentSortBy}`);
+            const data = await apiGet(`/rooms/?search=${encodeURIComponent(currentSearch)}&sort=${currentSortBy}`);
             setRooms(data || []);
         } catch (error) {
             console.error("방 목록 불러오기 실패:", error);
         }
-    }, []);
+    }, []); // (수정) 의존성 배열 비움
 
     useEffect(() => {
         const delayDebounceFn = setTimeout(() => {
-            fetchRooms(searchTerm, sortBy); // <<< 4. sortBy를 fetchRooms에 전달
+            fetchRooms(searchTerm, sortBy); 
         }, 300);
         return () => clearTimeout(delayDebounceFn);
-    }, [searchTerm, sortBy, fetchRooms]); // <<< 5. sortBy를 의존성 배열에 추가
+    }, [searchTerm, sortBy, fetchRooms]);
 
     const handleJoinSession = async (room, sessionName) => {
         let password = "";
@@ -38,11 +37,15 @@ const RoomList = ({ user }) => {
             const formData = new FormData();
             formData.append('room_id', String(room.id));
             formData.append('session_name', sessionName);
-            formData.append('nickname', user.nickname);
             formData.append('password', password);
-            const res = await apiPostForm("/rooms/join", formData);
+            // --- 👇 [수정] apiPostForm -> apiPost, URL 슬래시 추가, body 수정 ---
+            const res = await apiPost("/rooms/join/", {
+                room_id: String(room.id),
+                session_name: sessionName,
+                password: password
+            });
             alert(res.message);
-            fetchRooms(searchTerm);
+            fetchRooms(searchTerm, sortBy); // (수정) sortBy 전달
         } catch (err) {
             alert(err.response?.data?.detail || "참가에 실패했습니다.");
         }
@@ -54,13 +57,13 @@ const RoomList = ({ user }) => {
             `'${room.title}' 방의 '${sessionName}' 세션 참여를 취소하시겠습니까?`,
             async () => {
                 try {
-                    const formData = new FormData();
-                    formData.append('room_id', String(room.id));
-                    formData.append('session_name', sessionName);
-                    formData.append('nickname', user.nickname);
-                    const res = await apiPostForm("/rooms/leave", formData);
+                    // --- 👇 [수정] apiPostForm -> apiPost, URL 슬래시 추가, body 수정 ---
+                    const res = await apiPost("/rooms/leave/", {
+                        room_id: String(room.id),
+                        session_name: sessionName
+                    });
                     alert(res.message);
-                    fetchRooms(searchTerm);
+                    fetchRooms(searchTerm, sortBy); // (수정) sortBy 전달
                 } catch (err) {
                     alert(err.response?.data?.detail || "참여 취소 실패");
                 }
@@ -74,11 +77,11 @@ const RoomList = ({ user }) => {
             `'${sessionName}' 세션에 예약하시겠습니까?`,
             async () => {
                 try {
-                    const formData = new FormData();
-                    formData.append('room_id', String(room.id));
-                    formData.append('session_name', sessionName);
-                    formData.append('nickname', user.nickname);
-                    const res = await apiPostForm("/rooms/session/reserve", formData);
+                    // --- 👇 [수정] apiPostForm -> apiPost, URL 슬래시 추가, body 수정 ---
+                    const res = await apiPost("/rooms/session/reserve/", {
+                        room_id: String(room.id),
+                        session_name: sessionName
+                    });
                     showAlert("성공", res.message, () => fetchRooms(searchTerm, sortBy), false);
                 } catch (err) {
                     showAlert("실패", err.response?.data?.detail || "예약 실패", () => {}, false);
@@ -93,11 +96,11 @@ const RoomList = ({ user }) => {
             `'${sessionName}' 세션 예약을 취소하시겠습니까?`,
             async () => {
                 try {
-                    const formData = new FormData();
-                    formData.append('room_id', String(room.id));
-                    formData.append('session_name', sessionName);
-                    formData.append('nickname', user.nickname);
-                    const res = await apiPostForm("/rooms/session/cancel-reservation", formData);
+                    // --- 👇 [수정] apiPostForm -> apiPost, URL 슬래시 추가, body 수정 ---
+                    const res = await apiPost("/rooms/session/cancel-reservation/", {
+                        room_id: String(room.id),
+                        session_name: sessionName
+                    });
                     showAlert("성공", res.message, () => fetchRooms(searchTerm, sortBy), false);
                 } catch (err) {
                     showAlert("실패", err.response?.data?.detail || "예약 취소 실패", () => {}, false);
@@ -107,6 +110,7 @@ const RoomList = ({ user }) => {
     };
 
     const showReservations = (session) => {
+        // (변경 없음)
         const title = `'${session.session_name}' 예약 대기 목록 (선착순)`;
         const message = session.reservations.length > 0
             ? session.reservations.map((r, index) => `${index + 1}. ${r.user.nickname}`).join('\n')
@@ -115,6 +119,7 @@ const RoomList = ({ user }) => {
         showAlert(title, message, () => {}, false);
     };
 
+    // (이하 렌더링 로직은 변경 없음)
     return (
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -124,7 +129,7 @@ const RoomList = ({ user }) => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <input
                     type="text"
-                    placeholder="제목, 곡명, 아티스트, 클랜명으로 검색"
+                    placeholder="제목, 곡명, 아티스트로 검색"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="input-field"
@@ -163,7 +168,7 @@ const RoomList = ({ user }) => {
                                 {room.sessions.map(session => {
                                     const isReservedByMe = session.reservations.some(r => r.user.nickname === user.nickname);
                                     return (
-                                    <li key={session.session_name} style={{ fontSize: '0.9em', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                                    <li key={session.id} style={{ fontSize: '0.9em', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                                         <div>
                                             {session.session_name}:<br/><strong>{session.participant_nickname || '공석'}</strong>
                                             {session.reservations.length > 0 && 

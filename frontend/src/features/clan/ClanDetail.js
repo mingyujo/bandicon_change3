@@ -327,7 +327,7 @@ const ClanDetail = ({ user, onUpdateUser, onLogout }) => {
   const fetchClan = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await apiGet(`/clans/${clanId}`);
+      const data = await apiGet(`/clans/${clanId}/`); // <-- [수정] 여기도 슬래시 추가 (일관성)
       setClan(data);
     } catch (e) {
       if (e.response && e.response.status === 401) {
@@ -341,7 +341,7 @@ const ClanDetail = ({ user, onUpdateUser, onLogout }) => {
     } finally {
       setLoading(false);
     }
-  }, [clanId]);
+  }, [clanId, onLogout]); // [수정] onLogout을 의존성에 추가
 
   useEffect(() => {
     fetchClan();
@@ -397,24 +397,17 @@ const ClanDetail = ({ user, onUpdateUser, onLogout }) => {
   const requestJoin = async () => {
     if (!user) return alert("로그인이 필요합니다.");
     try {
-      const res = await apiPost(`/clans/${clanId}/join?nickname=${encodeURIComponent(user.nickname)}`);
+      // --- 👇 [수정] URL 끝에 슬래시(/)를 추가하고, 불필요한 쿼리 파라미터를 제거했습니다. ---
+      const res = await apiPost(`/clans/${clanId}/join/`);
+      // --- 👆 [수정] ---
+      
       alert(res?.message || "가입 신청을 보냈습니다.");
         
-        // --- 👇 [핵심 수정] 이 부분이 최신 사용자 정보를 다시 불러오는 코드입니다. ---
-        // 비밀번호 없이 ID만으로 로그인 API를 다시 호출하여 최신 유저 정보를 받아옵니다.
-        // 이를 위해선 백엔드 login API에 password가 없는 경우를 처리하는 로직이 필요하지만,
-        // 현재 구조에서는 onUpdateUser를 통해 App.js의 상태를 갱신하는 것이 좋습니다.
-        // 다만, login API를 그대로 사용하면 비밀번호가 필요하므로,
-        // 여기서는 fetchClan()을 호출하여 클랜 정보만 갱신합니다.
-        // 더 확실한 방법은 사용자 정보를 다시 불러오는 API를 호출하는 것입니다.
-        // 지금은 fetchClan()을 통해 클랜 정보만이라도 최신으로 유지합니다.
       fetchClan();
 
-        // 사용자 정보를 갱신하기 위해 App.js에 있는 onUpdateUser 함수를 호출합니다.
-        // 이를 위해선 App.js에서 onUpdateUser를 이 컴포넌트로 전달해줘야 합니다.
-        // (이 부분은 App.js 수정이 필요할 수 있습니다)
-        // 만약 onUpdateUser가 없다면, 페이지를 새로고침하여 정보를 갱신할 수 있습니다.
-      window.location.reload();
+      // (onUpdateUser 관련 로직은 백엔드 응답에 따라 달라지므로 일단 유지)
+      // (가입 신청 시 유저 정보가 바뀌진 않으므로 window.location.reload()는 제거합니다.)
+      // window.location.reload();
 
     } catch (e) {
       console.error(e);

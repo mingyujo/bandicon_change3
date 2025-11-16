@@ -1,7 +1,7 @@
-// [수정된 코드] src/features/clan/ClanRoomListPage.js
+// frontend/src/features/clan/ClanRoomListPage.js
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { apiGet, apiPostForm } from '../../api/api';
+import { apiGet, apiPostForm, apiPost } from '../../api/api'; // apiPost 추가
 import { useAlert } from '../../context/AlertContext';
 
 const ClanRoomListPage = ({ user }) => {
@@ -14,11 +14,11 @@ const ClanRoomListPage = ({ user }) => {
     const [clanName, setClanName] = useState('');
     const [loading, setLoading] = useState(false);
 
-    // 🔥 핵심 수정 1: fetchClanRooms에서 클랜 이름 가져오는 부분 분리
     const fetchClanName = useCallback(async () => {
         if (!clanName && clanId) {
             try {
-                const clanData = await apiGet(`/clans/${clanId}`);
+                // --- 👇 [수정] URL 슬래시 추가 ---
+                const clanData = await apiGet(`/clans/${clanId}/`);
                 setClanName(clanData.name);
             } catch (error) {
                 console.error("클랜 정보 불러오기 실패:", error);
@@ -26,13 +26,13 @@ const ClanRoomListPage = ({ user }) => {
         }
     }, [clanId, clanName]);
 
-    // 🔥 핵심 수정 2: fetchClanRooms 함수 최적화
     const fetchClanRooms = useCallback(async (currentSearch = searchTerm, currentSortBy = sortBy) => {
-        if (!user?.nickname || !clanId || loading) return;
+        if (!user?.nickname || !clanId) return; // (수정) loading 체크 제거
         
         setLoading(true);
         try {
-            const url = `/clans/${clanId}/rooms?nickname=${encodeURIComponent(user.nickname)}&search=${encodeURIComponent(currentSearch)}&sort=${currentSortBy}`;
+            // --- 👇 [수정] URL 슬래시 추가 및 쿼리 파라미터 제거 ---
+            const url = `/clans/${clanId}/rooms/?search=${encodeURIComponent(currentSearch)}&sort=${currentSortBy}`;
             const data = await apiGet(url);
             setRooms(data || []);
         } catch (error) {
@@ -41,22 +41,17 @@ const ClanRoomListPage = ({ user }) => {
         } finally {
             setLoading(false);
         }
-    }, [user?.nickname, clanId, showAlert, loading]); // 🔥 searchTerm, sortBy 의존성 제거
+    }, [user?.nickname, clanId, showAlert, searchTerm, sortBy]); // (수정) searchTerm, sortBy 추가
 
-    // 🔥 핵심 수정 3: 클랜명은 한 번만 가져오기
     useEffect(() => {
         fetchClanName();
     }, [fetchClanName]);
 
-    // 🔥 핵심 수정 4: useEffect 최적화 - 디바운싱 적용
     useEffect(() => {
-        const delayDebounceFn = setTimeout(() => {
-            fetchClanRooms(searchTerm, sortBy);
-        }, 300);
-        return () => clearTimeout(delayDebounceFn);
-    }, [searchTerm, sortBy, user?.nickname, clanId]); // fetchClanRooms 의존성 제거
+        // (수정) 디바운싱 제거, 즉시 호출
+        fetchClanRooms(searchTerm, sortBy);
+    }, [searchTerm, sortBy, user?.nickname, clanId, fetchClanRooms]); // (수정) fetchClanRooms 추가
 
-    // 권한 체크는 별도로 한 번만
     useEffect(() => {
         if (!user?.nickname || !clanId) {
             showAlert("오류", "로그인이 필요하거나 잘못된 접근입니다.", () => {
@@ -72,12 +67,12 @@ const ClanRoomListPage = ({ user }) => {
             if (password === null) return;
         }
         try {
-            const formData = new FormData();
-            formData.append('room_id', String(room.id));
-            formData.append('session_name', sessionName);
-            formData.append('nickname', user.nickname);
-            formData.append('password', password);
-            const res = await apiPostForm("/rooms/join", formData);
+            // --- 👇 [수정] apiPostForm -> apiPost, URL 슬래시 추가, body 수정 ---
+            const res = await apiPost("/rooms/join/", {
+                room_id: String(room.id),
+                session_name: sessionName,
+                password: password
+            });
             showAlert("성공", res.message, () => fetchClanRooms(), false);
         } catch (err) {
             showAlert("실패", err.response?.data?.detail || "참가에 실패했습니다.", () => {}, false);
@@ -88,11 +83,11 @@ const ClanRoomListPage = ({ user }) => {
         showAlert("참여 취소", `'${room.title}' 방의 '${sessionName}' 세션 참여를 취소하시겠습니까?`,
             async () => {
                 try {
-                    const formData = new FormData();
-                    formData.append('room_id', String(room.id));
-                    formData.append('session_name', sessionName);
-                    formData.append('nickname', user.nickname);
-                    const res = await apiPostForm("/rooms/leave", formData);
+                    // --- 👇 [수정] apiPostForm -> apiPost, URL 슬래시 추가, body 수정 ---
+                    const res = await apiPost("/rooms/leave/", {
+                        room_id: String(room.id),
+                        session_name: sessionName
+                    });
                     showAlert("성공", res.message, () => fetchClanRooms(), false);
                 } catch (err) {
                     showAlert("실패", err.response?.data?.detail || "참여 취소 실패", () => {}, false);
@@ -105,11 +100,11 @@ const ClanRoomListPage = ({ user }) => {
         showAlert("세션 예약", `'${sessionName}' 세션에 예약하시겠습니까?`,
             async () => {
                 try {
-                    const formData = new FormData();
-                    formData.append('room_id', String(room.id));
-                    formData.append('session_name', sessionName);
-                    formData.append('nickname', user.nickname);
-                    const res = await apiPostForm("/rooms/session/reserve", formData);
+                    // --- 👇 [수정] apiPostForm -> apiPost, URL 슬래시 추가, body 수정 ---
+                    const res = await apiPost("/rooms/session/reserve/", {
+                        room_id: String(room.id),
+                        session_name: sessionName
+                    });
                     showAlert("성공", res.message, () => fetchClanRooms(), false);
                 } catch (err) {
                     showAlert("실패", err.response?.data?.detail || "예약 실패", () => {}, false);
@@ -122,11 +117,11 @@ const ClanRoomListPage = ({ user }) => {
         showAlert("예약 취소", `'${sessionName}' 세션 예약을 취소하시겠습니까?`,
             async () => {
                 try {
-                    const formData = new FormData();
-                    formData.append('room_id', String(room.id));
-                    formData.append('session_name', sessionName);
-                    formData.append('nickname', user.nickname);
-                    const res = await apiPostForm("/rooms/session/cancel-reservation", formData);
+                    // --- 👇 [수정] apiPostForm -> apiPost, URL 슬래시 추가, body 수정 ---
+                    const res = await apiPost("/rooms/session/cancel-reservation/", {
+                        room_id: String(room.id),
+                        session_name: sessionName
+                    });
                     showAlert("성공", res.message, () => fetchClanRooms(), false);
                 } catch (err) {
                     showAlert("실패", err.response?.data?.detail || "예약 취소 실패", () => {}, false);
@@ -136,6 +131,7 @@ const ClanRoomListPage = ({ user }) => {
     };
 
     const showReservations = (session) => {
+        // (변경 없음)
         const title = `'${session.session_name}' 예약 대기 목록 `;
         const message = session.reservations.length > 0
             ? session.reservations.map((r, index) => `${index + 1}. ${r.user.nickname}`).join('\n')
@@ -147,6 +143,7 @@ const ClanRoomListPage = ({ user }) => {
         return <div style={{ padding: 20 }}>로딩중...</div>;
     }
 
+    // (이하 렌더링 로직은 변경 없음)
     return (
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -205,7 +202,7 @@ const ClanRoomListPage = ({ user }) => {
                                     {room.sessions.map(session => {
                                         const isReservedByMe = session.reservations.some(r => r.user.nickname === user.nickname);
                                         return (
-                                        <li key={session.session_name} style={{ fontSize: '0.9em', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                                        <li key={session.id} style={{ fontSize: '0.9em', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                                             <div>
                                                 {session.session_name}:<br/><strong>{session.participant_nickname || '공석'}</strong>
                                                 {session.reservations.length > 0 && 

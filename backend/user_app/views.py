@@ -41,7 +41,7 @@ def get_user_profile_response(user):
     FastAPI의 /login 또는 /profile/{nickname} 응답과
     동일한 JSON 구조를 반환합니다.
     """
-    all_clans_query = user.clan.all() | user.owned_clan.all()
+    all_clans_query = user.clans.all() | user.owned_clans.all()
     all_clans = all_clans_query.distinct()
     
     clans_info = [{"id": c.id, "name": c.name} for c in all_clans]

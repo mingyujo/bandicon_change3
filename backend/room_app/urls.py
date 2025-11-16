@@ -1,45 +1,28 @@
 # room_app/urls.py
-
 from django.urls import path
 from . import views
 
 urlpatterns = [
-    # FastAPI의 GET, POST /rooms 
     path('', views.RoomListCreateAPIView.as_view(), name='room-list-create'),
+    path('<int:pk>/', views.RoomDetailAPIView.as_view(), name='room-detail'),
     
-    # FastAPI의 GET /rooms/my/{nickname} 
-    #path('my/<str:nickname>/', views.MyRoomListView.as_view(), name='my-room-list'),
+    # '내 방 목록'
+    path('my/', views.MyRoomListView.as_view(), name='my-room-list'), 
     
-    # FastAPI의 GET, PUT, DELETE /rooms/{room_id} 
-    path('<int:room_id>/', views.RoomDetailAPIView.as_view(), name='room-detail'),
+    path('<int:pk>/leave/', views.RoomLeaveView.as_view(), name='room-leave'),
+    path('<int:pk>/kick/', views.RoomKickView.as_view(), name='room-kick'),
+    path('<int:pk>/confirm/', views.RoomConfirmView.as_view(), name='room-confirm'),
+    path('<int:pk>/end/', views.RoomEndView.as_view(), name='room-end'),
+    path('<int:pk>/evaluate/', views.MannerEvaluationAPIView.as_view(), name='room-evaluate'),
     
-    # FastAPI의 POST /rooms/join 
-    path('join/', views.JoinSessionView.as_view(), name='join-session'),
+    path('<int:room_id>/chat/', views.GroupChatView.as_view(), name='group-chat'),
     
-    # FastAPI의 POST /rooms/leave 
-    path('leave/', views.LeaveSessionView.as_view(), name='leave-session'),
-    
-    # FastAPI의 POST /rooms/session/reserve 
-    #path('session/reserve/', views.ReserveSessionView.as_view(), name='reserve-session'),
-    
-    # FastAPI의 POST /rooms/session/cancel-reservation 
-    #path('session/cancel-reservation/', views.CancelReservationView.as_view(), name='cancel-reservation'),
-    
-    # FastAPI의 DELETE /rooms/{room_id}/members/{member_nickname} 
-    #path('<int:room_id>/members/<str:member_nickname>/', views.KickMemberView.as_view(), name='kick-member'),
-    
-    # FastAPI의 POST /rooms/{room_id}/confirm 
-    path('<int:room_id>/confirm/', views.ConfirmRoomView.as_view(), name='confirm-room'),
-    
-    # FastAPI의 POST /rooms/{room_id}/end 
-    path('<int:room_id>/end/', views.EndRoomView.as_view(), name='end-room'),
-    
-    # FastAPI의 GET, POST /rooms/{room_id}/availability 
-    #path('<int:room_id>/availability/', views.RoomAvailabilityView.as_view(), name='room-availability'),
-    
-    # FastAPI의 POST /evaluations 
-    #path('evaluations/', views.SubmitMannerEvaluationView.as_view(), name='submit-evaluation'),
-    
-    # FastAPI의 GET, POST /chat/group 
-    path('chat/group/<int:room_id>/', views.GroupChatView.as_view(), name='group-chat'),
+    # [오류 수정] 존재하지 않는 JoinSessionView를 참조하는 불필요한 라인이어서 주석 처리
+    # path('join/', views.JoinSessionView.as_view(), name='join-session'), 
+
+    # 2순위 (예약, 일정)
+    path('<int:room_id>/sessions/<int:session_id>/join/', views.RoomSessionJoinView.as_view(), name='room-session-join'),
+    path('sessions/<int:session_id>/reserve/', views.ReserveSessionView.as_view(), name='reserve-session'),
+    path('sessions/<int:session_id>/cancel-reserve/', views.CancelReservationView.as_view(), name='cancel-reservation'),
+    path('<int:room_id>/availability/', views.RoomAvailabilityView.as_view(), name='room-availability'),
 ]

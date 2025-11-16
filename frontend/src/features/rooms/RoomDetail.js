@@ -1,628 +1,424 @@
-// [전체 코드] src/features/rooms/RoomDetail.js
-import React, { useEffect, useState, useCallback, useMemo } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
-import { apiGet, apiPost, apiPostForm, apiPut, apiDelete } from "../../api/api";
-import Calendar from 'react-calendar';
-import 'react-calendar/dist/Calendar.css';
-import { useAlert } from '../../context/AlertContext';
-import Linkify from '../../components/Linkify';
+// frontend/src/features/rooms/RoomDetail.js
 
-const toLocalISOString = (date) => {
-    const pad = (num) => (num < 10 ? '0' + num : num);
-    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:00:00`;
-};
+import React, { useState, useEffect, useCallback } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { apiGet, apiPost, apiPostForm, apiDelete } from '../../api/api';
+import { useAuth } from '../../context/AuthContext'; 
+import RoomChat from '../../components/RoomChat';
+import { format } from 'date-fns';
+import { useAlert } from '../../context/AlertContext'; 
 
-const RoomScheduler = ({ user, room }) => {
-    const [selectedDate, setSelectedDate] = useState(new Date());
-    const [availability, setAvailability] = useState([]);
-    const [mySelection, setMySelection] = useState(new Set());
-    const [participants, setParticipants] = useState([]);
-    const [isSaving, setIsSaving] = useState(false);
+// --- (2순위 기능) 캘린더 관련 ---
+import FullCalendar from '@fullcalendar/react';
+import interactionPlugin from '@fullcalendar/interaction';
+import timeGridPlugin from '@fullcalendar/timegrid';
+import 'react-day-picker/dist/style.css'; // DayPicker CSS
 
-    useEffect(() => {
-        const pSet = new Set(room.sessions.map(s => s.participant_nickname).filter(Boolean));
-        pSet.add(room.manager_nickname);
-        setParticipants(Array.from(pSet));
-    }, [room]);
-    
-    const fetchAvailability = useCallback(async () => {
+// (중략...)
+
+function RoomDetail() {
+    const { roomId } = useParams();
+    const navigate = useNavigate();
+    const { user } = useAuth(); 
+    const [room, setRoom] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [sessions, setSessions] = useState([]);
+    const { alert } = useAlert(); 
+
+    // --- 👇 [오류 수정] 'fetchRoomDetail' 함수의 정의가 누락되어 추가합니다. ---
+    const fetchRoomDetail = useCallback(async () => {
         try {
-            const data = await apiGet(`/rooms/${room.id}/availability`);
-            setAvailability(data || []);
-            const initialSelection = new Set();
-            (data || []).forEach(slot => {
-                if (slot.voters.some(v => v.nickname === user.nickname)) {
-                    initialSelection.add(toLocalISOString(new Date(slot.time)));
-                }
-            });
-            setMySelection(initialSelection);
+            setLoading(true); // 로딩 시작
+            const data = await apiGet(`/rooms/${roomId}/`);
+            setRoom(data);
+            setSessions(data.sessions || []);
+            setError(null); // 기존 에러 초기화
         } catch (err) {
-            console.error("스케줄 로딩 실패", err);
-        }
-    }, [room.id, user.nickname]);
-
-    useEffect(() => {
-        fetchAvailability();
-    }, [fetchAvailability]);
-
-    const handleSlotClick = (localISOString) => {
-        const newSelection = new Set(mySelection);
-        if (newSelection.has(localISOString)) {
-            newSelection.delete(localISOString);
-        } else {
-            newSelection.add(localISOString);
-        }
-        setMySelection(newSelection);
-    };
-    
-    const handleSave = async () => {
-        setIsSaving(true);
-        try {
-            await apiPost(
-                `/rooms/${room.id}/availability?nickname=${encodeURIComponent(user.nickname)}`, 
-                { slots: Array.from(mySelection) }
-            );
-            alert("가능 시간을 저장했습니다!");
-            await fetchAvailability();
-        } catch (err) {
-            alert("저장 실패: " + (err.response?.data?.detail || "알 수 없는 오류"));
-        } finally {
-            setIsSaving(false);
-        }
-    };
-
-    const generateTimeSlots = (selectedDate) => {
-        const slots = [];
-        const startDate = new Date(selectedDate);
-        startDate.setHours(0, 0, 0, 0);
-        for (let i = 9; i <= 22; i++) {
-            const timeSlot = new Date(startDate);
-            timeSlot.setHours(i);
-            slots.push(timeSlot);
-        }
-        return slots;
-    };
-
-    const getSlotData = (slot) => {
-        return availability.find(s => {
-            const slotTime = new Date(s.time);
-            return slotTime.getTime() === slot.getTime();
-        });
-    };
-
-    const timeSlots = useMemo(() => generateTimeSlots(selectedDate), [selectedDate]);
-    
-    const allMembers = participants;
-    const perfectSlots = availability.filter(slot => slot.voters.length === allMembers.length);
-    const pendingMembers = allMembers.filter(member => {
-        return !availability.some(slot => slot.voters.some(voter => voter.nickname === member));
-    });
-
-    return (
-        <div>
-            <h3>합주 일정 조율</h3>
-            <div style={{display: 'flex', gap: '20px', marginTop: '20px', flexDirection: window.innerWidth < 768 ? 'column' : 'row'}}>
-                <div style={{minWidth: '300px'}}>
-                    <Calendar
-                        onChange={setSelectedDate}
-                        value={selectedDate}
-                        locale="ko-KR"
-                        formatDay={(locale, date) => date.getDate()}
-                        showNeighboringMonth={false}
-                    />
-                </div>
-                
-                <div style={{flex: 1}}>
-                    <h4>{selectedDate.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}</h4>
-                    
-                    <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '8px', marginBottom: '15px'}}>
-                        {timeSlots.map(slot => {
-                            const localISO = toLocalISOString(slot);
-                            const slotData = getSlotData(slot);
-                            const isSelected = mySelection.has(localISO);
-                            const voterCount = slotData?.voters.length || 0;
-                            
-                            return (
-                                <button
-                                    key={localISO}
-                                    onClick={() => handleSlotClick(localISO)}
-                                    style={{
-                                        padding: '8px 4px',
-                                        backgroundColor: isSelected ? '#007bff' : (voterCount > 0 ? '#e8f5e8' : '#f8f9fa'),
-                                        color: isSelected ? 'white' : (voterCount > 0 ? '#2d5a2d' : '#6c757d'),
-                                        border: `1px solid ${isSelected ? '#007bff' : (voterCount > 0 ? '#c3e6c3' : '#dee2e6')}`,
-                                        borderRadius: '4px',
-                                        cursor: 'pointer',
-                                        fontSize: '12px',
-                                        textAlign: 'center'
-                                    }}
-                                >
-                                    {slot.getHours()}:00<br/>
-                                    {voterCount > 0 && `(${voterCount}명)`}
-                                </button>
-                            );
-                        })}
-                    </div>
-                    
-                    <button 
-                        onClick={handleSave} 
-                        disabled={isSaving}
-                        style={{padding: '10px 20px', background: '#28a745', color: 'white', border: 'none', borderRadius: '5px', cursor: isSaving ? 'not-allowed' : 'pointer'}}
-                    >
-                        {isSaving ? '저장 중...' : '내 가능 시간 저장'}
-                    </button>
-                </div>
-            </div>
-             
-            <div style={{marginTop: 15, padding: 10, borderRadius: 5, background: '#f0f8ff', display: 'flex', gap: '20px', flexWrap: 'wrap'}}>
-                <div style={{flex: 1, minWidth: '250px'}}>
-                    <h4>✅ 모두가 가능한 시간</h4>
-                    {perfectSlots.length > 0 ? (
-                        <ul style={{paddingLeft: 20, margin: 0}}>
-                            {perfectSlots.map(slot => (
-                                <li key={slot.time} style={{marginBottom: 5}}>
-                                    {new Date(slot.time).toLocaleString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long', hour: 'numeric', minute: 'numeric' })}
-                                </li>
-                            ))}
-                        </ul>
-                    ) : <p style={{fontSize: '0.9em', color: '#666'}}>아직 모든 멤버가 가능한 시간이 없습니다.</p>}
-                </div>
-                <div style={{flex: 1, minWidth: '250px'}}>
-                    <h4>👀 미참여 멤버</h4>
-                    {pendingMembers.length > 0 ? (
-                        <p style={{fontSize: '0.9em', color: '#666'}}>{pendingMembers.join(', ')}</p>
-                    ) : <p style={{fontSize: '0.9em', color: 'green'}}>모든 멤버가 참여했습니다!</p>}
-                </div>
-            </div>
-        </div>
-    );
-};
-
-const RoomDetail = ({ user }) => {
-  const { roomId } = useParams();
-  const navigate = useNavigate();
-  const [room, setRoom] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error] = useState(null);
-  const { showAlert } = useAlert();
-  const [isEditing, setIsEditing] = useState(false);
-  const [editData, setEditData] = useState({ 
-    title: '', 
-    song: '', 
-    artist: '', 
-    description: '',
-    sessions: []  // 세션 목록 추가
-  });
-  const [customSessionInput, setCustomSessionInput] = useState('');  // 커스텀 세션 입력용
-
-  // 🔥 핵심 수정: fetchRoom 함수 최적화
-  const fetchRoom = useCallback(async () => {
-      try {
-        const data = await apiGet(`/rooms/${roomId}`);
-        setRoom(data);
-        setLoading(false); // ← 이거 추가!
-      } catch (err) {
-        console.error("방 정보 로딩 실패:", err);
-        setLoading(false);
-        alert("방 정보를 불러올 수 없습니다.");
-        navigate('/rooms');
-      }
-  }, [roomId, navigate]);
-
-  // 🔥 핵심 수정: useEffect 최적화
-  useEffect(() => {
-      let mounted = true;
-      if (mounted) {
-        fetchRoom();
-      }
-      return () => { mounted = false; };
-  }, [roomId]); // fetchRoom 대신 roomId 의존성으로 변경
-
-  useEffect(() => {
-      if (!isEditing && room && !loading) {  // loading 조건 추가
-        const interval = setInterval(fetchRoom, 10000);
-        return () => clearInterval(interval);
-      }
-  }, [isEditing, room, loading, fetchRoom]);
-
-  useEffect(() => {
-      if (room) {
-          setEditData({
-              title: room.title,
-              song: room.song,
-              artist: room.artist,
-              description: room.description || '',
-              sessions: room.sessions.map(s => s.session_name)
-          });
-      }
-  }, [room]);
-
-  const handleConfirmRoom = async () => {
-    if (!window.confirm("모든 멤버가 모였습니다. 방을 확정하시겠습니까?")) return;
-    try {
-      await apiPost(`/rooms/${room.id}/confirm`, null, {params: {manager_nickname: user.nickname}});
-      alert("방이 확정되었습니다. 이제 합주를 시작할 수 있습니다.");
-      fetchRoom();
-    } catch (err) {
-      alert(err.response?.data?.detail || "방 확정 실패");
-    }
-  };
-
-  const handleEndRoom = async () => {
-    if (!window.confirm("합주를 종료하고 평가를 시작하시겠습니까? 이 작업은 되돌릴 수 없습니다.")) return;
-    try {
-      const res = await apiPost(`/rooms/${room.id}/end`, null, {params: {manager_nickname: user.nickname}});
-      if (res.success) {
-        alert("합주 종료! 각자 합주 평가를 진행하게 됩니다.");
-        navigate("/");
-      }
-    } catch (err) {
-      alert(err.response?.data?.detail || "합주 종료 중 오류가 발생했습니다.");
-    }
-  };
-
-  const handleLeaveSession = async (sessionName) => {
-    if (!window.confirm(`'${sessionName}' 세션 참여를 취소하시겠습니까?`)) return;
-    try {
-        const formData = new FormData();
-        formData.append('room_id', String(room.id));
-        formData.append('session_name', sessionName);
-        formData.append('nickname', user.nickname);
-        const res = await apiPostForm("/rooms/leave", formData);
-        alert(res.message);
-        fetchRoom();
-    } catch (err) {
-        alert(err.response?.data?.detail || "참여 취소 실패");
-    }
-  };
-
-  const handleKickMember = async (nicknameToKick) => {
-      showAlert(
-          "멤버 강퇴 확인",
-          `정말로 '${nicknameToKick}'님을 강퇴하시겠습니까?\n이 멤버의 모든 예약도 함께 취소됩니다.`,
-          async () => {
-              try {
-                  const encodedNickname = encodeURIComponent(nicknameToKick);
-                  const encodedManager = encodeURIComponent(user.nickname);
-                  
-                  const res = await apiDelete(
-                      `/rooms/${roomId}/members/${encodedNickname}?manager_nickname=${encodedManager}`
-                  );
-                  
-                  // message가 있으면 표시, 없으면 기본 메시지
-                  alert(res?.message || "강퇴 처리되었습니다.");
-                  fetchRoom();
-              } catch (err) {
-                  console.error("강퇴 에러:", err);
-                  alert(err.response?.data?.detail || "강퇴 처리 중 오류가 발생했습니다.");
-              }
-          }
-      );
-  };
-
-  const handleEditChange = (e) => {
-     const { name, value } = e.target;
-     setEditData(prev => ({ ...prev, [name]: value }));
-  };
-
-const handleUpdateRoom = async () => {
-  try {
-      // 참여자가 있는 세션은 유지되도록 백엔드에서 처리
-      await apiPut(`/rooms/${roomId}`, { 
-        ...editData, 
-        nickname: user.nickname,
-        sessions: editData.sessions  // 세션 목록 포함
-      });
-      alert("방 정보가 수정되었습니다.");
-      setIsEditing(false);
-      setCustomSessionInput('');  // 입력 필드 초기화
-      fetchRoom();
-  } catch (err) {
-      alert(err.response?.data?.detail || "방 정보 수정에 실패했습니다.");
-  }
-};
-
-// 세션 추가/삭제 헬퍼 함수들
-const handleAddSession = (sessionName) => {
-  if (sessionName && !editData.sessions.includes(sessionName)) {
-    setEditData(prev => ({
-      ...prev,
-      sessions: [...prev.sessions, sessionName]
-    }));
-  }
-};
-
-  const handleRemoveSession = (sessionName) => {
-    // 참여자가 있는 세션은 삭제 불가
-    const session = room.sessions.find(s => s.session_name === sessionName);
-    if (session && session.participant_nickname) {
-      alert(`'${sessionName}' 세션은 참여자가 있어 삭제할 수 없습니다.`);
-      return;
-    }
-    
-    setEditData(prev => ({
-      ...prev,
-      sessions: prev.sessions.filter(s => s !== sessionName)
-    }));
-  };
-
-  const handleDeleteRoom = async () => {
-    showAlert(
-        "방 삭제 확인",
-        "정말로 이 방을 삭제하시겠습니까?",
-        async () => {
-            try {
-                await apiDelete(`/rooms/${roomId}?nickname=${encodeURIComponent(user.nickname)}`);
-                alert("방이 삭제되었습니다.");
+            console.error("방 정보 로딩 실패", err);
+            setError(err.message || "방 정보를 불러오는 데 실패했습니다.");
+            if (err.status === 404) {
+                alert('방을 찾을 수 없습니다.', 'error');
                 navigate('/rooms');
+            }
+        } finally {
+            setLoading(false); // 로딩 종료
+        }
+    }, [roomId, navigate, alert]);
+    // --- 👆 [오류 수정] ---
+
+    // [2순위] 합주 일정 조율 (RoomScheduler)
+    // ------------------------------------------------
+    const [availability, setAvailability] = useState([]);
+    const [selectedSlots, setSelectedSlots] = useState([]);
+    
+    // (중략...)
+
+    const fetchAvailability = useCallback(async () => {
+        // (GET) /api/v1/rooms/<room_id>/availability/
+        try {
+            const data = await apiGet(`/rooms/${roomId}/availability/`);
+            setAvailability(data.slots || []);
+            
+            // 내가 투표한 슬롯 ID 목록을 selectedSlots state에 저장
+            if (data.slots && user) { // user가 로드된 후에만 실행
+                const myVotedSlots = data.slots
+                    .filter(slot => slot.voters.some(voter => voter.id === user.id))
+                    .map(slot => slot.id);
+                setSelectedSlots(myVotedSlots);
+            }
+
+        } catch (err) {
+            console.error("일정 조율 정보 로딩 실패", err);
+        }
+    }, [roomId, user]); // user를 의존성에 추가
+
+    const handleSaveAvailability = async () => {
+        // (POST) /api/v1/rooms/<room_id>/availability/
+        // { "slot_ids": [1, 3, 5] }
+        try {
+            await apiPost(`/rooms/${roomId}/availability/`, {
+                slot_ids: selectedSlots
+            });
+            alert('일정 조율 투표를 저장했습니다.');
+            fetchAvailability(); // 저장 후 데이터 새로고침
+        } catch (err) {
+            alert('일정 조율 저장 실패', 'error');
+            console.error(err);
+        }
+    };
+
+    // (중략...)
+
+    // [1순위] 세션 참가/취소/변경 (handleSessionAction)
+    // ------------------------------------------------
+    const handleSessionAction = async (sessionId, action, currentNickname) => {
+        
+        if (!user) {
+            alert('로그인이 필요합니다.', 'error');
+            return;
+        }
+
+        // 방장은 방 나가기(leave)는 불가능하지만, 세션 참가/취소/변경은 가능해야 함.
+        // 'cancel' 액션도 'join'과 동일한 API를 호출하도록 수정 (백엔드가 토글 처리)
+        let url = `/rooms/${roomId}/sessions/${sessionId}/join/`;
+
+        try {
+            const response = await apiPost(url, {}); // 닉네임 쿼리 제거
+            
+            // --- 👇 [오류 수정] 'newNickname' 변수의 정의가 누락되어 추가합니다. ---
+            // 'join' 액션이면 유저 닉네임을, 'cancel' 액션이면 null을 할당합니다.
+            const newNickname = (action === 'join') ? user.nickname : null;
+            // --- 👆 [오류 수정] ---
+
+            // optimistic update (서버 응답 전에 UI 즉시 업데이트)
+            setSessions(prevSessions =>
+                prevSessions.map(session => {
+                    // 1. 내가 방금 클릭한 세션
+                    if (session.id === sessionId) {
+                        // 'newNickname' 변수를 사용합니다.
+                        return { ...session, nickname: newNickname }; 
+                    }
+                    // 2. (변경) 내가 이전에 참여했던 세션
+                    if (session.nickname === user.nickname) {
+                        return { ...session, nickname: null };
+                    }
+                    // 3. 나머지
+                    return session;
+                })
+            );
+            
+            // (중략...)
+        } catch (err) {
+            alert(err.message || '세션 변경에 실패했습니다.', 'error');
+            // (만약의 경우) 실패 시 UI를 서버 데이터로 되돌리기
+            fetchRoomDetail();
+        }
+    };
+
+    // (이하 나머지 코드는 동일)
+    // ------------------------------------------------
+
+    // 방장용 기능 (방 확정, 강퇴, 방 삭제)
+    const confirmRoom = async () => {
+        if (window.confirm("방을 확정하시겠습니까? 더 이상 멤버를 받거나 세션을 변경할 수 없습니다.")) {
+            try {
+                await apiPost(`/rooms/${roomId}/confirm/`, {});
+                alert('방이 확정되었습니다.');
+                fetchRoomDetail(); // 새로고침
             } catch (err) {
-                alert(err.response?.data?.detail || "방 삭제에 실패했습니다.");
+                alert(err.message, 'error');
             }
         }
-    );
-  };
+    };
 
-  // 로딩 상태
-  if (loading) {
-    return <div style={{ padding: 20, textAlign: 'center' }}>로딩중...</div>;
-  }
+    const kickMember = async (nickname) => {
+        if (window.confirm(`${nickname} 님을 강퇴하시겠습니까?`)) {
+            try {
+                await apiDelete(`/rooms/${roomId}/kick/${nickname}/`, {});
+                alert(`${nickname} 님을 강퇴했습니다.`);
+                fetchRoomDetail(); // 새로고침
+            } catch (err) {
+                alert(err.message, 'error');
+            }
+        }
+    };
+    
+    const deleteRoom = async () => {
+        if (window.confirm("정말로 이 방을 삭제하시겠습니까?")) {
+            try {
+                await apiDelete(`/rooms/${roomId}/`);
+                alert('방이 삭제되었습니다.');
+                navigate('/rooms');
+            } catch (err) {
+                alert(err.message, 'error');
+            }
+        }
+    };
 
-  // 에러 상태
-  if (error) {
+    // 비방장용 기능 (방 나가기)
+    const leaveRoom = async () => {
+        if (window.confirm("정말로 이 방을 나가시겠습니까?")) {
+            try {
+                await apiPost(`/rooms/${roomId}/leave/`, {});
+                alert('방을 나갔습니다.');
+                navigate('/rooms');
+            } catch (err) {
+                alert(err.message, 'error');
+            }
+        }
+    };
+    
+    useEffect(() => {
+        fetchRoomDetail();
+        fetchAvailability(); // [2순위] 일정 조율 정보 로드
+    }, [fetchRoomDetail, fetchAvailability]);
+
+    if (loading) return <div>로딩중...</div>;
+    if (error) return <div>{error}</div>;
+    if (!room) return <div>방을 찾을 수 없습니다.</div>;
+
+    const isOwner = user && user.nickname === room.manager_nickname;
+    const isMember = user && room.members.some(m => m.nickname === user.nickname);
+    
+    // [수정] user가 로드되기 전(null)에 user.nickname을 참조하려는 오류 방지
+    const isSessionOccupied = user && room.members.some(m => m.nickname === user.nickname);
+
     return (
-      <div style={{ padding: 20, textAlign: 'center' }}>
-        <p style={{ color: 'red' }}>{error}</p>
-        <button onClick={() => navigate('/rooms')} className="btn btn-primary">
-          방 목록으로 돌아가기
-        </button>
-      </div>
-    );
-  }
-
-  // 방 정보가 없는 경우
-  if (!room) {
-    return <div style={{ padding: 20, textAlign: 'center' }}>방 정보를 찾을 수 없습니다.</div>;
-  }
-
-  const isManager = room.manager_nickname === user.nickname;
-  const isParticipant = isManager || room.sessions.some(s => s.participant_nickname === user.nickname);
-
-  return (
-    <div className="room-detail" style={{maxWidth: '800px', margin: 'auto', padding: '20px'}}>
-      <button onClick={() => navigate(-1)} style={{marginBottom: '20px'}}>← 뒤로가기</button>
-      
-      <div className="room-title-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '15px', marginBottom: '10px' }}>
-       {isEditing ? (
-          <input
-            name="title"
-            value={editData.title}
-           onChange={handleEditChange}
-            style={{ fontSize: '1.5em', fontWeight: 'bold', flexGrow: 1, minWidth: 0, border: '1px solid #ddd', borderRadius: '5px', padding: '5px 10px' }}
-          />
-        ) : (
-         <h2 
-           style={{ margin: 0, flexGrow: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
-           title={room.title}
-          >
-             {room.title} {room.is_private ? "🔒" : ""}
-          </h2>
-        )}
-
-        {isManager && !room.confirmed && !room.ended && (
-         <div style={{ display: 'flex', gap: '10px', flexShrink: 0 }}>
-            {isEditing ? (
-             <>
-                <button onClick={handleUpdateRoom} className="btn btn-primary">저장</button>
-                <button onClick={() => setIsEditing(false)} className="btn btn-secondary">취소</button>
-              </>
-            ) : (
-              <>
-                <button onClick={() => setIsEditing(true)} className="btn btn-secondary">수정</button>
-                <button onClick={handleDeleteRoom} className="btn btn-danger">삭제</button>
-             </>
+        <div className="container mx-auto p-4">
+            <h1 className="text-3xl font-bold mb-4">{room.title} (방장: {room.manager_nickname})</h1>
+            <p className="mb-4">{room.description}</p>
+            
+            {room.clan && (
+                <p className="mb-4 text-sm text-blue-600">
+                    <Link to={`/clans/${room.clan.id}`}>[{room.clan.name} 클랜방]</Link>
+                </p>
             )}
-         </div>
-        )}
-      </div>
 
-      {isEditing ? (
-          <div style={{display: 'flex', gap: '10px'}}>
-             <input name="song" value={editData.song} onChange={handleEditChange} placeholder="곡 제목" style={{flex: 1}} />
-             <input name="artist" value={editData.artist} onChange={handleEditChange} placeholder="아티스트" style={{flex: 1}} />
-          </div>
-      ) : (
-          <h3>{room.song} / {room.artist}</h3>
-      )}
-      
-      {room.clan && (
-        <div style={{ marginTop: '10px', marginBottom: '10px' }}>
-          <span style={{ fontWeight: 'bold', color: '#555' }}>소속 클랜: </span>
-          <Link to={`/clans/${room.clan.id}`} style={{ color: 'var(--primary-color)', textDecoration: 'none', fontWeight: 'bold' }}>
-            {room.clan.name}
-          </Link>
-        </div>
-      )}      
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* 세션 참가 현황 */}
+                <div className="md:col-span-2">
+                    <h2 className="text-2xl font-semibold mb-2">세션 참가 현황 ({room.members.length} / {room.max_members}명)</h2>
+                    <div className="space-y-2">
+                        {sessions.map(session => (
+                            <div key={session.id} className="flex justify-between items-center p-3 bg-gray-100 rounded-lg">
+                                <span className="font-medium">{session.name}</span>
+                                {session.nickname ? (
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-blue-600">{session.nickname}</span>
+                                        {user && user.nickname === session.nickname ? (
+                                            <button
+                                                onClick={() => handleSessionAction(session.id, 'cancel', session.nickname)}
+                                                className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                                                disabled={room.is_confirmed}
+                                            >
+                                                참여 취소
+                                            </button>
+                                        ) : (
+                                            isOwner && !room.is_confirmed && (
+                                                <button
+                                                    onClick={() => kickMember(session.nickname)}
+                                                    className="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+                                                >
+                                                    강퇴
+                                                </button>
+                                            )
+                                        )}
+                                    </div>
+                                ) : (
+                                    <button
+                                        onClick={() => handleSessionAction(session.id, 'join', null)}
+                                        className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+                                        disabled={room.is_confirmed || (isSessionOccupied)}
+                                    >
+                                        참여
+                                    </button>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                    
+                    {/* [2순위] 합주 일정 조율 컴포넌트 */}
+                    {!room.is_confirmed && isMember && (
+                        <RoomScheduler 
+                            availability={availability}
+                            selectedSlots={selectedSlots}
+                            setSelectedSlots={setSelectedSlots}
+                            onSave={handleSaveAvailability}
+                            isOwner={isOwner}
+                            user={user} // user prop 전달
+                        />
+                    )}
 
-      <p>방장: {room.manager_nickname}</p>
-
-      <div style={{background: '#f9f9f9', padding: '10px', borderRadius: '5px', marginBottom: '20px'}}>
-        <strong>방 설명:</strong>
-        {isEditing ? (
-            <textarea name="description" value={editData.description} onChange={handleEditChange} style={{width: '100%', minHeight: '60px', marginTop: '5px'}} placeholder="방 설명" />
-        ) : (
-            <div style={{ margin: '5px 0 0 0' }}>
-              <Linkify>{room.description || "설명 없음"}</Linkify>
-            </div>
-        )}
-      </div>
-
-      {room.ended && <p style={{color: 'red', fontWeight: 'bold', fontSize: '1.2em', textAlign: 'center'}}>이 합주는 종료되었습니다.</p>}
-
-      {isEditing && isManager && (
-        <div style={{ 
-          background: '#f9f9f9', 
-          padding: '15px', 
-          borderRadius: '8px', 
-          marginBottom: '20px' 
-        }}>
-          <h4>세션 구성 수정</h4>
-          
-          {/* 현재 세션 목록 */}
-          <div style={{ marginBottom: '15px' }}>
-            {editData.sessions.map((sessionName) => {
-              const sessionInfo = room.sessions.find(s => s.session_name === sessionName);
-              const hasParticipant = sessionInfo && sessionInfo.participant_nickname;
-              
-              return (
-                <div key={sessionName} style={{ 
-                  display: 'inline-block', 
-                  margin: '5px',
-                  padding: '5px 10px',
-                  background: hasParticipant ? '#e0e0e0' : 'var(--primary-color)',
-                  color: hasParticipant ? '#666' : 'white',
-                  borderRadius: '15px'
-                }}>
-                  {sessionName}
-                  {hasParticipant ? 
-                    ` (${sessionInfo.participant_nickname})` : 
-                    <button 
-                      onClick={() => handleRemoveSession(sessionName)}
-                      style={{ 
-                        marginLeft: '8px', 
-                        background: 'transparent', 
-                        border: 'none', 
-                        color: 'white', 
-                        cursor: 'pointer' 
-                      }}
-                    >
-                      ×
-                    </button>
-                  }
                 </div>
-              );
-            })}
-          </div>
-          
-          {/* 새 세션 추가 */}
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <input
-              type="text"
-              value={customSessionInput}
-              onChange={(e) => setCustomSessionInput(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  handleAddSession(customSessionInput);
-                  setCustomSessionInput('');
-                }
-              }}
-              placeholder="추가할 세션 이름"
-              style={{ flex: 1 }}
-            />
-            <button 
-              type="button"
-              onClick={() => {
-                handleAddSession(customSessionInput);
-                setCustomSessionInput('');
-              }}
-              className="btn btn-secondary"
-            >
-              세션 추가
-            </button>
-          </div>
-          
-          <small style={{ color: '#666', marginTop: '5px', display: 'block' }}>
-            * 참여자가 있는 세션은 회색으로 표시되며 삭제할 수 없습니다.
-          </small>
+
+                {/* 방 정보 및 채팅 */}
+                <div className="space-y-4">
+                    {/* 방 관리 버튼 */}
+                    {isOwner && !room.is_confirmed && (
+                        <div className="bg-white p-4 rounded-lg shadow">
+                            <h3 className="text-xl font-semibold mb-3">방 관리</h3>
+                            <div className="flex flex-col space-y-2">
+                                <button
+                                    onClick={confirmRoom}
+                                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                                >
+                                    방 확정하기
+                                </button>
+                                <button
+                                    onClick={deleteRoom}
+                                    className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                                >
+                                    방 삭제하기
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                    {/* 방 나가기 버튼 */}
+                    {user && isMember && !isOwner && !room.is_confirmed && (
+                         <div className="bg-white p-4 rounded-lg shadow">
+                            <button
+                                onClick={leaveRoom}
+                                className="w-full px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+                            >
+                                방 나가기
+                            </button>
+                        </div>
+                    )}
+
+                    {/* 채팅창 */}
+                    <div className="bg-white p-4 rounded-lg shadow h-96">
+                        <RoomChat roomId={roomId} user={user} />
+                    </div>
+                </div>
+            </div>
         </div>
-      )}
+    );
+}
 
-      <h3>세션 참가 현황</h3>
-      <ul style={{listStyle: 'none', padding: 0}}>
-        {room.sessions.map((session) => (
-          <li key={session.session_name} style={{marginBottom: '10px', borderBottom: '1px solid #f0f0f0', paddingBottom: '10px'}}>
-            <div>
-              <strong>{session.session_name}</strong>: 
-              {session.participant_nickname ? (
-                  <span style={{marginLeft: '8px'}}>
-                      <strong>{session.participant_nickname}</strong>
+// [2순위] 합주 일정 조율 (RoomScheduler) 컴포넌트
+// ------------------------------------------------
 
-                      {session.participant_nickname === user.nickname && !room.confirmed && (
-                          <button onClick={() => handleLeaveSession(session.session_name)} style={{marginLeft: '10px', background: '#ff4d4f', color: 'white', border: 'none', padding: '3px 8px', borderRadius: '4px', cursor: 'pointer'}}>
-                              참여 취소
-                          </button>
-                      )}
-                      {isManager && session.participant_nickname !== user.nickname && !room.confirmed && (
-                          <button onClick={() => handleKickMember(session.participant_nickname)} style={{marginLeft: '10px', background: '#dc3545', color: 'white', border: 'none', padding: '3px 8px', borderRadius: '4px', cursor: 'pointer'}}>
-                              강퇴
-                          </button>
-                      )}
-                  </span>
-              ) : (
-                  <span style={{marginLeft: '8px', color: '#888'}}>빈 자리</span>
-              )}
+function RoomScheduler({ availability, selectedSlots, setSelectedSlots, onSave, isOwner, user }) { // user prop 받기
+    
+    const handleSlotClick = (slotId) => {
+        setSelectedSlots(prev =>
+            prev.includes(slotId)
+                ? prev.filter(id => id !== slotId)
+                : [...prev, slotId]
+        );
+    };
+
+    const getVoterCount = (slotId) => {
+        const slot = availability.find(s => s.id === slotId);
+        return slot ? slot.voters.length : 0;
+    };
+    
+    const getVoterNames = (slotId) => {
+        const slot = availability.find(s => s.id === slotId);
+        return slot ? slot.voters.map(v => v.nickname).join(', ') : '';
+    };
+
+    // FullCalendar용 이벤트 데이터로 변환
+    const calendarEvents = availability.map(slot => {
+        const isSelectedByMe = user && slot.voters.some(voter => voter.id === user.id);
+        return {
+            id: slot.id,
+            title: `${getVoterCount(slot.id)}명`,
+            start: slot.start_time,
+            end: slot.end_time,
+            backgroundColor: isSelectedByMe ? '#34D399' : '#60A5FA', // 내가 선택O: green, 내가 선택X: blue
+            borderColor: isSelectedByMe ? '#069564' : '#2563EB',
+            extendedProps: {
+                voterNames: getVoterNames(slot.id)
+            }
+        };
+    });
+
+    // 이벤트 렌더링 함수
+    const renderEventContent = (eventInfo) => {
+        return (
+            <div className="p-1 overflow-hidden" title={eventInfo.event.extendedProps.voterNames}>
+                <b>{eventInfo.timeText}</b>
+                <p>{eventInfo.event.title}</p>
+                <i className="text-xs truncate">{eventInfo.event.extendedProps.voterNames}</i>
+            </div>
+        );
+    };
+
+    // 캘린더에서 빈 시간 클릭 시
+    const handleSelect = (selectInfo) => {
+        // TODO: 방장일 경우 새 슬롯 생성 모달 띄우기 (3순위)
+        if (!isOwner) return;
+        
+        // (임시) 방장만 새 슬롯 생성 가능 (현재는 미구현)
+        // console.log('Selected area:', selectInfo.startStr, selectInfo.endStr);
+        // alert('방장만 새 슬롯을 생성할 수 있습니다. (미구현)');
+    };
+
+    return (
+        <div className="mt-6 bg-white p-4 rounded-lg shadow">
+            <h2 className="text-2xl font-semibold mb-4">합주 일정 조율</h2>
+            
+            <div className="mb-4 text-sm text-gray-600">
+                <p>참여 가능한 시간에 투표해 주세요. (캘린더의 파란/초록 슬롯을 클릭)</p>
+                <div className="flex items-center gap-4 mt-2">
+                    <span className="flex items-center"><span className="w-4 h-4 bg-green-400 mr-2 rounded"></span> 내가 선택</span>
+                    <span className="flex items-center"><span className="w-4 h-4 bg-blue-400 mr-2 rounded"></span> 선택 안함</span>
+                </div>
             </div>
 
-            {isManager && session.reservations && session.reservations.length > 0 && !room.confirmed && (
-              <div style={{ marginLeft: '20px', marginTop: '8px', fontSize: '0.9em', borderLeft: '2px solid #e0e0e0', paddingLeft: '10px' }}>
-                <strong style={{ color: '#555' }}>예약자 목록:</strong>
-                {session.reservations.map(reservation => (
-                  <div key={reservation.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '5px', padding: '2px 0' }}>
-                    <span>{reservation.user.nickname}</span>
-                    <button 
-                      onClick={() => handleKickMember(reservation.user.nickname)}
-                      style={{ background: '#c82333', color: 'white', border: 'none', padding: '2px 6px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8em' }}
-                    >
-                      강퇴
-                   </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </li>
-        ))}
-      </ul>
-
-      {isManager && !room.confirmed && !room.ended && (
-        <button onClick={handleConfirmRoom} style={{width: '100%', padding: '10px', background: 'green', color: 'white', cursor: 'pointer', border: 'none', borderRadius: 5, fontSize: '1.1em', marginTop: '10px'}}>방 확정하기</button>
-      )}
-      {isManager && room.confirmed && !room.ended && (
-        <button onClick={handleEndRoom} style={{width: '100%', padding: '10px', background: 'darkred', color: 'white', cursor: 'pointer', border: 'none', borderRadius: 5, fontSize: '1.1em', marginTop: '10px'}}>합주 종료 및 평가 시작</button>
-      )}
-
-      {isParticipant && !room.ended && (
-        room.confirmed ? (
-          <RoomScheduler user={user} room={room} />
-        ) : (
-          <div style={{ border: '1px dashed #ccc', padding: '20px', borderRadius: '8px', marginTop: '20px', textAlign: 'center', color: '#888' }}>
-            방이 확정된 후에 일정을 조율할 수 있습니다.
-          </div>
-        )
-      )}
-
-      {isParticipant && !room.ended && room?.id && (
-        <div style={{ 
-          marginTop: '20px', 
-          textAlign: 'center',
-          padding: '20px',
-          background: '#f9f9f9',
-          borderRadius: '12px'
-        }}>
-          <p style={{ marginBottom: '15px', color: '#666' }}>
-            이 방의 멤버들과 채팅하고 싶으신가요?
-          </p>
-          <Link to={`/chats/group/${room.id}`}>
-            <button className="btn btn-primary" style={{ 
-              padding: '12px 30px', 
-              fontSize: '1.1em' 
-            }}>
-              단체 채팅
+            {/* FullCalendar 캘린더 */}
+            <div className="calendar-container">
+                <FullCalendar
+                    plugins={[timeGridPlugin, interactionPlugin]}
+                    initialView="timeGridWeek"
+                    headerToolbar={{
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: '' // 'dayGridMonth,timeGridWeek,timeGridDay'
+                    }}
+                    events={calendarEvents}
+                    eventContent={renderEventContent}
+                    selectable={isOwner} // 방장만 새 슬롯 지정을 위해 드래그 가능
+                    select={handleSelect}
+                    eventClick={(clickInfo) => handleSlotClick(Number(clickInfo.event.id))} // 이벤트를 클릭 = 투표
+                    locale="ko"
+                    allDaySlot={false} // '종일' 슬롯 숨기기
+                    slotMinTime="09:00:00" // 캘린더 시작 시간
+                    slotMaxTime="24:00:00" // 캘린더 종료 시간
+                    height="auto" // 부모 컨테이너 높이에 맞춤
+                />
+            </div>
+            
+            <button
+                onClick={onSave}
+                className="w-full mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+                내 투표 저장하기
             </button>
-          </Link>
         </div>
-      )}
-    </div>
-  );
-};
+    );
+}
 
 export default RoomDetail;

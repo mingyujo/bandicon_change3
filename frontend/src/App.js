@@ -3,6 +3,11 @@
 import React, { useState, useEffect, useCallback} from "react";
 import { Routes, Route, Link, useNavigate, useLocation } from "react-router-dom";
 
+// --- 👇 2. [수정] AuthContext.js에서 AuthContext를 import ---
+import { AuthContext } from './context/AuthContext';
+import { AlertProvider } from './context/AlertContext';
+import { NotificationProvider } from './context/NotificationContext';
+
 import RoomList from "./features/rooms/RoomList";
 import RoomDetail from "./features/rooms/RoomDetail";
 import MyRooms from "./features/rooms/MyRooms";

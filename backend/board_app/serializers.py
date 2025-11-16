@@ -1,129 +1,119 @@
-# board_app/serializers.py
-
 from rest_framework import serializers
-from .models import Post, Comment
+from .models import Post, Comment, Board 
 from user_app.serializers import UserBaseSerializer
+from clan_app.models import ClanBoard 
 
-# --- Comment ---
+# --- BoardSerializer ---
+class BoardSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Board
+        fields = ['id', 'name', 'description']
 
+# --- CommentSerializer ---
 class CommentSerializer(serializers.ModelSerializer):
-    """
-    FastAPI의 Comment  스키마를 변환.
-    대댓글(replies)을 재귀적으로 처리합니다.
-    """
-    owner = UserBaseSerializer(read_only=True)
-    replies = serializers.SerializerMethodField()
-    anonymous_nickname = serializers.CharField(read_only=True, required=False) # View에서 채워줄 필드
-    
+    author = UserBaseSerializer(read_only=True)
+    post_id = serializers.ReadOnlyField(source='post.id')
+
     class Meta:
         model = Comment
-        fields = (
-            'id', 
-            'post_id', # FastAPI 스키마에 이 필드가 있었습니다 
-            'parent_id',
-            'content', 
-            'created_at', 
-            'owner', 
-            'replies',
-            'anonymous_nickname'
-        )
+        fields = ['id', 'post', 'post_id', 'author', 'content', 'created_at', 'updated_at']
+        read_only_fields = ['author', 'post_id']
         extra_kwargs = {
-            'post_id': {'source': 'post.id', 'read_only': True}
+            'post': {'required': True},
         }
 
-    def get_replies(self, obj):
-        # 재귀적으로 대댓글을 직렬화
-        if obj.replies.exists():
-            return CommentSerializer(obj.replies.all(), many=True, context=self.context).data
-        return []
-
-
-class CommentCreateSerializer(serializers.ModelSerializer):
-    """
-    FastAPI의 CommentCreate  스키마를 변환.
-    """
-    class Meta:
-        model = Comment
-        fields = ('content',)
-
-# --- Post ---
-
-class PostCreateSerializer(serializers.ModelSerializer):
-    """
-    FastAPI의 PostCreate  스키마를 변환.
-    """
-    class Meta:
-        model = Post
-        fields = ('title', 'content', 'board_type', 'is_anonymous', 'clan_board_id')
-        extra_kwargs = {
-            'board_type': {'required': False, 'allow_null': True},
-            'clan_board_id': {'required': False, 'allow_null': True}
-        }
-
-
+# --- PostListSerializer ---
 class PostListSerializer(serializers.ModelSerializer):
-    """
-    FastAPI의 PostList  스키마를 변환 (목록용).
-    """
-    owner = UserBaseSerializer(read_only=True)
-    likes_count = serializers.SerializerMethodField()
-    comments_count = serializers.SerializerMethodField()
-    
-    class Meta:
-        model = Post
-        fields = (
-            'id', 
-            'title', 
-            'board_type', 
-            'owner', 
-            'created_at', 
-            'likes_count', 
-            'comments_count', 
-            'is_anonymous'
-        )
-
-    def get_likes_count(self, obj):
-        # 'liked_by_users'는 ManyToMany 필드
-        return obj.liked_by_users.count()
-
-    def get_comments_count(self, obj):
-        # 'comments'는 ForeignKey의 related_name
-        return obj.comments.count()
-
-
-class PostSerializer(serializers.ModelSerializer):
-    """
-    FastAPI의 Post  스키마를 변환 (상세보기용).
-    """
-    owner = UserBaseSerializer(read_only=True)
-    comments = serializers.SerializerMethodField()
-    
-    # View에서 request.user를 기반으로 계산해서 넣어줄 필드들
+    author = UserBaseSerializer(read_only=True)
     likes_count = serializers.IntegerField(read_only=True)
-    is_liked = serializers.BooleanField(read_only=True)
-    is_scrapped = serializers.BooleanField(read_only=True)
-    is_owner = serializers.BooleanField(read_only=True)
+    comments_count = serializers.IntegerField(read_only=True)
+    is_liked = serializers.SerializerMethodField()
     
     class Meta:
         model = Post
-        fields = (
-            'id', 
-            'title', 
-            'content', 
-            'board_type', 
-            'created_at', 
-            'image_url', 
-            'owner', 
-            'comments', 
-            'likes_count', 
-            'is_liked', 
-            'is_scrapped', 
-            'is_anonymous',
-            'is_owner'
-        )
+        fields = ['id', 'title', 'author', 'created_at', 'image', 'likes_count', 'comments_count', 'is_liked']
 
-    def get_comments(self, obj):
-        # 최상위 댓글(부모가 없는 댓글)만 직렬화
-        top_level_comments = obj.comments.filter(parent__isnull=True)
-        # context를 전달하여 request 객체를 CommentSerializer에서도 사용 가능하게 함
-        return CommentSerializer(top_level_comments, many=True, context=self.context).data
+    def get_is_liked(self, obj):
+        request = self.context.get('request', None)
+        if request and request.user.is_authenticated:
+            return obj.likes.filter(pk=request.user.pk).exists()
+        return False
+
+# --- PostDetailSerializer ---
+class PostDetailSerializer(serializers.ModelSerializer):
+    author = UserBaseSerializer(read_only=True)
+    comments = CommentSerializer(many=True, read_only=True) 
+    
+    likes_count = serializers.IntegerField(read_only=True)
+    is_liked = serializers.SerializerMethodField()
+    
+    scraps_count = serializers.SerializerMethodField()
+    is_scrapped = serializers.SerializerMethodField()
+    
+    board_info = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Post
+        fields = [
+            'id', 'author', 'title', 'content', 'created_at', 'updated_at', 
+            'image', 'comments', 
+            'likes_count', 'is_liked',
+            'scraps_count', 'is_scrapped',
+            'board', 'clan_board', 'board_info'
+        ]
+        read_only_fields = [
+            'author', 'created_at', 'updated_at', 'comments',
+            'likes_count', 'is_liked', 'scraps_count', 'is_scrapped', 'board_info'
+        ]
+        extra_kwargs = {
+            'board': {'write_only': True, 'required': False, 'allow_null': True},
+            'clan_board': {'write_only': True, 'required': False, 'allow_null': True},
+        }
+
+    def get_is_liked(self, obj):
+        request = self.context.get('request', None)
+        if request and request.user.is_authenticated:
+            return obj.likes.filter(pk=request.user.pk).exists()
+        return False
+        
+    def get_scraps_count(self, obj):
+        # --- 👇 [수정] 'scraps' -> 'scrapped_by_users' ---
+        return obj.scrapped_by_users.count()
+        
+    def get_is_scrapped(self, obj):
+        request = self.context.get('request', None)
+        if request and request.user.is_authenticated:
+            # --- 👇 [수정] 'scraps' -> 'scrapped_by_users' ---
+            return obj.scrapped_by_users.filter(pk=request.user.pk).exists()
+        return False
+        
+    def get_board_info(self, obj):
+        if obj.board:
+            return {
+                'type': 'public',
+                'id': obj.board.id,
+                'name': obj.board.name
+            }
+        elif obj.clan_board:
+            return {
+                'type': 'clan',
+                'id': obj.clan_board.id,
+                'name': obj.clan_board.name,
+                'clan_id': obj.clan_board.clan_id 
+            }
+        return None
+        
+    def validate(self, data):
+        board = data.get('board', None)
+        clan_board = data.get('clan_board', None)
+
+        if self.instance:
+            pass
+        else:
+            if not board and not clan_board:
+                raise serializers.ValidationError("게시판(board) 또는 클랜 게시판(clan_board) 중 하나는 반드시 선택해야 합니다.")
+            
+        if board and clan_board:
+            raise serializers.ValidationError("게시판(board)과 클랜 게시판(clan_board)을 동시에 선택할 수 없습니다.")
+            
+        return data

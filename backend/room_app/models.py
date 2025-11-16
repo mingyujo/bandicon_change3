@@ -3,13 +3,11 @@
 from django.db import models
 from django.conf import settings # User 모델
 from clan_app.models import Clan # Clan 모델
+from django.utils import timezone 
 
 # 1. Room 모델 변환
 # -----------------------------------------------------------------
 class Room(models.Model):
-    """
-    FastAPI의 Room 모델을 변환합니다. 
-    """
     title = models.CharField(max_length=255)
     song = models.CharField(max_length=255)
     artist = models.CharField(max_length=255)
@@ -20,10 +18,15 @@ class Room(models.Model):
     confirmed = models.BooleanField(default=False)
     ended = models.BooleanField(default=False)
     
-    # clan (기존: clan_id)
+    # --- 👇 [최종 수정] auto_now_add=True -> default=timezone.now ---
+    created_at = models.DateTimeField(default=timezone.now)
+    # --- 👆 [최종 수정] ---
+    confirmed_at = models.DateTimeField(null=True, blank=True)
+    ended_at = models.DateTimeField(null=True, blank=True)
+    
     clan = models.ForeignKey(
         Clan,
-        on_delete=models.SET_NULL, # 클랜이 삭제되어도 방은 남을 수 있도록
+        on_delete=models.SET_NULL, 
         related_name="rooms",
         null=True,
         blank=True
@@ -35,9 +38,6 @@ class Room(models.Model):
 # 2. Session 모델 변환
 # -----------------------------------------------------------------
 class Session(models.Model):
-    """
-    FastAPI의 Session 모델을 변환합니다. 
-    """
     room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name="sessions")
     session_name = models.CharField(max_length=255)
     participant_nickname = models.CharField(max_length=150, blank=True, null=True)
@@ -45,54 +45,71 @@ class Session(models.Model):
     def __str__(self):
         return f"[{self.room.title}] {self.session_name}"
 
-# 3. SessionReservation 모델 변환
+# 3. SessionReservation 모델 변환 (2순위 기능)
 # -----------------------------------------------------------------
 class SessionReservation(models.Model):
-    """
-    FastAPI의 SessionReservation 모델을 변환합니다. 
-    """
     session = models.ForeignKey(Session, on_delete=models.CASCADE, related_name="reservations")
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="session_reservations"
     )
+    created_at = models.DateTimeField(default=timezone.now)
 
-# 4. Evaluation 모델 변환
+    class Meta:
+        unique_together = ('session', 'user')
+        ordering = ['created_at'] 
+
+# 4. Evaluation 모델 변환 (2순위 기능)
 # -----------------------------------------------------------------
 class Evaluation(models.Model):
-    """
-    FastAPI의 Evaluation 모델을 변환합니다. 
-    """
-    room_id = models.IntegerField() # Room이 삭제돼도 평가는 남아야 하므로 FK가 아님
-    evaluator_nickname = models.CharField(max_length=150)
-    evaluated_nickname = models.CharField(max_length=150)
+    room = models.ForeignKey(
+        Room, 
+        on_delete=models.SET_NULL, 
+        related_name="evaluations",
+        null=True, blank=True 
+    )
+    evaluator = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        related_name="given_evaluations",
+        null=True, blank=True 
+    )
+    target = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        related_name="received_evaluations",
+        null=True, blank=True 
+    )
+    
+    score = models.IntegerField(default=50)
+    comment = models.TextField(blank=True, null=True)
+    is_mood_maker = models.BooleanField(default=False)
+    created_at = models.DateTimeField(default=timezone.now)
 
 # 5. GroupChat 모델 변환
 # -----------------------------------------------------------------
 class GroupChat(models.Model):
-    """
-    FastAPI의 GroupChat 모델을 변환합니다. 
-    """
     room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name="chats")
     sender = models.CharField(max_length=150)
     message = models.TextField(blank=True, null=True)
-    timestamp = models.CharField(max_length=100) # (기존 CharField 유지)
+    timestamp = models.DateTimeField(default=timezone.now)
     image_url = models.CharField(max_length=512, blank=True, null=True)
 
     def __str__(self):
         return f"[{self.room.title}] {self.sender}"
 
-# 6. RoomAvailability 모델 변환
+# 6. RoomAvailabilitySlot 모델 변환 (2순위 기능)
 # -----------------------------------------------------------------
-class RoomAvailability(models.Model):
-    """
-    FastAPI의 RoomAvailability 모델을 변환합니다. 
-    """
-    room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name="availabilities")
-    user = models.ForeignKey(
+class RoomAvailabilitySlot(models.Model):
+    room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name="availability_slots")
+    time = models.DateTimeField() 
+    voters = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name="availabilities"
+        related_name="voted_slots",
+        blank=True
     )
-    available_slot = models.DateTimeField()
+    
+    class Meta:
+        unique_together = ('room', 'time') 
+        ordering = ['time']

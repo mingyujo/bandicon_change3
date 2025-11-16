@@ -1,463 +1,445 @@
-from django.shortcuts import render
-
 # room_app/views.py
 
-from rest_framework import generics, status, views
+from django.shortcuts import get_object_or_404, get_list_or_404
+from django.db.models import Count, Q
+from django.utils import timezone
+from django.db import transaction 
+
+from rest_framework import generics, permissions, status
+from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.request import Request
-from rest_framework.permissions import AllowAny # (테스트를 위해 AllowAny)
-from django.shortcuts import get_object_or_404
-from django.utils import timezone # <<< [수정] timezone 임포트
-import itertools # <<< [신규] 평가 생성을 위한 조합 임포트
+from rest_framework.exceptions import PermissionDenied, NotFound
 
-# --- 👇 [수정] Evaluation, SessionReservation 임포트 추가 ---
-from .models import Room, Session, GroupChat, SessionReservation, Evaluation
-from .serializers import (
-    RoomSerializer, RoomCreateSerializer, RoomUpdateSerializer,
-    GroupChatSerializer, MannerEvalSerializer, 
-    UpdateAvailabilityRequestSerializer, AvailabilitySlotSerializer
+from user_app.models import User
+# [오류 수정] 'user_app.utils' 임포트 라인 제거
+from user_app.serializers import UserBaseSerializer
+from .models import (
+    Room, Session, SessionReservation, Evaluation, GroupChat, RoomAvailabilitySlot
 )
-# --- 👇 [수정] User, Alert 임포트 추가 ---
-from user_app.models import User, Alert
-from datetime import datetime # <<< GroupChatView를 위해 추가
+from .serializers import (
+    RoomListSerializer, RoomDetailSerializer, 
+    SessionSerializer, SessionReservationSerializer,
+    EvaluationSerializer, GroupChatSerializer,
+    ReserveSessionSerializer, RoomAvailabilitySlotSerializer,
+    MyRoomListSerializer 
+)
 
-# --- FastAPI 로직 임시 임포트 ---
-# (이 코드가 작동하려면 Django 프로젝트의 상위 폴더가 Python 경로에 잡혀있어야 합니다)
-#try:
-#    from backend import crud, models as fastapi_models
-#    from backend.database import get_db
-#except ImportError:
-    # 이 임포트는 Django의 runserver 환경에서는 실패할 수 있습니다.
-    # 우선은 구조를 잡는 데 집중합니다.
-#    print("[Warning] FastAPI 'backend' module not found. crud functions will fail.")
-#    crud = None
-#    get_db = None
-# --- 임시 임포트 끝 ---
+# 1. Room
+# -----------------------------------------------------------------
 
-def get_db_session():
-    """FastAPI의 get_db [cite: 120-130] 의존성을 임시로 흉내내는 헬퍼"""
-    if get_db:
-        return next(get_db())
-    return None
-
-# FastAPI의 get_current_user  헬퍼 임시 대체
-def get_user_by_nickname(db, nickname):
-    # Django ORM 버전
-    return get_object_or_404(User, nickname=nickname)
-
-# --- Room Views ---
-
-class RoomListCreateAPIView(views.APIView):
+class RoomListCreateAPIView(generics.ListCreateAPIView):
     """
-    GET: FastAPI의 get_all_rooms 
-    POST: FastAPI의 create_room 
+    (GET) /api/v1/rooms/
+    (POST) /api/v1/rooms/
     """
-    permission_classes = [AllowAny]
+    queryset = Room.objects.filter(confirmed=False, ended=False, clan__isnull=True).order_by('-created_at')
+    serializer_class = RoomListSerializer
+    
+    # [수정] 방 생성은 로그인한 사용자만
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly] 
 
-    def get(self, request: Request):
-        search = request.query_params.get('search', '')
-        sort = request.query_params.get('sort', 'latest')
-        
-        # Django ORM으로 crud.get_all_rooms  로직 재구현
-        from django.db.models import Q, Count, F
-        
-        query = Room.objects.filter(clan__isnull=True) # 클랜 ID가 없는 방 
+    def create(self, request, *args, **kwargs):
+        # [수정] 쿼리 파라미터 대신 request.user 사용
+        user = request.user
+        if not user or not user.is_authenticated: # [수정] .is_authenticated 추가
+            return Response({"detail": "사용자 정보를 찾을 수 없습니다."}, status=status.HTTP_401_UNAUTHORIZED)
 
-        if search:
-            query = query.filter(
-                Q(title__icontains=search) |
-                Q(song__icontains=search) |
-                Q(artist__icontains=search)
-            )
-        
-        # FastAPI의 empty_session_count [cite: 746-2377] 로직 재구현
-        empty_session_count = Count('sessions', filter=Q(sessions__participant_nickname__isnull=True))
-        query = query.annotate(empty_session_count=empty_session_count)
+        sessions_data = request.data.get("sessions", [])
+        if not sessions_data:
+            return Response({"detail": "세션 정보가 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
 
-        order_criteria = [F('confirmed').asc()] # confirmed=False가 위로
-        if sort == "fewest_empty":
-            order_criteria.append(F('empty_session_count').asc())
-        elif sort == "most_empty":
-            order_criteria.append(F('empty_session_count').desc())
+        # 1. 방 생성
+        room_serializer = self.get_serializer(data=request.data)
+        room_serializer.is_valid(raise_exception=True)
         
-        order_criteria.append(F('id').desc()) # 최신순
-        
-        rooms = query.order_by(*order_criteria)
-        
-        serializer = RoomSerializer(rooms, many=True)
-        return Response(serializer.data)
+        # [수정] manager_nickname을 request.user에서 가져옴
+        db_room = room_serializer.save(manager_nickname=user.nickname)
 
-    def post(self, request: Request):
-        nickname = request.query_params.get('nickname')
-        if not nickname:
-            return Response({"detail": "nickname 쿼리 파라미터가 필요합니다."}, status=status.HTTP_400_BAD_REQUEST)
-        
-        serializer = RoomCreateSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        room_data = serializer.validated_data
-        
-        # crud.create_room  로직 재구현
-        user = get_user_by_nickname(None, nickname)
-        
+        # 2. 세션 생성
+        session_instances = []
+        for session_name in sessions_data:
+            session_instances.append(Session(room=db_room, session_name=session_name))
+        Session.objects.bulk_create(session_instances)
+
+        # 3. 방장 자동 참가
         try:
-            db_room = Room.objects.create(
-                title=room_data['title'],
-                song=room_data['song'],
-                artist=room_data['artist'],
-                description=room_data.get('description', ''),
-                is_private=room_data['is_private'],
-                password=room_data.get('password'),
-                manager_nickname=user.nickname,
-                clan_id=room_data.get('clan_id')
-            )
+            manager_session = Session.objects.filter(room=db_room).first()
+            if manager_session:
+                manager_session.participant_nickname = user.nickname
+                manager_session.save()
+            else:
+                pass
+        except Session.DoesNotExist:
+            pass
+
+        headers = self.get_success_headers(room_serializer.data)
+        return Response(room_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+class MyRoomListView(generics.ListAPIView):
+    """
+    (GET) /api/v1/rooms/my/
+    """
+    serializer_class = MyRoomListSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        
+        # 내가 매니저이거나, 내가 세션에 참여 중인 방
+        return Room.objects.filter(
+            Q(manager_nickname=user.nickname) | 
+            Q(sessions__participant_nickname=user.nickname),
+            ended=False # 끝나지 않은 방
+        ).distinct().order_by('-created_at')
+
+
+class RoomDetailAPIView(generics.RetrieveUpdateAPIView):
+    """
+    (GET) /api/v1/rooms/<int:pk>/
+    (PATCH) /api/v1/rooms/<int:pk>/
+    """
+    queryset = Room.objects.all()
+    serializer_class = RoomDetailSerializer
+    permission_classes = [permissions.IsAuthenticated] # 방 입장은 로그인 필수
+
+    # (PATCH) 방장이 방 정보 수정 (제목, 설명 등)
+    def update(self, request, *args, **kwargs):
+        room = self.get_object()
+        if room.manager_nickname != request.user.nickname:
+            raise PermissionDenied("방 정보는 방장만 수정할 수 있습니다.")
+        return super().update(request, *args, **kwargs)
+
+# 2. Session
+# -----------------------------------------------------------------
+
+class RoomSessionJoinView(APIView):
+    """
+    (POST) /api/v1/rooms/<int:room_id>/sessions/<int:session_id>/join/
+    세션 참여, 취소, 변경을 모두 처리
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    @transaction.atomic # [추가] 세션 변경 로직을 트랜잭션으로 묶음
+    def post(self, request, room_id, session_id):
+        try:
+            # 1. Get the session the user clicked on
+            selected_session = Session.objects.select_for_update().get(id=session_id, room_id=room_id)
+            user = request.user
+
+            # 2. Check if the user is already participating in *any* session in this room
+            current_session = Session.objects.select_for_update().filter(
+                room_id=room_id, 
+                participant_nickname=user.nickname
+            ).first()
+
+            # Case 1: User clicked the session they are already in (Cancel)
+            if current_session and current_session.id == selected_session.id:
+                current_session.participant_nickname = None
+                current_session.save()
+                return Response({"detail": "세션 참여가 취소되었습니다."}, status=status.HTTP_200_OK)
+
+            # Case 2: User clicked a session that is already full
+            if selected_session.participant_nickname is not None:
+                return Response({"detail": "해당 세션은 이미 참여 중인 사용자가 있습니다."}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Case 3: User clicked a new, empty session (Join or Change)
+            # (selected_session.participant_nickname is None)
             
-            sessions_to_create = [
-                Session(room=db_room, session_name=name) 
-                for name in room_data['sessions']
-            ]
-            Session.objects.bulk_create(sessions_to_create)
+            # If user was in a different session, leave it first
+            if current_session:
+                current_session.participant_nickname = None
+                current_session.save()
+                
+            # Now, join the new session
+            selected_session.participant_nickname = user.nickname
+            selected_session.save()
             
-            # 응답을 위해 방금 만든 객체를 다시 serializer로
-            response_serializer = RoomSerializer(db_room)
-            return Response(response_serializer.data, status=status.HTTP_201_CREATED)
-            
+            return Response({"detail": "세션에 참여했습니다."}, status=status.HTTP_200_OK)
+
+        except Session.DoesNotExist:
+            return Response({"detail": "세션을 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-class RoomDetailAPIView(views.APIView):
+class RoomLeaveView(APIView):
     """
-    GET: FastAPI의 get_room_detail 
-    PUT: FastAPI의 update_room_api 
-    DELETE: FastAPI의 delete_room_api 
+    (POST) /api/v1/rooms/<int:pk>/leave/
+    방 나가기 (방장 X)
     """
-    permission_classes = [AllowAny]
-    
-    def get(self, request: Request, room_id: int):
-        room = get_object_or_404(Room, id=room_id)
-        serializer = RoomSerializer(room)
-        return Response(serializer.data)
+    permission_classes = [permissions.IsAuthenticated]
 
-    def put(self, request: Request, room_id: int):
-        room = get_object_or_404(Room, id=room_id)
-        serializer = RoomUpdateSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        data = serializer.validated_data
+    def post(self, request, pk):
+        room = get_object_or_404(Room, pk=pk)
+        user = request.user
+
+        if room.manager_nickname == user.nickname:
+            return Response({"detail": "방장은 방을 나갈 수 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 이 방에서 사용자의 세션 참여를 취소
+        Session.objects.filter(
+            room=room, 
+            participant_nickname=user.nickname
+        ).update(participant_nickname=None)
         
-        # FastAPI의 방장 확인 로직 
-        if room.manager_nickname != data['nickname']:
-            return Response({"detail": "방장만 수정할 수 있습니다."}, status=status.HTTP_403_FORBIDDEN)
-        if room.confirmed:
-            return Response({"detail": "확정된 방은 수정할 수 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"detail": "방에서 나갔습니다."}, status=status.HTTP_200_OK)
 
-        # crud.update_room  로직 재구현 (일부)
-        room.title = data['title']
-        room.song = data['song']
-        room.artist = data['artist']
-        room.description = data.get('description', room.description)
-        # (세션 변경 로직은 crud.py 가 더 복잡하므로 여기서는 우선 기본 정보만)
-        room.save()
-        
-        response_serializer = RoomSerializer(room)
-        return Response(response_serializer.data)
-
-    def delete(self, request: Request, room_id: int):
-        nickname = request.query_params.get('nickname')
-        room = get_object_or_404(Room, id=room_id)
-        
-        # FastAPI의 방장 확인 로직 
-        if room.manager_nickname != nickname:
-            return Response({"detail": "방장만 삭제할 수 있습니다."}, status=status.HTTP_403_FORBIDDEN)
-        if room.confirmed:
-            return Response({"detail": "확정된 방은 삭제할 수 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
-        
-        room.delete()
-        return Response({"success": True, "message": "방이 삭제되었습니다."}, status=status.HTTP_200_OK)
-
-
-class JoinSessionView(views.APIView):
+class RoomKickView(APIView):
     """
-    POST: FastAPI의 join_session_api 
+    (POST) /api/v1/rooms/<int:pk>/kick/
+    방장이 멤버 강퇴
     """
-    permission_classes = [AllowAny]
-    
-    def post(self, request: Request):
-        room_id = request.data.get('room_id')
-        session_name = request.data.get('session_name')
-        nickname = request.data.get('nickname')
-        password = request.data.get('password', '')
+    permission_classes = [permissions.IsAuthenticated]
 
-        room = get_object_or_404(Room, id=room_id)
-        
-        # FastAPI의 로직 
-        if room.confirmed:
-            return Response({"detail": "확정된 방에는 참여할 수 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
-        if room.is_private and room.password != password: 
-            return Response({"detail": "비밀번호가 틀렸습니다."}, status=status.HTTP_403_FORBIDDEN)
+    def post(self, request, pk):
+        room = get_object_or_404(Room, pk=pk)
+        target_nickname = request.data.get('nickname')
 
-        # crud.join_session 의 핵심 (동시성 문제 제외)
-        try:
-            session = Session.objects.get(room_id=room_id, session_name=session_name, participant_nickname__isnull=True)
-            session.participant_nickname = nickname
-            session.save()
+        if room.manager_nickname != request.user.nickname:
+            raise PermissionDenied("강퇴는 방장만 가능합니다.")
             
-            # (crud.create_alert  로직은 일단 생략)
-            
-            return Response({"success": True, "message": f"{session_name} 참가 완료"})
-        except Session.DoesNotExist:
-            return Response({"detail": "세션 참가에 실패했거나 이미 자리가 찼습니다."}, status=status.HTTP_400_BAD_REQUEST)
+        if room.manager_nickname == target_nickname:
+            return Response({"detail": "방장을 강퇴할 수 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
 
-class LeaveSessionView(views.APIView):
+        # 이 방에서 대상의 세션 참여를 취소
+        kicked_count = Session.objects.filter(
+            room=room, 
+            participant_nickname=target_nickname
+        ).update(participant_nickname=None)
+
+        if kicked_count > 0:
+            return Response({"detail": f"{target_nickname}님을 강퇴했습니다."}, status=status.HTTP_200_OK)
+        else:
+            return Response({"detail": "강퇴할 멤버가 방에 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class RoomConfirmView(APIView):
     """
-    POST: FastAPI의 leave_session_api 
-    방에서 나갑니다.
+    (POST) /api/v1/rooms/<int:pk>/confirm/
+    방장이 합주 확정
     """
-    permission_classes = [AllowAny] # 프론트엔드와 동일하게 AllowAny 유지
+    permission_classes = [permissions.IsAuthenticated]
 
-    def post(self, request: Request):
-        # React의 `handleLeaveSession`은 FormData를 사용합니다.
-        room_id = request.data.get('room_id')
-        session_name = request.data.get('session_name')
-        nickname = request.data.get('nickname')
-
-        room = get_object_or_404(Room, id=room_id)
+    def post(self, request, pk):
+        room = get_object_or_404(Room, pk=pk)
         
-        if room.confirmed:
-            return Response({"detail": "확정된 방은 나갈 수 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
+        if room.manager_nickname != request.user.nickname:
+            raise PermissionDenied("합주 확정은 방장만 가능합니다.")
             
-        if room.manager_nickname == nickname:
-            return Response({"detail": "방장은 방을 나갈 수 없습니다. (방 삭제만 가능)"}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            session = Session.objects.get(
-                room_id=room_id, 
-                session_name=session_name, 
-                participant_nickname=nickname
-            )
-            
-            # 세션에서 참가자 제거
-            session.participant_nickname = None
-            session.save()
-            
-            # (crud.py의 예약자 자동 승급 로직은 일단 생략)
-            
-            return Response({"success": True, "message": "방에서 나왔습니다."})
-        except Session.DoesNotExist:
-            return Response({"detail": "참여 중인 세션이 아니거나 정보를 잘못 입력했습니다."}, status=status.HTTP_400_BAD_REQUEST)
-
-class KickMemberView(views.APIView):
-    """
-    DELETE: FastAPI의 kick_member_api
-    방장이 멤버를 강퇴합니다.
-    URL: /rooms/<int:room_id>/members/<str:member_nickname>/
-    Query: ?manager_nickname=<manager_nickname>
-    """
-    permission_classes = [AllowAny] # 프론트엔드와 동일하게 AllowAny 유지
-
-    def delete(self, request: Request, room_id: int, member_nickname: str):
-        manager_nickname = request.query_params.get('manager_nickname')
-        
-        if not manager_nickname:
-            return Response({"detail": "방장 닉네임(manager_nickname)이 필요합니다."}, status=status.HTTP_400_BAD_REQUEST)
-
-        room = get_object_or_404(Room, id=room_id)
-
-        # 1. 방장 확인
-        if room.manager_nickname != manager_nickname:
-            return Response({"detail": "방장만 멤버를 강퇴할 수 있습니다."}, status=status.HTTP_403_FORBIDDEN)
-        
-        # 2. 확정/종료 확인
-        if room.confirmed or room.ended:
-            return Response({"detail": "확정되거나 종료된 방에서는 강퇴할 수 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
-
-        # 3. 자신 강퇴 확인
-        if room.manager_nickname == member_nickname:
-            return Response({"detail": "방장은 자신을 강퇴할 수 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            user_to_kick = get_object_or_404(User, nickname=member_nickname)
-        except User.DoesNotExist:
-            return Response({"detail": "강퇴할 사용자를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
-
-        # 4. 해당 룸의 모든 세션 쿼리
-        sessions_in_room = Session.objects.filter(room_id=room_id)
-
-        # 5. 세션 참여 비우기 (update()는 몇 개가 변경되었는지 갯수를 반환)
-        updated_sessions_count = sessions_in_room.filter(participant_nickname=member_nickname).update(participant_nickname=None)
-
-        # 6. 예약 비우기 (delete()는 (총 삭제 갯수, {모델별 삭제 갯수}) 튜플 반환)
-        deleted_reservations_tuple = SessionReservation.objects.filter(session__in=sessions_in_room, user=user_to_kick).delete()
-        deleted_reservations_count = deleted_reservations_tuple[0]
-
-        if updated_sessions_count == 0 and deleted_reservations_count == 0:
-            return Response({"detail": "해당 멤버가 방에 참여하고 있거나 예약한 내역이 없습니다."}, status=status.HTTP_404_NOT_FOUND)
-
-        # (Alert/Push 로직 생략)
-        
-        return Response({"success": True, "message": f"{member_nickname}님을 강퇴했습니다. (참여 세션 {updated_sessions_count}개, 예약 {deleted_reservations_count}개 취소)"})
-
-class ConfirmRoomView(views.APIView):
-    """
-    POST: FastAPI의 confirm_room_api
-    방장이 방을 확정(모집 마감)합니다.
-    URL: /rooms/<int:room_id>/confirm/
-    Data: {"nickname": <manager_nickname>}
-    """
-    permission_classes = [AllowAny] # 프론트엔드와 동일하게 AllowAny 유지
-
-    def post(self, request: Request, room_id: int):
-        nickname = request.data.get('nickname')
-        if not nickname:
-            return Response({"detail": "방장 닉네임(nickname)이 필요합니다."}, status=status.HTTP_400_BAD_REQUEST)
-
-        room = get_object_or_404(Room, id=room_id)
-
-        # 1. 방장 확인
-        if room.manager_nickname != nickname:
-            return Response({"detail": "방장만 방을 확정할 수 있습니다."}, status=status.HTTP_403_FORBIDDEN)
-        
-        # 2. 상태 확인
         if room.confirmed:
             return Response({"detail": "이미 확정된 방입니다."}, status=status.HTTP_400_BAD_REQUEST)
-        if room.ended:
-            return Response({"detail": "이미 종료된 방입니다."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # 3. 빈 세션 찾기 (참가자가 없는 세션)
-        empty_sessions = Session.objects.filter(room_id=room_id, participant_nickname__isnull=True)
-        
-        # 4. 빈 세션 삭제 (연결된 예약도 on_delete=CASCADE로 자동 삭제됨)
-        deleted_count, _ = empty_sessions.delete()
-        
-        # 5. 방 확정 상태로 변경
         room.confirmed = True
         room.confirmed_at = timezone.now()
         room.save()
-
-        # (Alert/Push 로직 생략 - crud.create_alert_for_participants)
         
-        return Response({
-            "success": True, 
-            "message": f"방을 확정했습니다. 빈 세션 {deleted_count}개가 삭제되었습니다."
-        })
-
-# --- 👇👇👇 [신규] EndRoomView 클래스 추가 ---
-class EndRoomView(views.APIView):
-    """
-    POST: FastAPI의 end_room_api
-    방장이 합주를 종료합니다.
-    URL: /rooms/<int:room_id>/end/
-    Data: {"nickname": <manager_nickname>}
-    """
-    permission_classes = [AllowAny] # 프론트엔드와 동일하게 AllowAny 유지
-
-    def post(self, request: Request, room_id: int):
-        nickname = request.data.get('nickname')
-        if not nickname:
-            return Response({"detail": "방장 닉네임(nickname)이 필요합니다."}, status=status.HTTP_400_BAD_REQUEST)
-
-        room = get_object_or_404(Room, id=room_id)
-
-        # 1. 방장 확인
-        if room.manager_nickname != nickname:
-            return Response({"detail": "방장만 방을 종료할 수 있습니다."}, status=status.HTTP_403_FORBIDDEN)
+        # TODO: 참여자들에게 알림 생성
         
-        # 2. 상태 확인
+        return Response({"detail": "합주가 확정되었습니다."}, status=status.HTTP_200_OK)
+
+
+class RoomEndView(APIView):
+    """
+    (POST) /api/v1/rooms/<int:pk>/end/
+    방장이 합주 종료
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, pk):
+        room = get_object_or_404(Room, pk=pk)
+        
+        if room.manager_nickname != request.user.nickname:
+            raise PermissionDenied("합주 종료는 방장만 가능합니다.")
+            
         if not room.confirmed:
             return Response({"detail": "확정되지 않은 방은 종료할 수 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
+            
         if room.ended:
             return Response({"detail": "이미 종료된 방입니다."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # 3. 방 종료 상태로 변경
         room.ended = True
         room.ended_at = timezone.now()
         room.save()
+        
+        # TODO: 평가 알림 생성
+        
+        return Response({"detail": "합주가 종료되었습니다."}, status=status.HTTP_200_OK)
 
-        # 4. crud.create_evaluations_for_participants 로직 재구현
-        # 4-1. 모든 참여자 닉네임 수집 (방장 포함)
-        participant_nicknames = list(Session.objects.filter(room_id=room_id)
-                                                    .values_list('participant_nickname', flat=True))
-        if room.manager_nickname not in participant_nicknames:
-             participant_nicknames.append(room.manager_nickname)
+# 3. Evaluation
+# -----------------------------------------------------------------
+
+class MannerEvaluationAPIView(APIView):
+    """
+    (POST) /api/v1/rooms/<int:pk>/evaluate/
+    매너 평가 제출
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, pk):
+        room = get_object_or_404(Room, pk=pk)
+        evaluator = request.user
+        evaluations_data = request.data.get('evaluations', []) # [{"target_nickname": "...", "score": 50, ...}]
+
+        if not room.ended:
+            return Response({"detail": "종료된 합주방만 평가할 수 있습니다."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # TODO: 사용자가 이 방에 참여했었는지 확인
         
-        # 중복 제거 (혹시 모를 상황 대비)
-        unique_nicknames = sorted(list(set(participant_nicknames)))
-        
+        # 이미 평가를 제출했는지 확인
+        if Evaluation.objects.filter(room=room, evaluator=evaluator).exists():
+            return Response({"detail": "이미 이 방의 평가를 제출했습니다."}, status=status.HTTP_400_BAD_REQUEST)
+
         evaluations_to_create = []
-        alerts_to_create = []
-        
-        # 4-2. User 객체 조회 (닉네임 -> User)
-        participant_users = list(User.objects.filter(nickname__in=unique_nicknames))
-        user_map = {user.nickname: user for user in participant_users}
-
-        # 4-3. 평가 객체 및 알림 생성 (A->B, A->C, B->A, ...)
-        for evaluator_nick, target_nick in itertools.permutations(unique_nicknames, 2):
-            if evaluator_nick in user_map and target_nick in user_map:
-                evaluator_user = user_map[evaluator_nick]
-                target_user = user_map[target_nick]
+        for data in evaluations_data:
+            try:
+                target_user = User.objects.get(nickname=data.get("target_nickname"))
                 
+                # 자기 자신은 평가 X
+                if evaluator == target_user:
+                    continue 
+                    
                 evaluations_to_create.append(
                     Evaluation(
                         room=room,
-                        evaluator=evaluator_user,
-                        target=target_user
+                        evaluator=evaluator,
+                        target=target_user,
+                        score=data.get("score", 50),
+                        comment=data.get("comment", ""),
+                        is_mood_maker=data.get("is_mood_maker", False)
                     )
                 )
+            except User.DoesNotExist:
+                continue # 없는 유저는 스킵
 
-        # 4-4. "평가해주세요" 알림 생성 (모든 참여자에게)
-        for user in participant_users:
-            alerts_to_create.append(
-                Alert(
-                    user=user,
-                    message=f"'{room.title}' 합주가 종료되었습니다. 매너 평가를 진행해주세요.",
-                    url=f"/evaluation/{room.id}" # 프론트엔드 평가 페이지 URL
-                )
-            )
-
-        # 5. DB에 일괄 생성
         Evaluation.objects.bulk_create(evaluations_to_create)
-        Alert.objects.bulk_create(alerts_to_create)
         
-        # (Push 알림 로직 생략)
+        # TODO: 평가 완료 알림의 is_read = True 처리
+        
+        return Response({"detail": "평가가 제출되었습니다."}, status=status.HTTP_201_CREATED)
 
-        return Response({
-            "success": True, 
-            "message": f"합주를 종료했습니다. 참여자 {len(unique_nicknames)}명에 대해 {len(evaluations_to_create)}개의 평가가 생성되었습니다."
-        })
-# --- 👆👆👆 [신규] EndRoomView 클래스 추가 ---
+# 4. Chat
+# -----------------------------------------------------------------
 
-
-# (ConfirmRoomView 등 나머지 뷰는 
-#  JoinSessionView와 유사한 패턴으로 crud.py 의 로직을 변환/재구현합니다)
-
-# --- Group Chat ---
-class GroupChatView(views.APIView):
+class GroupChatView(generics.ListCreateAPIView):
     """
-    GET/POST: FastAPI의 /chat/group 
+    (GET) /api/v1/rooms/<int:room_id>/chat/
+    (POST) /api/v1/rooms/<int:room_id>/chat/
     """
-    permission_classes = [AllowAny]
-    
-    def get(self, request: Request, room_id: int):
-        messages = GroupChat.objects.filter(room_id=room_id).order_by('timestamp')
-        serializer = GroupChatSerializer(messages, many=True)
+    serializer_class = GroupChatSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        room_id = self.kwargs.get('room_id')
+        # TODO: 사용자가 이 방에 참여했는지 확인
+        return GroupChat.objects.filter(room_id=room_id).order_by('timestamp')
+
+    def perform_create(self, serializer):
+        room_id = self.kwargs.get('room_id')
+        room = get_object_or_404(Room, id=room_id)
+        # TODO: 사용자가 이 방에 참여했는지 확인
+        
+        # [수정] sender를 request.user.nickname으로
+        serializer.save(room=room, sender=self.request.user.nickname) 
+        
+        # TODO: 채팅 알림 생성 (방에 있으면서, 내가 아닌 사람에게)
+
+# 5. 2순위 기능 (예약, 일정)
+# -----------------------------------------------------------------
+
+class ReserveSessionView(APIView):
+    """
+    (POST) /api/v1/rooms/sessions/<int:session_id>/reserve/
+    세션 예약
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, session_id):
+        session = get_object_or_404(Session, id=session_id)
+        user = request.user
+
+        # 방장이거나 이미 참여 중인 경우 예약 불가
+        if session.room.manager_nickname == user.nickname or \
+           session.participant_nickname == user.nickname:
+            return Response({"detail": "방장 또는 참여자는 예약할 수 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 이미 예약한 경우
+        if SessionReservation.objects.filter(session=session, user=user).exists():
+            return Response({"detail": "이미 예약한 세션입니다."}, status=status.HTTP_400_BAD_REQUEST)
+
+        SessionReservation.objects.create(session=session, user=user)
+        return Response({"detail": "세션 예약이 완료되었습니다."}, status=status.HTTP_201_CREATED)
+
+
+class CancelReservationView(APIView):
+    """
+    (POST) /api/v1/rooms/sessions/<int:session_id>/cancel-reserve/
+    세션 예약 취소
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, session_id):
+        session = get_object_or_404(Session, id=session_id)
+        user = request.user
+
+        reservation = get_object_or_404(SessionReservation, session=session, user=user)
+        reservation.delete()
+        
+        return Response({"detail": "세션 예약이 취소되었습니다."}, status=status.HTTP_200_OK)
+
+
+class RoomAvailabilityView(APIView):
+    """
+    (GET) /api/v1/rooms/<int:room_id>/availability/
+    (POST) /api/v1/rooms/<int:room_id>/availability/
+    합주 일정 조율 (시간 제출)
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, room_id):
+        """
+        합주 일정 조율 현황 조회
+        """
+        # room = get_object_or_404(Room, id=room_id) # 방 존재 확인
+        slots = RoomAvailabilitySlot.objects.filter(room_id=room_id).prefetch_related('voters')
+        serializer = RoomAvailabilitySlotSerializer(slots, many=True, context={'request': request})
         return Response(serializer.data)
 
-    def post(self, request: Request, room_id: int):
-        # (파일 업로드(file)는 일단 제외하고 텍스트 메시지만 구현)
-        sender = request.data.get('sender')
-        message = request.data.get('message')
-        
-        if not sender or not message:
-            return Response({"detail": "sender와 message가 필요합니다."}, status=status.HTTP_400_BAD_REQUEST)
+    @transaction.atomic
+    def post(self, request, room_id):
+        """
+        합주 가능한 시간 제출 (덮어쓰기)
+        """
+        room = get_object_or_404(Room, id=room_id)
+        user = request.user
+        # 프론트에서 ["2025-11-10T14:00:00Z", "2025-11-10T15:00:00Z"] 형태로 보냄
+        selected_times = request.data.get('times', []) 
 
-        # crud.create_group_chat  로직 재구현
-        db_msg = GroupChat.objects.create(
-            room_id=room_id,
-            sender=sender,
-            message=message,
-            timestamp=datetime.now().isoformat()
-        )
-        
-        # (푸시 알림 및 Alert 생성  로직은 일단 생략)
-        
-        serializer = GroupChatSerializer(db_msg)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        # 1. 이 유저의 기존 투표를 모두 제거
+        existing_votes = RoomAvailabilitySlot.objects.filter(room=room, voters=user)
+        for slot in existing_votes:
+            slot.voters.remove(user)
+
+        # 2. 이 유저의 새 투표를 추가
+        for time_str in selected_times:
+            try:
+                # '2025-11-10T14:00:00' (naive) 또는
+                # '2025-11-10T14:00:00Z' (aware)
+                time_dt = timezone.datetime.fromisoformat(time_str.replace('Z', '+00:00'))
+                
+                # DB에서 슬롯을 찾거나, 없으면 새로 만듦
+                slot, created = RoomAvailabilitySlot.objects.get_or_create(
+                    room=room,
+                    time=time_dt
+                )
+                slot.voters.add(user)
+            except ValueError:
+                continue # 잘못된 형식의 시간은 무시
+            except Exception as e:
+                # (디버깅용) print(f"Error processing time: {time_str}, {e}")
+                continue
+
+        # 3. 아무도 투표하지 않은 슬롯은 삭제 (선택적)
+        RoomAvailabilitySlot.objects.filter(room=room, voters__isnull=True).delete()
+
+        # 4. 업데이트된 현황 반환
+        return self.get(request, room_id)
