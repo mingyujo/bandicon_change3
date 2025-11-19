@@ -1,10 +1,12 @@
 from django.shortcuts import render
 from django.db.models import Q
+from django.shortcuts import get_object_or_404
 from rest_framework import generics, status, views, permissions
 from rest_framework.response import Response
 from rest_framework.request import Request
 from .models import Post, Comment, Board
 from user_app.models import User
+from clan_app.models import ClanBoard
 from .serializers import (
     BoardSerializer, # BoardSerializer 임포트
     PostListSerializer, 
@@ -21,7 +23,7 @@ class BoardListView(generics.ListAPIView):
 
 # --- Post Views ---
 
-class PostListView(generics.ListAPIView):
+class PostListView(generics.ListCreateAPIView):
     serializer_class = PostListSerializer
     permission_classes = [permissions.AllowAny]
 
@@ -46,14 +48,58 @@ class PostListView(generics.ListAPIView):
             )
             
         return queryset.order_by('-created_at')
+     # ▼▼▼ [신규 추가] POST 요청 시, 작성자(author)를 자동으로 주입 ▼▼▼
+    def perform_create(self, serializer):
+        """
+        CreatePost.js가 보낸 'board_type'은 serializer가 자동으로 처리합니다.
+        우리는 'author'만 request.user로 설정해줍니다.
+        (is_anonymous는 CreatePost.js가 formData에 포함시켜 보냅니다)
+        """
+        serializer.save(author=self.request.user)
+    # ▲▲▲ [신규 추가] ▲▲▲
 
+# ▼▼▼ [핵심 수정] PostCreateView ▼▼▼
 class PostCreateView(generics.CreateAPIView):
     queryset = Post.objects.all()
-    serializer_class = PostDetailSerializer # (생성 후 상세 데이터를 반환하기 위해)
+    serializer_class = PostDetailSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        # 1. 프론트엔드(CreatePost.js)가 보낸 'board_type' 또는 'clan_board_id'를 가져옵니다.
+        # (apiPostForm은 FormData를 request.data로 보냅니다)
+        board_type = self.request.data.get('board_type')
+        clan_board_id = self.request.data.get('clan_board_id')
+
+        board = None
+        clan_board = None
+
+        if board_type:
+            # 일반 게시판 (board_type: general, novice 등)
+            try:
+                board = get_object_or_404(Board, type=board_type)
+            except:
+                 # 게시판이 없을 경우 403 대신 400 Bad Request를 반환하는 것이 사용자 경험에 좋습니다.
+                 return Response({"detail": f"'{board_type}'(이)라는 게시판이 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
+
+
+        elif clan_board_id:
+            # 클랜 게시판 (clan_board_id)
+            try:
+                clan_board = get_object_or_404(ClanBoard, id=clan_board_id)
+            except:
+                 return Response({"detail": "존재하지 않는 클랜 게시판입니다."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        else:
+            # 둘 다 없을 경우
+            return Response({"detail": "게시판 정보(board_type 또는 clan_board_id)가 필요합니다."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 2. author, board, clan_board를 serializer에 주입하여 저장
+        serializer.save(
+            author=self.request.user,
+            board=board,           # (일반 게시판일 경우)
+            clan_board=clan_board  # (클랜 게시판일 경우)
+        )
+# ▲▲▲ [핵심 수정] ▲▲▲
 
 class PostDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Post.objects.all()

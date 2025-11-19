@@ -5,126 +5,185 @@ from .models import (
     Clan, ClanJoinRequest, ClanChat, 
     ClanBoard, ClanAnnouncement, ClanEvent
 )
+from django.contrib.auth import get_user_model
 from user_app.models import User
 from room_app.models import Room
 from user_app.serializers import UserBaseSerializer
 from room_app.serializers import RoomInfoForActivitySerializer # 수정: room_app에서 가져옴
 
+from rest_framework import serializers
+from .models import Clan, ClanJoinRequest, ClanAnnouncement, ClanEvent, ClanBoard
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+
+class ClanMemberSerializer(serializers.ModelSerializer):
+    """
+    [User 모델 기준]
+    User 모델에 이미지 필드가 없으므로, fields에서 제거합니다.
+    """
+    is_owner = serializers.SerializerMethodField()
+    is_admin = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        # ▼▼▼ [수정 1] 'image' (또는 'avatar') 필드 제거 ▼▼▼
+        fields = ['id', 'nickname', 'is_owner', 'is_admin']
+        # ▲▲▲ [수정 1] ▲▲▲
+
+    def get_clan(self):
+        return self.context.get('clan')
+
+    def get_is_owner(self, obj):
+        clan = self.get_clan()
+        if clan:
+            return obj == clan.owner
+        return False
+
+    def get_is_admin(self, obj):
+        clan = self.get_clan()
+        if clan:
+            return obj in clan.admins.all()
+        return False
+
+
 class ClanSerializer(serializers.ModelSerializer):
     """
-    클랜 목록 (GET) / 클랜 생성 (POST)
+    [Clan 모델 기준]
+    Clan 모델의 'image' 필드는 존재하므로 유지합니다.
     """
-    owner = UserBaseSerializer(read_only=True)
-    member_count = serializers.SerializerMethodField(read_only=True)
+    owner = UserBaseSerializer(read_only=True) 
+    created_at = serializers.DateTimeField(format="%Y-%m-%d", read_only=True)
     
+    # 1. 'member_count' 필드 정의
+    member_count = serializers.SerializerMethodField()
+    
+    # 2. 'members' (ID 목록) 필드 정의
+    members = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+
     class Meta:
         model = Clan
-        fields = ['id', 'name', 'description', 'owner', 'image', 'created_at', 'member_count']
-        read_only_fields = ['owner', 'created_at']
-
+        
+        # ▼▼▼ [핵심] 3. 'fields' 목록에 'member_count'와 'members'가 모두 있는지 확인! ▼▼▼
+        fields = ('id', 'name', 'description', 'owner', 'created_at', 'image', 
+                  'member_count', 'members') 
+        # ▲▲▲ [핵심] ▲▲▲
+        
+        read_only_fields = ('created_at',) # 'owner'는 여기서 제거되어야 함
     def get_member_count(self, obj):
         return obj.members.count()
 
+
 class ClanDetailSerializer(serializers.ModelSerializer):
     """
-    클랜 상세 (GET)
+    [Clan 모델 기준]
+    Clan 모델의 'image' 필드는 존재하므로 유지합니다.
     """
-    owner = UserBaseSerializer(read_only=True)
-    members = serializers.SerializerMethodField()
+    owner = ClanMemberSerializer(read_only=True)
+    admins = ClanMemberSerializer(many=True, read_only=True)
+    members = UserBaseSerializer(many=True, read_only=True) # 상세 페이지에서는 전체 정보
+    announcements = serializers.SerializerMethodField()
+    events = serializers.SerializerMethodField()
+    boards = serializers.SerializerMethodField()
     join_requests = serializers.SerializerMethodField()
-    
-    # [수정] 현재 유저의 상태 (owner, member, pending, none)
-    my_status = serializers.SerializerMethodField()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        instance = kwargs.get('instance') or args[0] if args else None
+        if instance and isinstance(instance, Clan):
+            if 'context' not in kwargs:
+                kwargs['context'] = {}
+            kwargs['context']['clan'] = instance
+        if 'owner' in self.fields:
+            self.fields['owner'].context.update(kwargs.get('context', {}))
+        if 'admins' in self.fields:
+            self.fields['admins'].context.update(kwargs.get('context', {}))
 
     class Meta:
         model = Clan
-        fields = [
-            'id', 'name', 'description', 'owner', 'image', 'created_at', 
-            'members', 'join_requests', 'my_status'
-        ]
+        # Clan 모델의 'image' 필드는 그대로 둠
+        fields = ('id', 'name', 'description', 'created_at', 'owner', 'admins', 'members', 
+                  'image', 'announcements', 'events', 'boards', 'join_requests')
 
-    def get_my_status(self, obj):
-        user = self.context['request'].user
-        if not user.is_authenticated:
-            return "none"
-        if obj.owner == user:
-            return "owner"
-        if obj.members.filter(id=user.id).exists():
-            return "member"
-        if ClanJoinRequest.objects.filter(clan=obj, user=user, status="pending").exists():
-            return "pending"
-        return "none"
+    def get_announcements(self, obj):
+        announcements = obj.announcements.order_by('-created_at')[:5]
+        return ClanAnnouncementSerializer(announcements, many=True, context=self.context).data
 
-    def get_members(self, obj):
-        members = obj.members.all()
-        return UserBaseSerializer(members, many=True).data
-
+    def get_events(self, obj):
+        events = obj.events.order_by('date')[:5] 
+        return ClanEventSerializer(events, many=True, context=self.context).data
+    
+    def get_boards(self, obj):
+        boards = obj.boards.all()
+        return ClanBoardSerializer(boards, many=True, context=self.context).data
+    
     def get_join_requests(self, obj):
-        # 가입 신청 목록은 클랜장에게만 보이도록 함
-        user = self.context['request'].user
-        if obj.owner == user:
-            requests = ClanJoinRequest.objects.filter(clan=obj, status="pending")
-            return ClanJoinRequestSerializer(requests, many=True).data
-        return None
+        requests = obj.join_requests.filter(status='pending')
+        return ClanJoinRequestSerializer(requests, many=True).data
+
 
 class ClanJoinRequestSerializer(serializers.ModelSerializer):
     """
-    클랜 가입 신청 목록 (Detail Serializer 내부에서 사용)
+    [User 모델 기준]
+    User 모델에 이미지 필드가 없으므로 'user_avatar' 필드 제거
     """
-    user = UserBaseSerializer(read_only=True)
-    
+    user_nickname = serializers.ReadOnlyField(source='user.nickname')
+    # ▼▼▼ [수정 2] user_avatar 필드 정의 제거 ▼▼▼
+    # user_avatar = serializers.ImageField(source='user.image', read_only=True)
+    # ▲▲▲ [수정 2] ▲▲▲
+
     class Meta:
         model = ClanJoinRequest
-        fields = ['id', 'user', 'status', 'requested_at']
+        # ▼▼▼ [수정 3] Meta.fields에서 'user_avatar' 제거 ▼▼▼
+        fields = ['id', 'user', 'clan', 'status', 'requested_at', 'user_nickname']
+        # ▲▲▲ [수정 3] ▲▲▲
+        read_only_fields = ['user', 'clan']
 
-class ClanChatSerializer(serializers.ModelSerializer):
-    """
-    클랜 채팅
-    """
-    sender = UserBaseSerializer(read_only=True)
-
-    class Meta:
-        model = ClanChat
-        fields = ['id', 'sender', 'message', 'timestamp']
-        read_only_fields = ['id', 'sender', 'timestamp']
-
-# --- 클랜 3순위 (공지, 캘린더, 게시판) ---
 
 class ClanAnnouncementSerializer(serializers.ModelSerializer):
-    """
-    클랜 공지사항
-    """
-    author = UserBaseSerializer(read_only=True)
-    
+    author_nickname = serializers.ReadOnlyField(source='author.nickname')
+
     class Meta:
         model = ClanAnnouncement
-        fields = ['id', 'author', 'title', 'content', 'created_at', 'is_pinned']
-        read_only_fields = ['id', 'author', 'created_at']
+        fields = ['id', 'clan', 'author', 'author_nickname', 'title', 'content', 'created_at', 'is_pinned']
+        read_only_fields = ['clan', 'author']
+
 
 class ClanEventSerializer(serializers.ModelSerializer):
-    """
-    클랜 캘린더 이벤트
-    """
-    creator = UserBaseSerializer(read_only=True)
+    creator_nickname = serializers.ReadOnlyField(source='creator.nickname')
 
     class Meta:
         model = ClanEvent
-        fields = ['id', 'title', 'description', 'date', 'time', 'creator']
-        read_only_fields = ['id', 'creator']
+        fields = ['id', 'clan', 'creator', 'creator_nickname', 'title', 'description', 'date', 'time']
+        read_only_fields = ['clan', 'creator']
+
 
 class ClanBoardSerializer(serializers.ModelSerializer):
-    """
-    클랜 게시판
-    """
-    author = UserBaseSerializer(read_only=True)
-    
+    author_nickname = serializers.ReadOnlyField(source='author.nickname')
+
     class Meta:
         model = ClanBoard
-        fields = ['id', 'author', 'title', 'content', 'created_at', 'category']
-        read_only_fields = ['id', 'author', 'created_at']
+        fields = ['id', 'clan', 'author', 'author_nickname', 'title', 'content', 'created_at', 'category']
+        read_only_fields = ['clan', 'author']
 
-# --- 클랜 활동 현황 ---
 
+class ClanChatSerializer(serializers.ModelSerializer):
+    """
+    [User 모델 기준]
+    User(sender) 모델에 이미지 필드가 없으므로 'sender_avatar' 필드 제거
+    """
+    sender_nickname = serializers.ReadOnlyField(source='sender.nickname')
+    # ▼▼▼ [수정 4] sender_avatar 필드 정의 제거 ▼▼▼
+    # sender_avatar = serializers.ImageField(source='sender.image', read_only=True)
+    # ▲▲▲ [수정 4] ▲▲▲
+
+    class Meta:
+        model = ClanChat
+        # ▼▼▼ [수정 5] Meta.fields에서 'sender_avatar' 제거 ▼▼▼
+        fields = ['id', 'clan', 'sender', 'sender_nickname', 'message', 'timestamp']
+        # ▲▲▲ [수정 5] ▲▲▲
+        read_only_fields = ['clan', 'sender']
 class RoomLatestActivitySerializer(serializers.ModelSerializer):
     """
     (Clan Member Activity) 멤버의 최근 합주방 활동
@@ -152,4 +211,5 @@ class MemberActivitySerializer(UserBaseSerializer):
         
         if latest_room:
             return RoomLatestActivitySerializer(latest_room).data
-        return None
+        return 
+    

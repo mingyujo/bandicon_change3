@@ -44,4 +44,14 @@ urlpatterns = [
 
     path('notifications/counts', views.NotificationCountsView.as_view(), name='notification-counts'),
     path('counts', views.UserCountsView.as_view(), name='user-counts'),
+
+    path('alerts/', views.AlertListView.as_view(), name='alert-list'),
+    path('alerts/<int:pk>/', views.AlertReadView.as_view(), name='alert-read-update'),
+    # ▼▼▼ [수정] URL을 더 명확하게 변경 ▼▼▼
+    # (POST /api/v1/users/alerts/<int:pk>/read/)
+    path('alerts/<int:pk>/read/', views.AlertReadView.as_view(), name='alert-read'),
+    # ▲▲▲ [수정] ▲▲▲
+    # ▼▼▼ [신규 추가] URL 기반 일괄 읽음 처리 URL ▼▼▼
+    path('alerts/read-by-url/', views.AlertReadByUrlView.as_view(), name='alert-read-by-url'),
+    # ▲▲▲ [신규 추가] ▲▲▲
 ]

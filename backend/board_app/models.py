@@ -48,6 +48,9 @@ class Post(models.Model):
     image_url = models.CharField(max_length=512, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     is_anonymous = models.BooleanField(default=False)
+    # ▼▼▼ [신규 추가] 수정일 필드 ▼▼▼
+    updated_at = models.DateTimeField(auto_now=True) 
+    # ▲▲▲ [신규 추가] ▲▲▲
     
     # 'liked_by_users' -> 'likes'
     likes = models.ManyToManyField(
@@ -86,6 +89,9 @@ class Comment(models.Model):
     content = models.TextField(blank=True, null=True)
     # --- 👆 [수정] ---
     created_at = models.DateTimeField(auto_now_add=True)
+    # ▼▼▼ [신규 추가] 댓글 수정일 필드 ▼▼▼
+    updated_at = models.DateTimeField(auto_now=True)
+    # ▲▲▲ [신규 추가] ▲▲▲
     
     parent = models.ForeignKey(
         'self', # 자기 자신을 참조

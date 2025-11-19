@@ -4,31 +4,35 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.db import transaction
 
-from rest_framework import generics, permissions, status
+from rest_framework import generics, permissions, viewsets, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
+from user_app.models import Alert
 from user_app.models import User
 from .models import (
     Clan, ClanJoinRequest, ClanChat, 
     ClanBoard, ClanAnnouncement, ClanEvent
 )
+from django.contrib.auth import get_user_model
 # [오류 수정] .serializers (자기 자신)에서 MemberActivitySerializer 등을 가져오도록 분리
 from .serializers import (
     ClanSerializer, ClanDetailSerializer, ClanJoinRequestSerializer, 
     ClanChatSerializer, ClanBoardSerializer, ClanAnnouncementSerializer, 
-    ClanEventSerializer,
+    ClanEventSerializer, ClanMemberSerializer,
     MemberActivitySerializer, RoomLatestActivitySerializer # <-- 이 2줄
 )
 from room_app.models import Room
 # [오류 수정] room_app.serializers에서는 RoomInfoForActivitySerializer만 가져옴
 from room_app.serializers import (RoomInfoForActivitySerializer) 
-from .permission import IsClanOwner, IsClanOwnerOrReadOnly
+from .permission import IsClanOwner, IsClanOwnerOrReadOnly, IsClanMember, IsClanOwnerOrAdmin
 
 # 1. Clan
 # -----------------------------------------------------------------
-
+User = get_user_model()
 class ClanListCreateAPIView(generics.ListCreateAPIView):
     """
     (GET) /api/v1/clans/
@@ -73,7 +77,20 @@ class ClanJoinRequestCreateView(APIView):
             return Response({"detail": "이미 가입 신청 대기 중입니다."}, status=status.HTTP_400_BAD_REQUEST)
 
         ClanJoinRequest.objects.create(clan=clan, user=user)
-        # TODO: 클랜장에게 알림
+        # ▼▼▼ [수정] TODO를 알림 생성 코드로 변경 ▼▼▼
+        try:
+            Alert.objects.create(
+                user=clan.owner, # 클랜장에게
+                message=f"'{user.nickname}'님이 '{clan.name}' 클랜 가입을 신청했습니다.",
+                link_url=f"/clans/{clan.id}/" # 클릭 시 클랜 상세 페이지로 이동
+            )
+        except Exception as e:
+            # 알림 실패가 가입 신청을 막으면 안 됨
+            print(f"Error creating alert for clan owner {clan.owner.id}: {e}")
+        # ▲▲▲ [수정] ▲▲▲
+
+        
+        
         return Response({"detail": "클랜 가입을 신청했습니다."}, status=status.HTTP_201_CREATED)
 
 
@@ -95,11 +112,29 @@ class ClanJoinRequestUpdateView(APIView):
         if action == "approve":
             req.status = "approved"
             clan.members.add(req.user)
-            # TODO: 신청자에게 '승인' 알림
+            # ▼▼▼ [수정] 'TODO'를 'Alert' 생성 코드로 변경 ▼▼▼
+            try:
+                Alert.objects.create(
+                    user=req.user, # 'instance' 대신 'req' 변수 사용
+                    message=f"'{clan.name}' 클랜 가입이 승인되었습니다!",
+                    link_url=f"/clans/{clan.id}/"
+                )
+            except Exception as e:
+                print(f"Error creating alert for user {req.user.id}: {e}") 
+            # ▲▲▲ [수정] ▲▲▲
             message = "가입을 승인했습니다."
         elif action == "reject":
             req.status = "rejected"
-            # TODO: 신청자에게 '거절' 알림
+            # ▼▼▼ [추가] 가입 거절 알림 ▼▼▼
+            try:
+                Alert.objects.create(
+                    user=req.user,
+                    message=f"'{clan.name}' 클랜 가입이 거절되었습니다."
+                    # (거절은 link_url이 불필요할 수 있음)
+                )
+            except Exception as e:
+                print(f"Error creating alert for user {req.user.id}: {e}")
+            # ▲▲▲ [추가] ▲▲▲
             message = "가입을 거절했습니다."
         else:
             return Response({"detail": "잘못된 action입니다."}, status=status.HTTP_400_BAD_REQUEST)
@@ -128,7 +163,15 @@ class ClanKickMemberView(APIView):
             return Response({"detail": "클랜 멤버가 아닙니다."}, status=status.HTTP_400_BAD_REQUEST)
 
         clan.members.remove(user_to_kick)
-        # TODO: 대상에게 '강퇴' 알림
+                # ▼▼▼ [추가] 강퇴 알림 ▼▼▼
+        try:
+            Alert.objects.create(
+                user=user_to_kick,
+                message=f"'{clan.name}' 클랜에서 강퇴되었습니다."
+            )
+        except Exception as e:
+            print(f"Error creating alert for user {user_to_kick.id}: {e}")
+        # ▲▲▲ [추가] ▲▲▲
         return Response({"detail": f"{nickname}님을 강퇴했습니다."}, status=status.HTTP_200_OK)
 
 
@@ -150,16 +193,32 @@ class ClanApproveAllView(APIView):
             return Response({"detail": "새로운 가입 신청이 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
             
         users_to_add = []
+        alerts_to_create = [] # [추가] 알림 목록 준비
+
         for req in pending_requests:
             req.status = "approved"
             users_to_add.append(req.user)
-            # TODO: 신청자에게 '승인' 알림
+             # ▼▼▼ [수정] 'TODO'를 'Alert' 생성 코드로 변경 (bulk create 준비) ▼▼▼
+            alerts_to_create.append(
+                Alert(
+                    user=req.user,
+                    message=f"'{clan.name}' 클랜 가입이 승인되었습니다!",
+                    link_url=f"/clans/{clan.id}/"
+                )
+            )
+            # ▲▲▲ [수정] ▲▲▲
 
         # 1. 멤버 일괄 추가
         clan.members.add(*users_to_add)
         # 2. 신청서 일괄 업데이트
         ClanJoinRequest.objects.bulk_update(pending_requests, ['status'])
-        
+         # ▼▼▼ [추가] 알림 일괄 생성 (DB 효율성) ▼▼▼
+        try:
+            Alert.objects.bulk_create(alerts_to_create)
+        except Exception as e:
+            print(f"Error bulk creating alerts: {e}")
+        # ▲▲▲ [추가] ▲▲▲
+
         return Response({"detail": f"{len(users_to_add)}명의 가입을 일괄 승인했습니다."}, status=status.HTTP_200_OK)
 
 
@@ -185,7 +244,22 @@ class ClanAnnouncementListCreateView(generics.ListCreateAPIView):
         if clan.owner != self.request.user:
             raise PermissionDenied("공지사항은 클랜장만 작성할 수 있습니다.")
         serializer.save(clan=clan, author=self.request.user)
-        # TODO: 클랜 멤버에게 알림
+        # ▼▼▼ [수정] TODO를 '새 공지' 알림 코드로 변경 ▼▼▼
+        try:
+            clan_members = clan.members.exclude(id=self.request.user.id) # 작성자 제외
+            alerts_to_create = []
+            for member in clan_members:
+                alerts_to_create.append(
+                    Alert(
+                        user=member,
+                        message=f"'{clan.name}' 클랜에 새 공지사항이 등록되었습니다.",
+                        link_url=f"/clans/{clan.id}/"
+                    )
+                )
+            Alert.objects.bulk_create(alerts_to_create)
+        except Exception as e:
+            print(f"Error creating announcement alerts: {e}")
+        # ▲▲▲ [수정] ▲▲▲
 
 
 class ClanEventListCreateView(generics.ListCreateAPIView):
@@ -367,3 +441,261 @@ class TestClanMemberView(APIView):
             raise PermissionDenied(f"({request.user.nickname})님은 1번 클랜 멤버가 아닙니다.")
             
         return Response({"detail": f"1번 클랜 멤버({request.user.nickname})만 접근 가능"})
+    
+User = get_user_model()
+
+# (기존 ClanViewSet, ClanJoinRequestListView, ClanJoinRequestUpdateView, ClanKickMemberView, ClanApproveAllView 코드... )
+# ... (이전 코드와 동일) ...
+
+class ClanViewSet(viewsets.ModelViewSet):
+    queryset = Clan.objects.all()
+    serializer_class = ClanSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly] # 목록(GET)은 누구나, 생성(POST)은 로그인한 사람만
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return ClanDetailSerializer
+        return ClanSerializer
+
+    def perform_create(self, serializer):
+         # 1. 클랜을 저장하고, 소유자를 request.user로 설정합니다.
+        clan_instance = serializer.save(owner=self.request.user)
+        
+        # 2. [중요] 생성한 사람(owner)을 'members' 목록에 자동으로 추가합니다.
+        clan_instance.members.add(self.request.user)
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def join_request(self, request, pk=None):
+        clan = self.get_object()
+        user = request.user
+
+        if user in clan.members.all():
+            return Response({'detail': '이미 클랜 멤버입니다.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if ClanJoinRequest.objects.filter(clan=clan, user=user, status='pending').exists():
+            return Response({'detail': '이미 가입 요청을 보냈습니다.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        ClanJoinRequest.objects.create(clan=clan, user=user)
+        return Response({'detail': '클랜 가입 요청을 보냈습니다.'}, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['get'], permission_classes=[permissions.IsAuthenticated, IsClanMember])
+    def members(self, request, pk=None):
+        clan = self.get_object()
+        members = clan.members.all()
+        serializer = ClanMemberSerializer(members, many=True, context={'clan': clan})
+        return Response(serializer.data)
+
+
+class ClanJoinRequestListView(generics.ListAPIView):
+    serializer_class = ClanJoinRequestSerializer
+    permission_classes = [permissions.IsAuthenticated, IsClanOwnerOrAdmin]
+
+    def get_queryset(self):
+        clan_id = self.kwargs.get('clan_id')
+        return ClanJoinRequest.objects.filter(clan_id=clan_id, status='pending')
+
+
+class ClanJoinRequestUpdateView(generics.UpdateAPIView):
+    queryset = ClanJoinRequest.objects.all()
+    serializer_class = ClanJoinRequestSerializer
+    permission_classes = [permissions.IsAuthenticated, IsClanOwnerOrAdmin]
+    lookup_field = 'id'
+
+    def get_object(self):
+        obj = super().get_object()
+        # URL의 clan_id와 요청 대상의 clan_id가 일치하는지,
+        # 그리고 요청자가 해당 클랜의 관리자인지 확인
+        clan_id = self.kwargs.get('clan_id')
+        if obj.clan.id != clan_id:
+            raise PermissionError("URL과 요청 대상의 클랜이 일치하지 않습니다.")
+        
+        # IsClanOwnerOrAdmin 권한이 이미 view 레벨에서 체크되지만, 
+        # get_object 레벨에서 한 번 더 확인 (혹은 permission 클래스가 object-level-permission을 쓰도록 수정)
+        # 여기서는 permission_classes에 설정된 IsClanOwnerOrAdmin가
+        # view.kwargs.get('clan_id')를 사용하므로 object-level 체크가 아니어도 됨.
+        
+        return obj
+
+    def update(self, request, *args, **kwargs):
+        join_request = self.get_object()
+        action = request.data.get('action') # 'approve' or 'reject'
+
+        if action == 'approve':
+            join_request.status = 'approved'
+            join_request.clan.members.add(join_request.user)
+            join_request.clan.save()
+            join_request.save()
+            return Response({'detail': '가입이 승인되었습니다.'}, status=status.HTTP_200_OK)
+        elif action == 'reject':
+            join_request.status = 'rejected'
+            join_request.save()
+            return Response({'detail': '가입이 거절되었습니다.'}, status=status.HTTP_200_OK)
+        
+        return Response({'detail': '잘못된 요청입니다. (action: "approve" or "reject")'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ClanKickMemberView(generics.GenericAPIView):
+    permission_classes = [permissions.IsAuthenticated, IsClanOwnerOrAdmin]
+
+    def post(self, request, clan_id, user_id):
+        clan = get_object_or_404(Clan, id=clan_id)
+        user_to_kick = get_object_or_404(User, id=user_id)
+
+        # IsClanOwnerOrAdmin이 clan_id를 기준으로 이미 검사함
+        
+        if user_to_kick == clan.owner:
+            return Response({'detail': '클랜 소유자는 강퇴할 수 없습니다.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if user_to_kick not in clan.members.all():
+            return Response({'detail': '클랜 멤버가 아닙니다.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if user_to_kick in clan.admins.all():
+            clan.admins.remove(user_to_kick) # 관리자 목록에서도 제거
+            
+        clan.members.remove(user_to_kick) # 멤버 목록에서 제거
+        clan.save()
+
+        return Response({'detail': f'{user_to_kick.nickname} 님이 강퇴되었습니다.'}, status=status.HTTP_200_OK)
+
+
+class ClanApproveAllView(generics.GenericAPIView):
+    permission_classes = [permissions.IsAuthenticated, IsClanOwnerOrAdmin]
+
+    def post(self, request, clan_id):
+        clan = get_object_or_404(Clan, id=clan_id)
+        
+        # IsClanOwnerOrAdmin이 clan_id를 기준으로 이미 검사함
+        
+        pending_requests = ClanJoinRequest.objects.filter(clan=clan, status='pending')
+        
+        if not pending_requests.exists():
+            return Response({'detail': '승인 대기 중인 요청이 없습니다.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        approved_count = 0
+        for req in pending_requests:
+            req.status = 'approved'
+            req.clan.members.add(req.user)
+            req.save()
+            approved_count += 1
+
+        clan.save()
+        
+        return Response({'detail': f'총 {approved_count}건의 가입 요청이 일괄 승인되었습니다.'}, status=status.HTTP_200_OK)
+
+
+# --- 3순위 (마무리): 클랜 내부 기능 ---
+
+class ClanAnnouncementCreateView(generics.CreateAPIView):
+    """
+    클랜 공지사항 생성 뷰
+    - IsClanOwnerOrAdmin 권한: 클랜 소유자 또는 관리자만 작성 가능
+    - URL (clan_id) / Request (user) 로부터 clan, author 자동 주입
+    """
+    queryset = ClanAnnouncement.objects.all()
+    serializer_class = ClanAnnouncementSerializer
+    permission_classes = [permissions.IsAuthenticated, IsClanOwnerOrAdmin]
+
+    def perform_create(self, serializer):
+        # URL kwargs에서 clan_id를 가져옵니다.
+        clan_id = self.kwargs.get('clan_id')
+        clan = get_object_or_404(Clan, id=clan_id)
+        
+        # author는 요청한 유저로, clan은 URL의 클랜으로 자동 설정합니다.
+        serializer.save(author=self.request.user, clan=clan)
+
+class ClanBoardListCreateView(generics.ListCreateAPIView):
+    """
+    클랜 전용 게시판 목록(GET) 및 생성(POST) 뷰
+    - GET (목록): IsClanMember (클랜 멤버)
+    - POST (생성): IsClanOwnerOrAdmin (클랜 관리자/소유자)
+    """
+    serializer_class = ClanBoardSerializer
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            # 프론트엔드(ClanDetail.js)가 isOwner(isClanAdmin)일 때만 폼을 보여주므로
+            return [permissions.IsAuthenticated(), IsClanOwnerOrAdmin()]
+        # 조회(GET)는 클랜 멤버
+        return [permissions.IsAuthenticated(), IsClanMember()]
+
+    def get_queryset(self):
+        clan_id = self.kwargs.get('clan_id')
+        # ClanBoard 모델(게시글)을 최신순으로 정렬
+        return ClanBoard.objects.filter(clan_id=clan_id).order_by('-created_at')
+    
+    def create(self, request, *args, **kwargs):
+        """
+        [중요] 프론트엔드-백엔드 불일치 해결
+        프론트엔드(ClanDetail.js)는 { name: "게시판이름" } 을 보냅니다.
+        백엔드(ClanBoard 모델)는 { title: "..." } 필드를 가집니다.
+        'name'을 'title'로 변환하여 저장합니다.
+        """
+        data = request.data.copy()
+        if 'name' in data and 'title' not in data:
+            data['title'] = data['name']
+        
+        # 'content'는 모델에서 (null=True, blank=True)이므로 필수가 아님
+        # 'category'는 모델에서 (default='free')이므로 필수가 아님
+
+        # 수정된 data로 시리얼라이저 생성
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        
+        # perform_create를 호출 (clan, author 주입)
+        self.perform_create(serializer) 
+        
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def perform_create(self, serializer):
+        clan_id = self.kwargs.get('clan_id')
+        clan = get_object_or_404(Clan, id=clan_id)
+
+        # ▼▼▼ [추가] 클랜 멤버에게 알림 (비동기 추천) ▼▼▼
+        try:
+            clan_members = clan.members.exclude(id=self.request.user.id) # 작성자 제외
+            alerts_to_create = []
+            for member in clan_members:
+                alerts_to_create.append(
+                    Alert(
+                        user=member,
+                        message=f"'{clan.name}' 클랜에 새 공지사항이 등록되었습니다.",
+                        link_url=f"/clans/{clan.id}/"
+                    )
+                )
+            Alert.objects.bulk_create(alerts_to_create)
+        except Exception as e:
+            print(f"Error creating announcement alerts: {e}")
+        # ▲▲▲ [추가] ▲▲▲
+
+        
+        # 'author'를 request.user로, 'clan'을 URL의 clan_id로 설정
+        serializer.save(author=self.request.user, clan=clan)
+# ▲▲▲ [신규 추가] ▲▲▲
+        
+class ClanEventListCreateView(generics.ListCreateAPIView):
+    """
+    클랜 캘린더 이벤트 목록(GET) 및 생성(POST) 뷰
+    - GET (목록): IsClanMember (클랜 멤버)
+    - POST (생성): IsClanOwnerOrAdmin (클랜 관리자/소유자)
+    """
+    serializer_class = ClanEventSerializer
+
+    def get_permissions(self):
+        # [중요] 요청 메서드(GET/POST)에 따라 다른 권한 적용
+        if self.request.method == 'POST':
+            # 생성(POST)은 관리자만
+            return [permissions.IsAuthenticated(), IsClanOwnerOrAdmin()]
+        # 조회(GET)는 클랜 멤버
+        return [permissions.IsAuthenticated(), IsClanMember()]
+
+    def get_queryset(self):
+        # URL에서 clan_id를 가져와 해당 클랜의 이벤트만 필터링
+        clan_id = self.kwargs.get('clan_id')
+        return ClanEvent.objects.filter(clan_id=clan_id).order_by('date', 'time')
+
+    def perform_create(self, serializer):
+        # 생성 시, URL의 clan_id와 요청 유저(creator)를 자동으로 주입
+        clan_id = self.kwargs.get('clan_id')
+        clan = get_object_or_404(Clan, id=clan_id)
+        serializer.save(creator=self.request.user, clan=clan)
+        

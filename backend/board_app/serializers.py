@@ -7,8 +7,8 @@ from clan_app.models import ClanBoard
 class BoardSerializer(serializers.ModelSerializer):
     class Meta:
         model = Board
-        fields = ['id', 'name', 'description']
-
+        #fields = ['id', 'name', 'description']
+        fields = '__all__'
 # --- CommentSerializer ---
 class CommentSerializer(serializers.ModelSerializer):
     author = UserBaseSerializer(read_only=True)
@@ -31,7 +31,7 @@ class PostListSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Post
-        fields = ['id', 'title', 'author', 'created_at', 'image', 'likes_count', 'comments_count', 'is_liked']
+        fields = ['id', 'title', 'author', 'created_at', 'likes_count', 'comments_count', 'is_liked', 'updated_at']
 
     def get_is_liked(self, obj):
         request = self.context.get('request', None)
@@ -51,12 +51,16 @@ class PostDetailSerializer(serializers.ModelSerializer):
     is_scrapped = serializers.SerializerMethodField()
     
     board_info = serializers.SerializerMethodField()
+    # ▼▼▼ [핵심 수정 1] 이 필드들을 required=False로 선언하여 시리얼라이저 유효성 검사를 통과시킵니다. ▼▼▼
+    board = serializers.PrimaryKeyRelatedField(queryset=Board.objects.all(), required=False)
+    clan_board = serializers.PrimaryKeyRelatedField(queryset=ClanBoard.objects.all(), required=False)
+    # ▲▲▲ [핵심 수정 1] ▲▲▲
 
     class Meta:
         model = Post
         fields = [
             'id', 'author', 'title', 'content', 'created_at', 'updated_at', 
-            'image', 'comments', 
+            'comments', 
             'likes_count', 'is_liked',
             'scraps_count', 'is_scrapped',
             'board', 'clan_board', 'board_info'

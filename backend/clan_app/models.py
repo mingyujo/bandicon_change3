@@ -12,7 +12,7 @@ class Clan(models.Model):
     members = models.ManyToManyField(User, related_name='clans', blank=True)
     image = models.ImageField(upload_to='clan_images/', null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now) 
-    
+    admins = models.ManyToManyField(User, related_name='admin_clans', blank=True)
     def __str__(self):
         return self.name
 

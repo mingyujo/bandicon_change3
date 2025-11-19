@@ -280,7 +280,28 @@ class AlertListView(views.APIView):
         serializer = AlertSerializer(alerts, many=True)
         return Response(serializer.data)
 
+# ▼▼▼ [수정] PUT/PATCH 대신 POST로 읽음 처리 ▼▼▼
+class AlertReadView(APIView):
+    """
+    특정 알림(pk)을 "읽음" 처리합니다. (POST 요청)
+    (POST /api/v1/users/alerts/<int:pk>/read/)
+    """
+    permission_classes = [permissions.IsAuthenticated]
 
+    def post(self, request, pk, *args, **kwargs):
+        # 1. [보안] 로그인한 유저의 알림이 맞는지 확인
+        alert = get_object_or_404(Alert, pk=pk, user=request.user)
+
+        # 2. 이미 읽었다면 아무것도 안 함
+        if alert.is_read:
+            return Response({'detail': '이미 읽은 알림입니다.'}, status=status.HTTP_200_OK)
+
+        # 3. 읽음 처리
+        alert.is_read = True
+        alert.save(update_fields=['is_read']) # is_read 필드만 업데이트
+
+        return Response({'detail': '알림을 읽음 처리했습니다.'}, status=status.HTTP_200_OK)
+# ▲▲▲ [수정] ▲▲▲
 class NotificationCountsView(APIView):
     """
     GET: /api/v1/users/notifications/counts
@@ -386,3 +407,95 @@ class FriendListView(views.APIView):
             "pending_requests": pending_requests
         })
         return Response(serializer.data)
+
+# ▼▼▼ [4순위 작업] 알림 목록 뷰 추가 ▼▼▼
+class AlertListView(generics.ListAPIView):
+    """
+    로그인한 유저의 알림 목록을 반환합니다.
+    (GET /api/v1/users/alerts/)
+    ?read=false (읽지 않은 알림)
+    ?read=true (읽은 알림)
+    (파라미터 없음: 전체 알림)
+    """
+    serializer_class = AlertSerializer
+    permission_classes = [permissions.IsAuthenticated] # 로그인한 유저만
+
+    def get_queryset(self):
+        # 1. 로그인한 유저(request.user)의 알림만 가져옵니다.
+        queryset = Alert.objects.filter(user=self.request.user)
+        
+        # 2. 쿼리 파라미터로 '읽음 여부'를 필터링합니다.
+        is_read_param = self.request.query_params.get('read')
+        
+        if is_read_param == 'false':
+            queryset = queryset.filter(is_read=False)
+        elif is_read_param == 'true':
+            queryset = queryset.filter(is_read=True)
+            
+        # 최신순으로 정렬
+        return queryset.order_by('-created_at')
+# ▲▲▲ [4순위 작업] ▲▲▲
+
+class AlertReadView(generics.RetrieveUpdateAPIView):
+    """
+    특정 알림(pk)을 조회(GET)하거나 "읽음" 처리(PUT/PATCH)합니다.
+    (PUT /api/v1/users/alerts/<int:pk>/)
+    """
+    serializer_class = AlertSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    lookup_field = 'pk'
+
+    def get_queryset(self):
+        """
+        [보안] 현재 로그인한 유저(request.user)의 알림만 접근/수정 가능하도록 제한
+        """
+        return Alert.objects.filter(user=self.request.user)
+
+    def update(self, request, *args, **kwargs):
+        # (프론트엔드에서 {"is_read": true} 데이터를 보낼 것입니다)
+        return super().update(request, *args, **kwargs)
+# ▲▲▲ [신규 추가] ▲▲▲
+
+# ▼▼▼ [신규 추가] URL 기반 일괄 읽음 처리 뷰 ▼▼▼
+class AlertReadByUrlView(APIView):
+    """
+    특정 URL과 관련된 (읽지 않은) 알림을 일괄 읽음 처리합니다.
+    (POST /api/v1/users/alerts/read-by-url/)
+    요청 Body: { "url": "/clans/1/" }
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        # 1. 요청 body에서 'url' 값을 가져옵니다.
+        url_to_read = request.data.get('url')
+
+        if not url_to_read:
+            return Response(
+                {'detail': '읽음 처리할 URL을 제공해야 합니다. ({"url": "/path/"})'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # 2. 현재 유저의, 해당 URL을 가진, (아직) 읽지 않은 알림을 찾습니다.
+        alerts_to_update = Alert.objects.filter(
+            user=request.user,
+            link_url=url_to_read,
+            is_read=False
+        )
+
+        # 3. 해당 알림들을 '읽음(is_read=True)'으로 일괄 업데이트합니다.
+        # .update()는 업데이트된 행의 수를 반환합니다.
+        update_count = alerts_to_update.update(is_read=True)
+
+        # 4. 결과 응답
+        if update_count > 0:
+            return Response(
+                {'detail': f'총 {update_count}개의 알림을 읽음 처리했습니다.'}, 
+                status=status.HTTP_200_OK
+            )
+        else:
+            # 오류는 아니므로 200 OK
+            return Response(
+                {'detail': '해당 URL로 새로 읽음 처리할 알림이 없습니다.'}, 
+                status=status.HTTP_200_OK
+            )
+# ▲▲▲ [신규 추가] ▲▲▲

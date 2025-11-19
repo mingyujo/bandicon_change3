@@ -3,7 +3,7 @@ from django.shortcuts import render
 # Create your views here.
 # support_app/views.py
 
-from rest_framework import generics, status, views
+from rest_framework import generics, status, views, permissions
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.permissions import AllowAny # (테스트를 위해 AllowAny)
@@ -14,6 +14,7 @@ from .serializers import (
     FeedbackSerializer, FeedbackCreateSerializer, FeedbackReplySerializer,
     UnreadPopupAnnouncementSerializer
 )
+
 
 # --- FastAPI 로직 임시 임포트 ---
 #try:
@@ -107,3 +108,5 @@ class ReadPopupView(views.APIView):
             return Response({"success": True, "message": "공지를 확인했습니다."})
         else:
             return Response({"success": True, "message": "이미 확인한 공지입니다."})
+
+# ▼▼▼ [신규 추가] 알림 목록 뷰 ▼▼▼

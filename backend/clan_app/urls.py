@@ -42,7 +42,18 @@ urlpatterns = [
     # (GET, POST) /api/v1/clans/<int:clan_id>/boards/
     path('<int:clan_id>/boards/', views.ClanBoardListCreateView.as_view(), name='clan-boards'),
 
-
+    # 2순위: 클랜 관리 기능 (가입, 강퇴)
+    # 'clans/<int:clan_id>/...' -> '<int:clan_id>/...'
+    path('<int:clan_id>/join-requests/', views.ClanJoinRequestListView.as_view(), name='clan-join-request-list'),
+    path('<int:clan_id>/join-requests/<int:pk>/', views.ClanJoinRequestUpdateView.as_view(), name='clan-join-request-update'), 
+    path('<int:clan_id>/kick/<int:user_id>/', views.ClanKickMemberView.as_view(), name='clan-kick-member'),
+    path('<int:clan_id>/approve-all/', views.ClanApproveAllView.as_view(), name='clan-approve-all'),
+    
+    # 3순위: 클랜 내부 기능 (공지사항, 캘린더, 게시판)
+    path('<int:clan_id>/announcements/create/', views.ClanAnnouncementCreateView.as_view(), name='clan-announcement-create'),
+    path('<int:clan_id>/events/', views.ClanEventListCreateView.as_view(), name='clan-event-list-create'),
+    path('<int:clan_id>/boards/', views.ClanBoardListCreateView.as_view(), name='clan-board-list-create'),
+    
     # --- (이하 테스트용 URL) ---
     path('test/all/', views.TestAllView.as_view(), name='test-all'),
     path('test/auth/', views.TestAuthView.as_view(), name='test-auth'),

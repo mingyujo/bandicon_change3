@@ -7,6 +7,10 @@ import { Routes, Route, Link, useNavigate, useLocation } from "react-router-dom"
 import { AuthContext } from './context/AuthContext';
 import { AlertProvider } from './context/AlertContext';
 import { NotificationProvider } from './context/NotificationContext';
+// ▼▼▼ [신규] NotificationBell 임포트 ▼▼▼
+import NotificationBell from './components/NotificationBell';
+// ▲▲▲ [신규] ▲▲▲
+
 
 import RoomList from "./features/rooms/RoomList";
 import RoomDetail from "./features/rooms/RoomDetail";
@@ -78,8 +82,7 @@ const AppContent = () => {
   const checkAlerts = useCallback(async (currentUser) => {
       if (!currentUser?.nickname) return;
       try {
-        const res = await apiGet(`/users/alerts/${encodeURIComponent(currentUser.nickname)}`);
-        
+        const res = await apiGet(`/users/alerts/?read=false&nickname=${encodeURIComponent(currentUser.nickname)}`);
         const mannerEvalAlert = res.find(alert => 
             alert.related_url && 
             alert.related_url.includes('/evaluation/') && 
@@ -226,7 +229,12 @@ const AppContent = () => {
           <Link to="/" className="brand">Bandicon</Link>
           <div className="app-header__right">
             {user ? (
-              <span style={{fontWeight: '500'}}>{user.nickname}님</span>
+              // ▼▼▼ [수정] 알림벨 컴포넌트 추가 ▼▼▼
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <NotificationBell user={user} />
+                <span style={{fontWeight: '500'}}>{user.nickname}님</span>
+              </div>
+              // ▲▲▲ [수정] ▲▲▲
             ) : (
               <div style={{display: 'flex', gap: '16px'}}>
                 <Link to="/login">로그인</Link>

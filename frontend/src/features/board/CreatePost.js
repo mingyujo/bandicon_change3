@@ -22,22 +22,24 @@ const handleSubmit = async (e) => {
     const formData = new FormData();
     formData.append('title', title);
     formData.append('content', content);
-    formData.append('nickname', user.nickname);
+    //formData.append('nickname', user.nickname);
     formData.append('is_anonymous', isAnonymous);
     if (imageFile) {
         formData.append('file', imageFile);
     }
-
-    if (boardId) {
+        if (boardId) {
         formData.append('clan_board_id', boardId);
     } else {
         formData.append('board_type', boardType);
     }
 
     try {
-        const newPost = await apiPostForm('/posts', formData);
+        // [수정] URL을 '/posts'가 아닌, 님의 urls.py와 일치하는 '/boards/posts/'로 변경
+        const newPost = await apiPostForm('/boards/posts/', formData);
         navigate(`/post/${newPost.id}`);
-    } catch (err) {
+        
+    // ▲▲▲ [핵심 수정] ▲▲▲
+    }catch (err) {
       // 👇 [수정] 에러 처리 로직을 안전하게 변경합니다.
       let errorMessage = "게시글 작성에 실패했습니다."; // 기본 에러 메시지
       const errorDetail = err.response?.data?.detail;

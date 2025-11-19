@@ -97,8 +97,15 @@ class DirectChatSerializer(serializers.ModelSerializer):
         fields = ('id', 'sender', 'receiver', 'message', 'timestamp', 'file_url')
         read_only_fields = ['id', 'timestamp']
 
+# ▼▼▼ [4순위 작업] 알림 시리얼라이저 추가 ▼▼▼
 class AlertSerializer(serializers.ModelSerializer):
-    # (기존 로직 유지)
+    """
+    user_app의 Alert 모델을 위한 시리얼라이저
+    """
     class Meta:
         model = Alert
-        fields = ('id', 'user', 'alert_type', 'message', 'related_id', 'related_url', 'is_read', 'created_at')
+        # (user_app.Alert 모델이 이 필드들을 가지고 있다고 가정합니다)
+        fields = ['id', 'user', 'message', 'link_url', 'is_read', 'created_at']
+        # 'is_read'는 읽음 처리(PUT)를 위해 read_only가 아님
+        read_only_fields = ['user', 'message', 'link_url', 'created_at']
+# ▲▲▲ [4순위 작업] ▲▲▲

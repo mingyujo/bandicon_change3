@@ -2,6 +2,10 @@
 
 from django.db import models
 from django.conf import settings
+from django.utils import timezone # timezone 임포트
+
+
+# (기존에 Faq, Inquiry 모델이 있었다면 그대로 둡니다)
 
 # 1. PopupAnnouncement 모델 변환
 # -----------------------------------------------------------------

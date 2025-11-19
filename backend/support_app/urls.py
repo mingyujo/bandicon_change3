@@ -23,4 +23,6 @@ urlpatterns = [
     path('popup-announcements/<int:announcement_id>/read/', views.ReadPopupView.as_view(), name='popup-read'),
 
     # (운영자용 팝업 생성/삭제 API 는 Django Admin 기능으로 대체 가능하므로 생략)
+
+   
 ]
