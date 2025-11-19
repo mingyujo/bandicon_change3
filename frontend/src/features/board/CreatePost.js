@@ -1,4 +1,3 @@
-// [전체 코드] src/features/board/CreatePost.js
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { apiPostForm } from '../../api/api';
@@ -27,32 +26,49 @@ const handleSubmit = async (e) => {
     if (imageFile) {
         formData.append('file', imageFile);
     }
-        if (boardId) {
+    if (boardId) {
         formData.append('clan_board_id', boardId);
     } else {
         formData.append('board_type', boardType);
     }
 
     try {
-        // [수정] URL을 '/posts'가 아닌, 님의 urls.py와 일치하는 '/boards/posts/'로 변경
-        const newPost = await apiPostForm('/boards/posts/', formData);
-        navigate(`/post/${newPost.id}`);
+        // 백엔드로 POST 요청 (응답은 Axios 객체 또는 data 객체일 수 있음)
+        const response = await apiPostForm('/boards/posts/', formData);
         
-    // ▲▲▲ [핵심 수정] ▲▲▲
-    }catch (err) {
+        let newPostId;
+
+        // ▼▼▼ [핵심 수정] ID 추출 로직 개선 ▼▼▼
+        // 1. response.data에 ID가 있는지 확인 (가장 일반적인 경우)
+        if (response.data && response.data.id) {
+            newPostId = response.data.id;
+        // 2. response 자체에 ID가 있는지 확인 (만약 apiPostForm이 data만 반환한다면)
+        } else if (response.id) {
+            newPostId = response.id;
+        } else {
+            throw new Error("응답에서 게시글 ID를 찾을 수 없습니다.");
+        }
+        
+        // 상세 페이지 URL 경로를 /board/posts/로 가정하고 이동
+        navigate(`/board/posts/${newPostId}`);
+        // ▲▲▲ [핵심 수정] ▲▲▲
+
+    } catch (err) {
       // 👇 [수정] 에러 처리 로직을 안전하게 변경합니다.
       let errorMessage = "게시글 작성에 실패했습니다."; // 기본 에러 메시지
-      const errorDetail = err.response?.data?.detail;
+      // 에러 메시지 처리를 더욱 견고하게 만듭니다.
+      const errorDetail = err.response?.data?.detail || err.message;
 
       if (typeof errorDetail === 'string') {
-        // 에러 메시지가 텍스트인 경우
         errorMessage = errorDetail;
       } else if (Array.isArray(errorDetail) && errorDetail[0]?.msg) {
-        // FastAPI 유효성 검사 에러 객체인 경우
         errorMessage = errorDetail[0].msg;
+      } else if (err.message === "응답에서 게시글 ID를 찾을 수 없습니다.") {
+        errorMessage = "게시글은 저장되었으나, 상세 페이지로 이동할 수 없습니다. (ID 누락)";
       }
       
       setError(errorMessage); // 항상 텍스트(String) 형태로 에러를 설정합니다.
+      console.error("게시글 작성 중 오류:", err);
     }
 };
 

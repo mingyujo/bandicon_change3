@@ -58,7 +58,6 @@ class PostListView(generics.ListCreateAPIView):
         serializer.save(author=self.request.user)
     # ▲▲▲ [신규 추가] ▲▲▲
 
-# ▼▼▼ [핵심 수정] PostCreateView ▼▼▼
 class PostCreateView(generics.CreateAPIView):
     queryset = Post.objects.all()
     serializer_class = PostDetailSerializer
@@ -76,7 +75,8 @@ class PostCreateView(generics.CreateAPIView):
         if board_type:
             # 일반 게시판 (board_type: general, novice 등)
             try:
-                board = get_object_or_404(Board, type=board_type)
+                # [수정] Board 모델에서 'type' 대신 실제 필드명인 'board_type'을 사용합니다.
+                board = get_object_or_404(Board, board_type=board_type) 
             except:
                  # 게시판이 없을 경우 403 대신 400 Bad Request를 반환하는 것이 사용자 경험에 좋습니다.
                  return Response({"detail": f"'{board_type}'(이)라는 게시판이 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
@@ -100,7 +100,6 @@ class PostCreateView(generics.CreateAPIView):
             clan_board=clan_board  # (클랜 게시판일 경우)
         )
 # ▲▲▲ [핵심 수정] ▲▲▲
-
 class PostDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Post.objects.all()
     serializer_class = PostDetailSerializer
