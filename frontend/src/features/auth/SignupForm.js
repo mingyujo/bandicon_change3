@@ -34,7 +34,7 @@ export default function SignupForm() {
     setSkills((prev) => ({ ...prev, [session]: Math.max(1, Math.min(5, Number(value))), }));
   };
 
-  // [수정] 인증번호 발송 함수 (Mocking)
+  // [수정] 인증번호 발송 (Mocking)
   const handleSendCode = async () => {
     setError("");
     setServerMessage("");
@@ -43,7 +43,7 @@ export default function SignupForm() {
         return;
     }
 
-    // ▼▼▼ [개발용] 실제 API 호출 주석 처리 ▼▼▼
+    // ▼▼▼ [개발용] 실제 API 호출 주석 처리 (404 에러 방지) ▼▼▼
     /*
     try {
         const formData = new FormData();
@@ -57,15 +57,15 @@ export default function SignupForm() {
     */
 
     // ▼▼▼ [개발용] 가짜 성공 처리 ▼▼▼
-    alert(`[개발 모드] 인증번호가 발송된 척 합니다.\n인증번호 입력칸에 '123456'을 입력하세요.`);
-    setServerMessage("인증번호가 발송되었습니다. (개발용: 123456)");
+    alert("[개발 모드] 인증번호가 발송된 척 합니다.\n인증번호 입력칸에 '123456'을 입력하세요.");
+    setServerMessage("인증번호가 발송되었습니다. (인증번호: 123456)");
   };
 
-  // [수정] 인증번호 확인 함수 (Mocking)
+  // [수정] 인증번호 확인 (Mocking)
   const handleVerifyAndNext = async () => {
     setError("");
 
-    // ▼▼▼ [개발용] 실제 API 호출 주석 처리 ▼▼▼
+    // ▼▼▼ [개발용] 실제 API 호출 주석 처리 (404 에러 방지) ▼▼▼
     /*
     try {
         const formData = new FormData();
@@ -101,8 +101,20 @@ export default function SignupForm() {
       return;
     }
     try {
-      const signupData = { id, password, nickname, phone, email, skills, role, marketing_consent: marketingAgreed };
-      await apiPost("/signup", signupData);
+      // [주의] role, skills 등은 백엔드 모델에 필드가 없으면 무시될 수 있습니다.
+      // username(id), password, nickname, email, phone 은 필수입니다.
+      const signupData = { 
+          username: id, // [수정] 백엔드 User 모델 필드명은 usually 'username'
+          password, 
+          nickname, 
+          email, 
+          phone_number: phone, // [수정] 백엔드 필드명 확인 필요 (phone -> phone_number)
+          role, // 백엔드에 role 필드가 추가되어 있어야 함
+          marketing_consent: marketingAgreed 
+          // skills는 백엔드 모델에 instruments/genres로 매핑 필요할 수 있음
+      };
+      
+      await apiPost("/users/signup/", signupData); // [수정] URL을 백엔드 urls.py에 맞춤 (/signup -> /users/signup/)
 
       if (role === '간부') {
         alert("간부 가입 신청이 완료되었습니다. 운영자의 승인을 기다려주세요.");
@@ -113,12 +125,13 @@ export default function SignupForm() {
     } catch (err) {
       const errorMessage = err.response?.data?.detail || err.message || "회원가입 중 문제가 발생했습니다.";
       setError(errorMessage);
+      console.error("Signup Error:", err);
     }
   };
 
   return (
     <div style={{ padding: "20px", maxWidth: '500px', margin: 'auto' }}>
-      <h2>회원가입</h2>
+      <h2 className="page-title">회원가입</h2>
       {error && <p style={{ color: "red", textAlign: 'center' }}>{error}</p>}
       {serverMessage && <p style={{ color: "green", textAlign: 'center' }}>{serverMessage}</p>}
       
