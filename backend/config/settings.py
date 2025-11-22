@@ -37,7 +37,7 @@ DEBUG = 'RENDER' not in os.environ
 ALLOWED_HOSTS = ['*']
 
 # [추가] CSRF 설정 (Render 도메인 신뢰)
-CSRF_TRUSTED_ORIGINS = ['https://*.onrender.com']
+CSRF_TRUSTED_ORIGINS = ["https://bandicon-change3.onrender.com"]
 
 # Application definition
 
@@ -179,6 +179,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # --- 👇 React 연동을 위한 CORS 설정 ---
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
+    "https://bandicon-change3.onrender.com",
     # (추후 React 개발 서버 주소가 다르거나,
     #  실제 배포 주소가 있다면 여기에 추가)
 ]
