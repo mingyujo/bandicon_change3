@@ -61,7 +61,7 @@ def get_user_profile_response(user):
 # 1. 회원가입 뷰 (SignupView) - 이게 없어서 에러남!
 class SignupView(generics.CreateAPIView):
     queryset = User.objects.all()
-    serializer_class = SignupSerializer
+    serializer_class = UserCreateSerializer
     permission_classes = [permissions.AllowAny] # 누구나 가입 가능
 
 # 2. 로그인 뷰 (LoginView)
