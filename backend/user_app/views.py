@@ -6,7 +6,7 @@ from django.utils import timezone # FriendRequest, VerificationCode
 import os # for SMS
 import random # for SMS
 import uuid # for UploadProfileImageView
-
+from django.db.models import Q
 from rest_framework import generics, status, views, parsers, permissions
 from rest_framework.response import Response
 from rest_framework.request import Request
@@ -499,3 +499,110 @@ class AlertReadByUrlView(APIView):
                 status=status.HTTP_200_OK
             )
 # ▲▲▲ [신규 추가] ▲▲▲
+# [추가] 친구 상태 조회 및 요청 처리
+
+class FriendshipDetailView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_user_by_nickname(self, nickname):
+        try:
+            return User.objects.get(nickname=nickname)
+        except User.DoesNotExist:
+            return None
+
+    def get(self, request, nickname):
+        """친구 상태 조회"""
+        target_user = self.get_user_by_nickname(nickname)
+        if not target_user:
+            return Response({"detail": "존재하지 않는 사용자입니다."}, status=status.HTTP_404_NOT_FOUND)
+
+        me = request.user
+        
+        # 1. 친구 관계 조회
+        friend_req = FriendRequest.objects.filter(
+            (Q(from_user=me) & Q(to_user=target_user)) | 
+            (Q(from_user=target_user) & Q(to_user=me))
+        ).first()
+
+        if not friend_req:
+            return Response({"status": "none"}, status=status.HTTP_200_OK)
+        
+        # [수정] status 필드를 확인합니다.
+        if friend_req.status == 'accepted':
+            return Response({"status": "friend"}, status=status.HTTP_200_OK)
+        
+        if friend_req.status == 'pending':
+            if friend_req.from_user == me:
+                return Response({"status": "pending_sent"}, status=status.HTTP_200_OK)
+            else:
+                return Response({"status": "pending_received"}, status=status.HTTP_200_OK)
+        
+        return Response({"status": "none"}, status=status.HTTP_200_OK)
+
+    def post(self, request, nickname):
+        """친구 요청 보내기"""
+        target_user = self.get_user_by_nickname(nickname)
+        if not target_user:
+            return Response({"detail": "사용자 없음"}, status=404)
+
+        me = request.user
+        if me == target_user:
+            return Response({"detail": "본인에게 요청 불가"}, status=400)
+
+        # 이미 존재하는지 확인
+        existing = FriendRequest.objects.filter(
+            (Q(from_user=me) & Q(to_user=target_user)) | 
+            (Q(from_user=target_user) & Q(to_user=me))
+        ).first()
+
+        if existing:
+            if existing.status == 'accepted':
+                 return Response({"detail": "이미 친구입니다."}, status=400)
+            elif existing.status == 'pending':
+                 return Response({"detail": "이미 요청 대기 중입니다."}, status=400)
+            # rejected 상태라면 다시 요청 가능하게 할 수도 있음 (여기선 생략)
+
+        # [수정] status='pending'으로 생성
+        FriendRequest.objects.create(from_user=me, to_user=target_user, status='pending')
+        return Response({"detail": "친구 요청 전송 완료", "status": "pending_sent"}, status=201)
+
+    def patch(self, request, nickname):
+        """친구 요청 수락 (status -> accepted)"""
+        target_user = self.get_user_by_nickname(nickname)
+        if not target_user:
+            return Response({"detail": "사용자 없음"}, status=404)
+
+        # 상대방이 나에게 보낸 'pending' 요청 찾기
+        req = get_object_or_404(FriendRequest, from_user=target_user, to_user=request.user, status='pending')
+        
+        # [수정] 상태를 accepted로 변경
+        req.status = 'accepted'
+        req.save()
+        
+        return Response({"detail": "친구 수락 완료", "status": "friend"}, status=200)
+
+    def delete(self, request, nickname):
+        """친구 삭제 또는 요청 취소"""
+        target_user = self.get_user_by_nickname(nickname)
+        if not target_user:
+             return Response({"detail": "사용자 없음"}, status=404)
+
+        me = request.user
+        deleted_count, _ = FriendRequest.objects.filter(
+            (Q(from_user=me) & Q(to_user=target_user)) | 
+            (Q(from_user=target_user) & Q(to_user=me))
+        ).delete()
+
+        if deleted_count > 0:
+            return Response({"detail": "삭제되었습니다.", "status": "none"}, status=200)
+        return Response({"detail": "삭제할 내용이 없습니다."}, status=400)
+# [추가] 채팅 요약 정보 (안 읽은 메시지 등) - 빈 껍데기라도 있어야 404 안뜸
+class ChatSummaryView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        # TODO: 실제 안 읽은 메시지 개수 집계 로직 필요
+        return Response({
+            "total_unread": 0,
+            "rooms": []
+        }, status=status.HTTP_200_OK)

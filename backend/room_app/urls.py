@@ -9,6 +9,9 @@ urlpatterns = [
     # '내 방 목록'
     path('my/', views.MyRoomListView.as_view(), name='my-room-list'), 
     
+    # [추가] 특정 유저의 방 목록 (예: /api/v1/rooms/my/cho)
+    path('my/<str:nickname>/', views.UserRoomListView.as_view(), name='user-room-list'),
+
     path('<int:pk>/leave/', views.RoomLeaveView.as_view(), name='room-leave'),
     path('<int:pk>/kick/', views.RoomKickView.as_view(), name='room-kick'),
     path('<int:pk>/confirm/', views.RoomConfirmView.as_view(), name='room-confirm'),

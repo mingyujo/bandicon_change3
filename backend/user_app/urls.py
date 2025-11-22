@@ -54,4 +54,12 @@ urlpatterns = [
     # ▼▼▼ [신규 추가] URL 기반 일괄 읽음 처리 URL ▼▼▼
     path('alerts/read-by-url/', views.AlertReadByUrlView.as_view(), name='alert-read-by-url'),
     # ▲▲▲ [신규 추가] ▲▲▲
+
+   # 1. /api/v1/users/friends/<nickname>/ (기본)
+    path('friends/<str:nickname>/', views.FriendshipDetailView.as_view(), name='friend-detail'),
+
+    # 2. /api/v1/chats/summary/ (채팅 요약)
+    path('summary/', views.ChatSummaryView.as_view(), name='chat-summary'), 
+    # 주의: 위 경로는 /api/v1/chats/summary/ 로 연결되도록 config설정과 맞춰야 함.
+    
 ]

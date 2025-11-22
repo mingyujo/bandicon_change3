@@ -43,32 +43,32 @@ class RoomListCreateAPIView(generics.ListCreateAPIView):
         if not user or not user.is_authenticated:
             return Response({"detail": "사용자 정보를 찾을 수 없습니다."}, 
                            status=status.HTTP_401_UNAUTHORIZED)
-    
+
         sessions_data = request.data.get("sessions", [])
         if not sessions_data:
             return Response({"detail": "세션 정보가 없습니다."}, 
                            status=status.HTTP_400_BAD_REQUEST)
-    
+
         # ✅ request.data를 복사하고 sessions를 제거
         room_data = request.data.copy()
         room_data.pop('sessions', None)
-        
+
         # ✅ manager_nickname을 validation 전에 추가
         room_data['manager_nickname'] = user.nickname
-    
+
         # 1. 방 생성
         room_serializer = self.get_serializer(data=room_data)
         room_serializer.is_valid(raise_exception=True)
-        
+
         # ✅ save()에서 manager_nickname 제거 (이미 포함됨)
         db_room = room_serializer.save()
-    
+
         # 2. 세션 생성
         session_instances = []
         for session_name in sessions_data:
             session_instances.append(Session(room=db_room, session_name=session_name))
         Session.objects.bulk_create(session_instances)
-    
+
         # 3. 방장 자동 참가
         try:
             manager_session = Session.objects.filter(room=db_room).first()
@@ -77,7 +77,7 @@ class RoomListCreateAPIView(generics.ListCreateAPIView):
                 manager_session.save()
         except Session.DoesNotExist:
             pass
-        
+
         # 응답 데이터 생성
         response_serializer = self.get_serializer(db_room)
         headers = self.get_success_headers(response_serializer.data)
@@ -365,18 +365,15 @@ class ReserveSessionView(APIView):
         session = get_object_or_404(Session, id=session_id)
         user = request.user
 
-        # 방장이거나 이미 참여 중인 경우 예약 불가
-        if session.room.manager_nickname == user.nickname or \
-           session.participant_nickname == user.nickname:
-            return Response({"detail": "방장 또는 참여자는 예약할 수 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
+        # [수정됨] 방장 또는 참여자 제한 로직 삭제함
+        # 이제 방장이나 이미 참여 중인 멤버도 예약을 신청할 수 있습니다.
 
-        # 이미 예약한 경우
+        # 이미 예약한 경우 (중복 예약은 여전히 방지)
         if SessionReservation.objects.filter(session=session, user=user).exists():
             return Response({"detail": "이미 예약한 세션입니다."}, status=status.HTTP_400_BAD_REQUEST)
 
         SessionReservation.objects.create(session=session, user=user)
         return Response({"detail": "세션 예약이 완료되었습니다."}, status=status.HTTP_201_CREATED)
-
 
 class CancelReservationView(APIView):
     """
@@ -451,3 +448,19 @@ class RoomAvailabilityView(APIView):
 
         # 4. 업데이트된 현황 반환
         return self.get(request, room_id)
+    
+# [추가] 특정 사용자의 방 목록 조회 (프로필용)
+class UserRoomListView(generics.ListAPIView):
+    serializer_class = RoomListSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        # URL에서 nickname을 가져옴
+        nickname = self.kwargs.get('nickname')
+        if not nickname:
+            return Room.objects.none()
+            
+        return Room.objects.filter(
+            manager_nickname=nickname, 
+            ended=False
+        ).order_by('-created_at')
