@@ -60,76 +60,99 @@ const ClanRoomListPage = ({ user }) => {
         }
     }, [user?.nickname, clanId, navigate, showAlert]);
 
-    const handleJoinSession = async (room, sessionName) => {
-        let password = "";
-        if (room.is_private) {
-            password = prompt("비밀번호를 입력하세요:");
-            if (password === null) return;
+    // ClanRoomListPage.js의 handleJoinSession 함수도 수정
+
+const handleJoinSession = async (room, sessionName) => {
+    // 비밀방인 경우 비밀번호 확인
+    if (room.is_private) {
+        const password = prompt("비밀번호를 입력하세요:");
+        if (password === null) return;
+        // TODO: 비밀번호 검증 로직
+    }
+
+    // ✅ 세션 ID 찾기
+    const session = room.sessions?.find(s => s.session_name === sessionName);
+    if (!session) {
+        showAlert("오류", "세션을 찾을 수 없습니다.", () => {}, false);
+        return;
+    }
+
+    try {
+        // ✅ 세션 토글 API 사용
+        const res = await apiPost(`/rooms/${room.id}/sessions/${session.id}/join/`);
+        showAlert("성공", res.detail || "세션에 참가했습니다.", () => fetchClanRooms(), false);
+    } catch (err) {
+        showAlert("실패", err.response?.data?.detail || "참가에 실패했습니다.", () => {}, false);
+    }
+};
+    // 이 파일의 handleLeaveSession 함수만 수정하면 됩니다.
+// 전체 파일이 아닌 수정해야 할 부분만 표시합니다.
+
+// ✅ 수정된 handleLeaveSession 함수
+// ✅ 수정된 handleLeaveSession 함수
+const handleLeaveSession = async (room, sessionName) => {
+    // 세션 ID를 찾기
+    const session = room.sessions?.find(s => s.session_name === sessionName);
+    if (!session) {
+        showAlert("오류", "세션을 찾을 수 없습니다.", () => {}, false);
+        return;
+    }
+
+    showAlert(
+        "참여 취소", 
+        `'${room.title}' 방의 '${sessionName}' 세션 참여를 취소하시겠습니까?`,
+        async () => {
+            try {
+                // ✅ 세션 토글 API 사용 (방장도 사용 가능)
+                const res = await apiPost(`/rooms/${room.id}/sessions/${session.id}/join/`);
+                showAlert("성공", res.detail || "참여가 취소되었습니다.", () => fetchClanRooms(), false);
+            } catch (err) {
+                showAlert("실패", err.response?.data?.detail || "참여 취소 실패", () => {}, false);
+            }
         }
-        try {
-            // --- 👇 [수정] apiPostForm -> apiPost, URL 슬래시 추가, body 수정 ---
-            const res = await apiPost("/rooms/join/", {
-                room_id: String(room.id),
-                session_name: sessionName,
-                password: password
-            });
-            showAlert("성공", res.message, () => fetchClanRooms(), false);
-        } catch (err) {
-            showAlert("실패", err.response?.data?.detail || "참가에 실패했습니다.", () => {}, false);
+    );
+};
+
+
+    // ✅ 수정된 handleReserveSession
+const handleReserveSession = async (room, sessionName) => {
+    const session = room.sessions?.find(s => s.session_name === sessionName);
+    if (!session) {
+        showAlert("오류", "세션을 찾을 수 없습니다.", () => {}, false);
+        return;
+    }
+
+    showAlert("세션 예약", `'${sessionName}' 세션에 예약하시겠습니까?`,
+        async () => {
+            try {
+                const res = await apiPost(`/rooms/sessions/${session.id}/reserve/`);
+                showAlert("성공", res.detail || "예약이 완료되었습니다.", () => fetchClanRooms(), false);
+            } catch (err) {
+                showAlert("실패", err.response?.data?.detail || "예약 실패", () => {}, false);
+            }
         }
-    };
+    );
+};
 
-    const handleLeaveSession = async (room, sessionName) => {
-        showAlert("참여 취소", `'${room.title}' 방의 '${sessionName}' 세션 참여를 취소하시겠습니까?`,
-            async () => {
-                try {
-                    // --- 👇 [수정] apiPostForm -> apiPost, URL 슬래시 추가, body 수정 ---
-                    const res = await apiPost("/rooms/leave/", {
-                        room_id: String(room.id),
-                        session_name: sessionName
-                    });
-                    showAlert("성공", res.message, () => fetchClanRooms(), false);
-                } catch (err) {
-                    showAlert("실패", err.response?.data?.detail || "참여 취소 실패", () => {}, false);
-                }
+// ✅ 수정된 handleCancelReservation
+const handleCancelReservation = async (room, sessionName) => {
+    const session = room.sessions?.find(s => s.session_name === sessionName);
+    if (!session) {
+        showAlert("오류", "세션을 찾을 수 없습니다.", () => {}, false);
+        return;
+    }
+
+    showAlert("예약 취소", `'${sessionName}' 세션 예약을 취소하시겠습니까?`,
+        async () => {
+            try {
+                const res = await apiPost(`/rooms/sessions/${session.id}/cancel-reserve/`);
+                showAlert("성공", res.detail || "예약이 취소되었습니다.", () => fetchClanRooms(), false);
+            } catch (err) {
+                showAlert("실패", err.response?.data?.detail || "예약 취소 실패", () => {}, false);
             }
-        );
-    };
-
-    const handleReserveSession = async (room, sessionName) => {
-        showAlert("세션 예약", `'${sessionName}' 세션에 예약하시겠습니까?`,
-            async () => {
-                try {
-                    // --- 👇 [수정] apiPostForm -> apiPost, URL 슬래시 추가, body 수정 ---
-                    const res = await apiPost("/rooms/session/reserve/", {
-                        room_id: String(room.id),
-                        session_name: sessionName
-                    });
-                    showAlert("성공", res.message, () => fetchClanRooms(), false);
-                } catch (err) {
-                    showAlert("실패", err.response?.data?.detail || "예약 실패", () => {}, false);
-                }
-            }
-        );
-    };
-
-    const handleCancelReservation = async (room, sessionName) => {
-        showAlert("예약 취소", `'${sessionName}' 세션 예약을 취소하시겠습니까?`,
-            async () => {
-                try {
-                    // --- 👇 [수정] apiPostForm -> apiPost, URL 슬래시 추가, body 수정 ---
-                    const res = await apiPost("/rooms/session/cancel-reservation/", {
-                        room_id: String(room.id),
-                        session_name: sessionName
-                    });
-                    showAlert("성공", res.message, () => fetchClanRooms(), false);
-                } catch (err) {
-                    showAlert("실패", err.response?.data?.detail || "예약 취소 실패", () => {}, false);
-                }
-            }
-        );
-    };
-
+        }
+    );
+};
     const showReservations = (session) => {
         // (변경 없음)
         const title = `'${session.session_name}' 예약 대기 목록 `;

@@ -17,18 +17,23 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = ['id', 'post', 'post_id', 'author', 'content', 'created_at', 'updated_at']
-        read_only_fields = ['author', 'post_id']
-        extra_kwargs = {
-            'post': {'required': True},
-        }
+        read_only_fields = ['author', 'post_id','post']
+        # extra_kwargs = {
+        #     'post': {'required': True},
+        # }
 
 # --- PostListSerializer ---
 class PostListSerializer(serializers.ModelSerializer):
     author = UserBaseSerializer(read_only=True)
-    likes_count = serializers.IntegerField(read_only=True)
-    comments_count = serializers.IntegerField(read_only=True)
+    likes_count = serializers.SerializerMethodField()  # ✅ 변경
+    comments_count = serializers.SerializerMethodField()  # ✅ 변경
     is_liked = serializers.SerializerMethodField()
     
+    def get_likes_count(self, obj):
+        return obj.likes.count()
+    
+    def get_comments_count(self, obj):
+        return obj.comments.count()
     class Meta:
         model = Post
         fields = ['id', 'title', 'author', 'created_at', 'likes_count', 'comments_count', 'is_liked', 'updated_at']
@@ -120,7 +125,7 @@ class PostDetailSerializer(serializers.ModelSerializer):
         if not isinstance(obj, Post):
             return None
         # ▲▲▲ [핵심 수정] ▲▲▲
-        
+
         if obj.board:
             return {
                 'type': 'public',

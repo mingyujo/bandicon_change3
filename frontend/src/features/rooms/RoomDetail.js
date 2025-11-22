@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { apiGet, apiPost, apiPostForm, apiDelete } from '../../api/api';
-import { useAuth } from '../../context/AuthContext'; 
 import RoomChat from '../../components/RoomChat';
 import { format } from 'date-fns';
 import { useAlert } from '../../context/AlertContext'; 
@@ -16,15 +15,14 @@ import 'react-day-picker/dist/style.css'; // DayPicker CSS
 
 // (중략...)
 
-function RoomDetail() {
+function RoomDetail({user}) {
     const { roomId } = useParams();
     const navigate = useNavigate();
-    const { user } = useAuth(); 
     const [room, setRoom] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [sessions, setSessions] = useState([]);
-    const { alert } = useAlert(); 
+    const { showAlert } = useAlert(); 
 
     // --- 👇 [오류 수정] 'fetchRoomDetail' 함수의 정의가 누락되어 추가합니다. ---
     const fetchRoomDetail = useCallback(async () => {
@@ -38,7 +36,7 @@ function RoomDetail() {
             console.error("방 정보 로딩 실패", err);
             setError(err.message || "방 정보를 불러오는 데 실패했습니다.");
             if (err.status === 404) {
-                alert('방을 찾을 수 없습니다.', 'error');
+                showAlert('방을 찾을 수 없습니다.', 'error');
                 navigate('/rooms');
             }
         } finally {

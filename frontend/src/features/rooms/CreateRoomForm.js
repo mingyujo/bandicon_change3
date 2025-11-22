@@ -91,9 +91,18 @@ export default function CreateRoomForm({ user }) {
 
       // [수정] apiPost 사용 및 URL 끝에 '/' 추가
       const res = await apiPost('/rooms/', dataToSend);
-      
+      console.log("✅ 방 생성 응답:", res);  // 디버깅용
+      console.log("✅ 응답에서 받은 ID:", res.id);  // 디버깅용
+      if (!res.id) {
+      console.error("❌ 응답에 ID가 없습니다:", res);
+      setError("방이 생성되었지만 ID를 받지 못했습니다.");
+      return;
+      }
+
       alert("방이 성공적으로 생성되었습니다.");
+      setTimeout(() => {
       navigate(`/rooms/${res.id}`);
+      }, 500);  // 0.5초 대기
 
     } catch (err) {
       let errorMessage = "방 생성 중 오류가 발생했습니다.";

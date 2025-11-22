@@ -14,6 +14,7 @@ urlpatterns = [
     # --- 👇 [신규] 스크랩 URL ---
     path('posts/<int:pk>/scrap/', views.PostToggleScrapView.as_view(), name='post-toggle-scrap'),
 
+    path('<str:board_type>/', views.PostListByTypeView.as_view(), name='post-list-by-type'),
     # 댓글
     path('posts/<int:post_pk>/comments/', views.CommentListCreateView.as_view(), name='comment-list-create'),
     path('comments/<int:comment_pk>/', views.CommentDetailView.as_view(), name='comment-detail'),

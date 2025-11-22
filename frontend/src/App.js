@@ -272,8 +272,8 @@ const AppContent = () => {
               <Route path="/profile" element={<Profile user={user} onLogout={handleLogout} onUpdateUser={handleUpdateUser} />} />
               <Route path="/profile/:nickname" element={<Profile user={user} onLogout={handleLogout} onUpdateUser={handleUpdateUser} />} />
               <Route path="/rooms" element={<RoomList user={user} />} />
-              <Route path="/rooms/:roomId" element={<RoomDetail user={user} />} />
               <Route path="/create-room" element={<CreateRoomForm user={user} />} />
+              <Route path="/rooms/:roomId" element={<RoomDetail user={user} />} />
               <Route path="/my-rooms" element={<MyRooms user={user} />} />
               <Route path="/evaluation/:roomId" element={<MannerEval user={user} />} /> 
               <Route path="/boards" element={<BoardHome user={user} />} />

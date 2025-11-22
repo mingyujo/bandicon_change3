@@ -13,6 +13,7 @@ from .serializers import (
     PostDetailSerializer, # PostDetailSerializer 임포트
     CommentSerializer,
 )
+from rest_framework.exceptions import ValidationError
 
 # --- Board Views ---
 
@@ -64,8 +65,7 @@ class PostCreateView(generics.CreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
-        # 1. 프론트엔드(CreatePost.js)가 보낸 'board_type' 또는 'clan_board_id'를 가져옵니다.
-        # (apiPostForm은 FormData를 request.data로 보냅니다)
+        # 1. 프론트엔드가 보낸 'board_type' 또는 'clan_board_id'를 가져옵니다.
         board_type = self.request.data.get('board_type')
         clan_board_id = self.request.data.get('clan_board_id')
 
@@ -73,32 +73,31 @@ class PostCreateView(generics.CreateAPIView):
         clan_board = None
 
         if board_type:
-            # 일반 게시판 (board_type: general, novice 등)
+            # 일반 게시판 (board_type: general, beginner 등)
             try:
-                # [수정] Board 모델에서 'type' 대신 실제 필드명인 'board_type'을 사용합니다.
-                board = get_object_or_404(Board, board_type=board_type) 
-            except:
-                 # 게시판이 없을 경우 403 대신 400 Bad Request를 반환하는 것이 사용자 경험에 좋습니다.
-                 return Response({"detail": f"'{board_type}'(이)라는 게시판이 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
-
+                board = Board.objects.get(board_type=board_type)
+            except Board.DoesNotExist:
+                # ✅ Response 대신 ValidationError를 raise
+                raise ValidationError({"detail": f"'{board_type}'(이)라는 게시판이 없습니다."})
 
         elif clan_board_id:
-            # 클랜 게시판 (clan_board_id)
+            # 클랜 게시판
             try:
-                clan_board = get_object_or_404(ClanBoard, id=clan_board_id)
-            except:
-                 return Response({"detail": "존재하지 않는 클랜 게시판입니다."}, status=status.HTTP_400_BAD_REQUEST)
+                clan_board = ClanBoard.objects.get(id=clan_board_id)
+            except ClanBoard.DoesNotExist:
+                raise ValidationError({"detail": "존재하지 않는 클랜 게시판입니다."})
         
         else:
             # 둘 다 없을 경우
-            return Response({"detail": "게시판 정보(board_type 또는 clan_board_id)가 필요합니다."}, status=status.HTTP_400_BAD_REQUEST)
+            raise ValidationError({"detail": "게시판 정보(board_type 또는 clan_board_id)가 필요합니다."})
 
         # 2. author, board, clan_board를 serializer에 주입하여 저장
         serializer.save(
             author=self.request.user,
-            board=board,           # (일반 게시판일 경우)
-            clan_board=clan_board  # (클랜 게시판일 경우)
+            board=board,
+            clan_board=clan_board
         )
+
 # ▲▲▲ [핵심 수정] ▲▲▲
 class PostDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Post.objects.all()
@@ -131,7 +130,7 @@ class PostToggleLikeView(views.APIView):
             
         return Response({
             'liked': liked,
-            'likes_count': post.likes_count
+            'likes_count': post.likes.count()
         }, status=status.HTTP_200_OK)
 
 # --- 👇 [신규] PostToggleScrapView ---
@@ -147,17 +146,17 @@ class PostToggleScrapView(views.APIView):
         user = request.user
         
         # (수정) 'scraps' -> 'scrapped_by_users'
-        if user in post.scrapped_by_users.all():
-            post.scrapped_by_users.remove(user)
+        if user in post.scraps.all():
+            post.scraps.remove(user)
             scrapped = False
         else:
-            post.scrapped_by_users.add(user)
+            post.scraps.add(user)
             scrapped = True
             
         return Response({
             'scrapped': scrapped,
             # (수정) 'scraps' -> 'scrapped_by_users'
-            'scraps_count': post.scrapped_by_users.count()
+            'scraps_count': post.scraps.count()
         }, status=status.HTTP_200_OK)
 # --- 👆 [신규] ---
 
@@ -222,3 +221,33 @@ class MyScrapListView(generics.ListAPIView):
         # request.user.scrapped_posts는 Post 모델의 related_name
         return self.request.user.scrapped_posts.all().order_by('-created_at')
 # --- 👆 [신규] ---
+
+# --- ✅ [신규] PostListByTypeView ---
+class PostListByTypeView(generics.ListAPIView):
+    """
+    board_type(문자열)으로 게시글 목록 조회
+    GET /api/v1/boards/general/?search=...
+    GET /api/v1/boards/beginner/?search=...
+    """
+    serializer_class = PostListSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def get_queryset(self):
+        board_type = self.kwargs.get('board_type')  # URL에서 'general', 'beginner' 등
+        search = self.request.query_params.get('search', '')
+        
+        # board_type으로 Board를 찾고, 해당 Board의 게시글 필터링
+        try:
+            board = Board.objects.get(board_type=board_type)
+        except Board.DoesNotExist:
+            return Post.objects.none()
+        
+        queryset = Post.objects.filter(board=board)
+        
+        if search:
+            queryset = queryset.filter(
+                Q(title__icontains=search) | Q(content__icontains=search)
+            )
+            
+        return queryset.order_by('-created_at')
+# --- ✅ [신규] ---

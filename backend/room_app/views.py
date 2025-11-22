@@ -39,41 +39,49 @@ class RoomListCreateAPIView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly] 
 
     def create(self, request, *args, **kwargs):
-        # [수정] 쿼리 파라미터 대신 request.user 사용
         user = request.user
-        if not user or not user.is_authenticated: # [수정] .is_authenticated 추가
-            return Response({"detail": "사용자 정보를 찾을 수 없습니다."}, status=status.HTTP_401_UNAUTHORIZED)
-
+        if not user or not user.is_authenticated:
+            return Response({"detail": "사용자 정보를 찾을 수 없습니다."}, 
+                           status=status.HTTP_401_UNAUTHORIZED)
+    
         sessions_data = request.data.get("sessions", [])
         if not sessions_data:
-            return Response({"detail": "세션 정보가 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
-
+            return Response({"detail": "세션 정보가 없습니다."}, 
+                           status=status.HTTP_400_BAD_REQUEST)
+    
+        # ✅ request.data를 복사하고 sessions를 제거
+        room_data = request.data.copy()
+        room_data.pop('sessions', None)
+        
+        # ✅ manager_nickname을 validation 전에 추가
+        room_data['manager_nickname'] = user.nickname
+    
         # 1. 방 생성
-        room_serializer = self.get_serializer(data=request.data)
+        room_serializer = self.get_serializer(data=room_data)
         room_serializer.is_valid(raise_exception=True)
         
-        # [수정] manager_nickname을 request.user에서 가져옴
-        db_room = room_serializer.save(manager_nickname=user.nickname)
-
+        # ✅ save()에서 manager_nickname 제거 (이미 포함됨)
+        db_room = room_serializer.save()
+    
         # 2. 세션 생성
         session_instances = []
         for session_name in sessions_data:
             session_instances.append(Session(room=db_room, session_name=session_name))
         Session.objects.bulk_create(session_instances)
-
+    
         # 3. 방장 자동 참가
         try:
             manager_session = Session.objects.filter(room=db_room).first()
             if manager_session:
                 manager_session.participant_nickname = user.nickname
                 manager_session.save()
-            else:
-                pass
         except Session.DoesNotExist:
             pass
-
-        headers = self.get_success_headers(room_serializer.data)
-        return Response(room_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        
+        # 응답 데이터 생성
+        response_serializer = self.get_serializer(db_room)
+        headers = self.get_success_headers(response_serializer.data)
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 class MyRoomListView(generics.ListAPIView):
     """
