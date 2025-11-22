@@ -11,7 +11,9 @@ from rest_framework_simplejwt.views import TokenRefreshView
 
 urlpatterns = [
 
-     # 회원가입/로그인
+
+# 2. 회원가입
+    path('signup/', views.UserCreateAPIView.as_view(), name='signup'),
     path('login/', views.LoginView.as_view(), name='login'),
     path('logout/', views.LogoutView.as_view(), name='logout'),
 
