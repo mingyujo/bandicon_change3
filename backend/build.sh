@@ -10,3 +10,7 @@ python manage.py collectstatic --no-input
 
 # 3. DB 마이그레이션
 python manage.py migrate
+
+# 4. [추가] 데이터 넣기 (이 줄을 추가하세요!)
+# 데이터가 이미 있으면 덮어쓰기(Update) 되므로 안전합니다.
+python manage.py loaddata data.json
