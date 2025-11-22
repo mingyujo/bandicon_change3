@@ -12,8 +12,9 @@ from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
-
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
+from django.contrib.auth import authenticate
 from .serializers import (
     CustomTokenObtainPairSerializer, 
     UserCreateSerializer, 
@@ -23,7 +24,9 @@ from .serializers import (
     NicknameUpdateSerializer, 
     UserDeviceSerializer,
     DirectChatSerializer,
-    AlertSerializer
+    AlertSerializer,
+    SignupSerializer,
+    UserProfileSerializer
 )
 
 from .models import User, UserDevice, Alert, FriendRequest, VerificationCode, DirectChat
@@ -56,6 +59,59 @@ def get_user_profile_response(user):
     }
 
 # --- (View 클래스들) ---
+# 1. 회원가입 뷰 (SignupView) - 이게 없어서 에러남!
+class SignupView(generics.CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = SignupSerializer
+    permission_classes = [permissions.AllowAny] # 누구나 가입 가능
+
+# 2. 로그인 뷰 (LoginView)
+class LoginView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        username = request.data.get('username')
+        password = request.data.get('password')
+        user = authenticate(username=username, password=password)
+        
+        if user:
+            refresh = RefreshToken.for_user(user)
+            return Response({
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+                'nickname': user.nickname,
+                'username': user.username,
+                'role': user.role,
+            })
+        return Response({'detail': '아이디 또는 비밀번호가 잘못되었습니다.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+# 3. 로그아웃 뷰 (LogoutView)
+class LogoutView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        try:
+            refresh_token = request.data["refresh"]
+            token = RefreshToken(refresh_token)
+            token.blacklist() # 토큰 만료 처리
+            return Response(status=status.HTTP_205_RESET_CONTENT)
+        except Exception as e:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+# 4. 프로필 조회 (MyProfileView)
+class MyProfileView(generics.RetrieveUpdateAPIView):
+    serializer_class = UserProfileSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
+
+# 5. 타인 프로필 조회 (ProfileView)
+class ProfileView(generics.RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserProfileSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    lookup_field = 'nickname' # 닉네임으로 조회
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     """

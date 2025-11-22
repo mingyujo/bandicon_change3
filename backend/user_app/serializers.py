@@ -24,41 +24,49 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         # (기존 로직 유지)
         return token
 
-class UserCreateSerializer(serializers.ModelSerializer):
-    # (기존 로직 유지)
+class UserCreateSerializer(serializers.ModelSerializer): # SignupSerializer로 이름 변경 고려
+    password = serializers.CharField(write_only=True)
+
     class Meta:
         model = User
         fields = (
-            'username', # 👈 [수정] id -> username
+            'username', 
             'password', 
             'nickname', 
             'email', 
-            'introduction', # 👈 [신규]
-            'instruments',  # 👈 [신규]
-            'genres',       # 👈 [신규]
-            'region',       # 👈 [신규]
-            'marketing_consent'
+            'phone_number', # phone_number 필드 추가 (모델에 있다면)
+            'introduction', 
+            'instruments', 
+            'genres', 
+            'region', 
+            'marketing_consent',
+            'role' # role 필드 추가 (모델에 있다면)
         )
         extra_kwargs = {
             'password': {'write_only': True}
         }
 
     def create(self, validated_data):
+        # role 처리 (기본값 MEMBER)
+        role = validated_data.pop('role', 'MEMBER')
+        
         user = User.objects.create_user(
             username=validated_data['username'],
             password=validated_data['password'],
             nickname=validated_data['nickname'],
             email=validated_data['email'],
+            phone_number=validated_data.get('phone_number', ''),
             introduction=validated_data.get('introduction', ''),
             instruments=validated_data.get('instruments', []),
             genres=validated_data.get('genres', []),
             region=validated_data.get('region', ''),
             marketing_consent=validated_data.get('marketing_consent', False),
-            # (role은 User 모델에서 default='MEMBER'로 처리)
-            is_active=True # 👈 [수정] 간부 승인 로직 대신 기본 활성화
+            is_active=True, # 기본 활성화
+            role=role
         )
         return user
-
+# SignupView에서 사용할 Serializer 이름 맞추기 (별칭 사용)
+SignupSerializer = UserCreateSerializer
 class NicknameUpdateSerializer(serializers.Serializer):
     current_nickname = serializers.CharField()
     new_nickname = serializers.CharField()
