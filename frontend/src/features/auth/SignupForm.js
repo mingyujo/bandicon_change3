@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { apiPost, apiPostForm } from "../../api/api";
 
 export default function SignupForm() {
-  // --- 1. 모든 useState 선언을 컴포넌트 최상단으로 이동 ---
+  // --- 1. 모든 useState 선언 ---
   const [step, setStep] = useState(1);
   const [phone, setPhone] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
@@ -21,7 +21,7 @@ export default function SignupForm() {
   const [privacyAgreed, setPrivacyAgreed] = useState(false);
   const [marketingAgreed, setMarketingAgreed] = useState(false);
 
-  // --- 2. 상태를 사용하는 함수들은 useState 선언 아래에 위치 ---
+  // --- 2. 상태를 사용하는 함수들 ---
   const handleAgreeAll = () => {
     setTermsAgreed(true);
     setPrivacyAgreed(true);
@@ -34,6 +34,7 @@ export default function SignupForm() {
     setSkills((prev) => ({ ...prev, [session]: Math.max(1, Math.min(5, Number(value))), }));
   };
 
+  // [수정] 인증번호 발송 함수 (Mocking)
   const handleSendCode = async () => {
     setError("");
     setServerMessage("");
@@ -41,6 +42,9 @@ export default function SignupForm() {
         setError("휴대폰 번호는 - 없이 10자리 또는 11자리 숫자여야 합니다.");
         return;
     }
+
+    // ▼▼▼ [개발용] 실제 API 호출 주석 처리 ▼▼▼
+    /*
     try {
         const formData = new FormData();
         formData.append('phone', phone);
@@ -50,10 +54,19 @@ export default function SignupForm() {
         const detail = err.response?.data?.detail;
         setError(detail || "인증번호 발송 중 문제가 발생했습니다.");
     }
+    */
+
+    // ▼▼▼ [개발용] 가짜 성공 처리 ▼▼▼
+    alert(`[개발 모드] 인증번호가 발송된 척 합니다.\n인증번호 입력칸에 '123456'을 입력하세요.`);
+    setServerMessage("인증번호가 발송되었습니다. (개발용: 123456)");
   };
 
+  // [수정] 인증번호 확인 함수 (Mocking)
   const handleVerifyAndNext = async () => {
     setError("");
+
+    // ▼▼▼ [개발용] 실제 API 호출 주석 처리 ▼▼▼
+    /*
     try {
         const formData = new FormData();
         formData.append('phone', phone);
@@ -67,6 +80,16 @@ export default function SignupForm() {
     } catch (err) {
         const detail = err.response?.data?.detail;
         setError(detail || "인증 처리 중 문제가 발생했습니다.");
+    }
+    */
+
+    // ▼▼▼ [개발용] 가짜 성공 처리 ▼▼▼
+    if (verificationCode === "123456") {
+        setIsVerified(true);
+        setStep(2);
+        setServerMessage("인증되었습니다! (개발 모드)");
+    } else {
+        setError("인증번호가 일치하지 않습니다. (개발용 정답: 123456)");
     }
   };
 
@@ -98,6 +121,7 @@ export default function SignupForm() {
       <h2>회원가입</h2>
       {error && <p style={{ color: "red", textAlign: 'center' }}>{error}</p>}
       {serverMessage && <p style={{ color: "green", textAlign: 'center' }}>{serverMessage}</p>}
+      
       {step === 1 && (
         <div>
           <h3 style={{textAlign: 'center'}}>1단계: 휴대폰 인증</h3>
@@ -110,7 +134,7 @@ export default function SignupForm() {
           </div>
           <div style={{marginBottom: '10px'}}>
             <label>인증번호:</label>
-            <input value={verificationCode} onChange={(e) => setVerificationCode(e.target.value)} placeholder="6자리 숫자" required style={{width: '100%', padding: '8px', boxSizing: 'border-box'}} />
+            <input value={verificationCode} onChange={(e) => setVerificationCode(e.target.value)} placeholder="인증번호 123456 입력" required style={{width: '100%', padding: '8px', boxSizing: 'border-box'}} />
           </div>
           <button 
             onClick={handleVerifyAndNext} 
@@ -127,6 +151,7 @@ export default function SignupForm() {
           </button>
         </div>
       )}
+      
       {step === 2 && isVerified && (
         <form onSubmit={handleSubmit}>
           <h3 style={{textAlign: 'center'}}>2단계: 정보 입력</h3>
@@ -162,9 +187,9 @@ export default function SignupForm() {
             ))}
           </div>
           <div style={{marginTop: '20px', borderTop: '1px solid #ddd', paddingTop: '10px', fontSize: '0.9em'}}>
-              {/* --- 3. '모두 동의' 버튼 UI 추가 --- */}
+              {/* --- '모두 동의' 버튼 --- */}
               <div style={{ marginBottom: '10px' }}>
-                <button type="button" onClick={handleAgreeAll} className="btn btn-secondary" style={{ width: '100%', background: '#64748b', color: 'white' }}>
+                <button type="button" onClick={handleAgreeAll} className="btn btn-secondary" style={{ width: '100%', background: '#64748b', color: 'white', padding: '8px', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
                   전체 동의
                 </button>
               </div>
@@ -188,7 +213,7 @@ export default function SignupForm() {
                   </label>
               </div>
           </div>
-          <button type="submit" disabled={isSignupDisabled} style={{width: '100%', padding: '10px', marginTop: '20px', background: isSignupDisabled ? '#ccc' : '#28a745', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer'}}>
+          <button type="submit" disabled={isSignupDisabled} style={{width: '100%', padding: '10px', marginTop: '20px', background: isSignupDisabled ? '#ccc' : '#28a745', color: 'white', border: 'none', borderRadius: '5px', cursor: isSignupDisabled ? 'not-allowed' : 'pointer'}}>
               가입 신청
           </button>
         </form>
