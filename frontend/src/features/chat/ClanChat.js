@@ -1,251 +1,147 @@
-// ClanChat.js - 새로 만든 컴포넌트
-import React, { useEffect, useState, useRef, useCallback } from "react";
-import { apiGet, apiPostForm } from "../../api/api";
-import { useAlert } from "../../context/AlertContext";
+import React, { useState, useEffect, useRef } from 'react';
+import { useParams } from 'react-router-dom';
+import { apiGet } from '../../api/api'; // apiPost는 이제 안 씁니다 (소켓으로 전송)
+import { useAlert } from '../../context/AlertContext';
 
-const ClanChat = ({ clanId, user }) => {
+const ClanChat = ({ user }) => {
+  const { id } = useParams(); 
+  const clanId = id; 
+
   const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState("");
-  const [clanInfo, setClanInfo] = useState(null);
-  const messageListRef = useRef(null);
-  const isInitialLoad = useRef(true);
+  const [newMessage, setNewMessage] = useState('');
+  const messagesEndRef = useRef(null);
   const { showAlert } = useAlert();
-  const inputRef = useRef(null);
+  
+  // 웹소켓 객체를 저장할 Ref
+  const socketRef = useRef(null);
 
-  const fetchMessages = useCallback(async () => {
+  // 1. 기존 메시지 불러오기 (처음 1회만 HTTP 요청)
+  const fetchMessages = async () => {
     try {
-      const data = await apiGet(`/chat/clan/${clanId}`);
-      setMessages(data || []);
+      const data = await apiGet(`/clans/${clanId}/chat/`);
+      setMessages(data);
     } catch (err) {
-      if (err.response?.status !== 404) console.error("클랜 채팅 불러오기 실패:", err);
+      console.error("채팅 기록 로딩 실패", err);
     }
-  }, [clanId]);
-
-  const fetchClanInfo = useCallback(async () => {
-    try {
-      const data = await apiGet(`/clans/${clanId}`);
-      setClanInfo(data);
-    } catch (err) {
-      console.error("클랜 정보 불러오기 실패:", err);
-    }
-  }, [clanId]);
+  };
 
   useEffect(() => {
+    if (!clanId) return;
+    
+    // 처음 접속 시 기존 대화 내용 불러오기
     fetchMessages();
-    fetchClanInfo();
-    const interval = setInterval(fetchMessages, 3000);
-    return () => clearInterval(interval);
-  }, [fetchMessages, fetchClanInfo]);
 
-  // 클랜 채팅 읽음 처리
-  useEffect(() => {
-    const markClanChatAsRead = async () => {
-      if (user?.nickname && clanId) {
-        try {
-          const formData = new FormData();
-          formData.append('nickname', user.nickname);
-          formData.append('related_url', `/chats/clan/${clanId}`);
-          await apiPostForm('/alerts/read-by-url', formData);
-          console.log("✅ 클랜 채팅 읽음 처리 완료");
-        } catch (err) {
-          console.error("클랜 채팅 읽음 처리 실패:", err);
-        }
-      }
+    // 2. 웹소켓 연결 시작
+    // ws://127.0.0.1:8000/ws/clans/<id>/chat/
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${wsProtocol}//127.0.0.1:8000/ws/clans/${clanId}/chat/`;
+    
+    const socket = new WebSocket(wsUrl);
+    socketRef.current = socket;
+
+    socket.onopen = () => {
+      console.log('✅ 클랜 채팅 서버에 연결되었습니다.');
     };
 
-    markClanChatAsRead();
-  }, [user, clanId]);
+    socket.onmessage = (e) => {
+      const data = JSON.parse(e.data);
+      // 서버에서 온 메시지를 리스트에 추가
+      setMessages((prev) => [...prev, {
+        sender: data.sender,
+        content: data.message,
+        timestamp: data.timestamp || new Date().toISOString()
+      }]);
+    };
 
+    socket.onclose = () => {
+      console.log('❌ 채팅 서버 연결이 종료되었습니다.');
+    };
+
+    socket.onerror = (err) => {
+        console.error('채팅 소켓 에러:', err);
+    };
+
+    // 컴포넌트 언마운트 시 소켓 연결 해제
+    return () => {
+      if (socket.readyState === 1) { // OPEN 상태면 닫기
+          socket.close();
+      }
+    };
+  }, [clanId]);
+
+  // 3. 스크롤 자동 이동
   useEffect(() => {
-    if (messages.length > 0 && isInitialLoad.current && messageListRef.current) {
-        messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
-        isInitialLoad.current = false;
-    }
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const handleSend = async () => {
-    if (!input.trim()) return;
-    
-    const formData = new FormData();
-    formData.append('sender', user.nickname);
-    formData.append('clan_id', clanId);
-    formData.append('message', input.trim());
-
-    try {
-      await apiPostForm(`/chat/clan`, formData);
-      setInput("");
-      
-      setTimeout(() => {
-        if (inputRef.current) {
-          inputRef.current.focus();
-        }
-      }, 50);
-      
-      await fetchMessages();
-      setTimeout(() => {
-        if (messageListRef.current) {
-            messageListRef.current.scrollTo({ top: messageListRef.current.scrollHeight, behavior: 'smooth' });
-        }
-      }, 100);
-    } catch (err) {
-      alert(err.response?.data?.detail || "메시지 전송 실패");
-    }
-  };
-
-  const handleFormSubmit = (e) => {
+  // 4. 메시지 전송 (웹소켓 방식)
+  const handleSendMessage = (e) => {
     e.preventDefault();
-    handleSend();
-  };
+    if (!newMessage.trim()) return;
+    if (!user) {
+      showAlert('로그인이 필요합니다.', 'error');
+      return;
+    }
 
-  const handleImageUploadClick = () => {
-      showAlert("알림", "아직 열리지 않은 기능입니다.", () => {}, false);
-  };
-
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    
-    if (date.toDateString() === today.toDateString()) {
-      return "오늘";
-    } else if (date.toDateString() === yesterday.toDateString()) {
-      return "어제";
+    // 소켓이 연결된 상태일 때만 전송
+    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+      const messageData = {
+        message: newMessage,
+        sender: user.nickname // JWT 인증 대신 메시지에 포함해서 보냄 (간편 구현)
+      };
+      
+      socketRef.current.send(JSON.stringify(messageData));
+      setNewMessage(''); // 입력창 비우기
     } else {
-      return date.toLocaleDateString('ko-KR', { 
-        year: '2-digit', 
-        month: '2-digit', 
-        day: '2-digit' 
-      }).replace(/\./g, '.').replace(/\s/g, '');
+      showAlert('채팅 서버와 연결되어 있지 않습니다.', 'error');
     }
-  };
-
-  const formatTime = (timestamp) => {
-    if (!timestamp) return "방금";
-    
-    try {
-      const date = new Date(timestamp);
-      return date.toLocaleTimeString('ko-KR', { 
-        hour: '2-digit', 
-        minute: '2-digit',
-        hour12: false 
-      });
-    } catch (error) {
-      return "방금";
-    }
-  };
-
-  const shouldShowDateSeparator = (currentMsg, prevMsg) => {
-    if (!prevMsg) return true;
-    const currentTime = currentMsg.timestamp;
-    const prevTime = prevMsg.timestamp;
-    
-    if (!currentTime || !prevTime) return false;
-    
-    const currentDate = new Date(currentTime).toDateString();
-    const prevDate = new Date(prevTime).toDateString();
-    return currentDate !== prevDate;
   };
 
   return (
-    <div className="chat-page-container">
-      <div className="chat-header">
-        <button 
-          className="chat-back-button"
-          onClick={() => window.history.back()}
-        >
-          ←
-        </button>
-        {clanInfo ? `[클랜] ${clanInfo.name}` : '클랜 채팅'}
-      </div>
-      
-      <div ref={messageListRef} className="message-list">
-        {messages.map((msg, index) => (
-          <React.Fragment key={msg.id}>
-            {shouldShowDateSeparator(msg, messages[index - 1]) && (
-              <div style={{
-                textAlign: 'center',
-                margin: '20px 0',
-                position: 'relative'
-              }}>
-                <div style={{
-                  display: 'inline-block',
-                  background: '#f0f0f0',
-                  padding: '4px 12px',
-                  borderRadius: '12px',
-                  fontSize: '12px',
-                  color: '#666'
-                }}>
-                  {formatDate(msg.timestamp)}
-                </div>
-              </div>
-            )}
-            
-            <div style={{
-              display: 'flex',
-              alignItems: 'flex-end',
-              gap: '4px',
-              marginBottom: '12px',
-              flexDirection: msg.sender === user.nickname ? 'row-reverse' : 'row'
-            }}>
-              <div style={{
-                maxWidth: '280px',
-                padding: '8px 12px',
-                borderRadius: '12px',
-                background: msg.sender === user.nickname ? 'var(--primary-color, #007bff)' : 'white',
-                color: msg.sender === user.nickname ? 'white' : '#333',
-                border: msg.sender === user.nickname ? 'none' : '1px solid #e9ecef'
-              }}>
-                {msg.sender !== user.nickname && (
-                  <div style={{ fontSize: '0.8em', color: '#666', marginBottom: '4px' }}>
-                    {msg.sender}
-                  </div>
-                )}
-                {msg.message && <div>{msg.message}</div>}
-                {msg.image_url && (
-                  <img 
-                    src={msg.image_url} 
-                    alt="채팅 이미지" 
-                    style={{ 
-                      maxWidth: '200px', 
-                      maxHeight: '200px', 
-                      borderRadius: '8px',
-                      marginTop: msg.message ? '8px' : '0'
-                    }} 
-                  />
-                )}
-              </div>
-              
-              <div style={{
-                fontSize: '10px',
-                color: '#999',
-                whiteSpace: 'nowrap',
-                marginBottom: '2px'
-              }}>
-                {formatTime(msg.timestamp)}
-              </div>
-            </div>
-          </React.Fragment>
-        ))}
-      </div>
-      
-      <form onSubmit={handleFormSubmit} className="message-input-form">
-        <button 
-          type="button" 
-          onClick={handleImageUploadClick} 
-          className="attach-button"
-        >
-          +
-        </button>
-        <textarea
-          ref={inputRef}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="메시지를 입력하세요"
-          rows="1"
-        />
-        <button type="submit" disabled={!input.trim()}>전송</button>
-      </form>
+    <div className="flex flex-col h-full border rounded-lg bg-white shadow-sm">
+        <div className="p-4 border-b bg-indigo-50 rounded-t-lg flex justify-between items-center">
+            <h3 className="font-bold text-indigo-900">🛡️ 클랜 채팅</h3>
+            <span className="text-xs text-green-600 font-medium px-2 py-1 bg-green-100 rounded-full">● 실시간 연결됨</span>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50 h-96">
+            {messages.map((msg, index) => {
+                const isMyMessage = user && msg.sender === user.nickname;
+                return (
+                    <div key={index} className={`flex flex-col ${isMyMessage ? 'items-end' : 'items-start'}`}>
+                        <div className={`max-w-[80%] rounded-lg px-4 py-2 text-sm shadow-sm ${
+                            isMyMessage 
+                            ? 'bg-indigo-600 text-white rounded-br-none' 
+                            : 'bg-white text-gray-800 border border-gray-200 rounded-bl-none'
+                        }`}>
+                            {msg.content}
+                        </div>
+                        <span className="text-xs text-gray-400 mt-1 px-1">
+                            {isMyMessage ? '' : `${msg.sender} · `}
+                            {msg.timestamp && new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                    </div>
+                );
+            })}
+            <div ref={messagesEndRef} />
+        </div>
+
+        <form onSubmit={handleSendMessage} className="p-3 bg-white border-t flex gap-2 rounded-b-lg">
+            <input
+                type="text"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                placeholder="메시지 입력..."
+                className="flex-1 border rounded-full px-4 py-2 text-sm focus:outline-none focus:border-indigo-500"
+            />
+            <button 
+                type="submit" 
+                disabled={!newMessage.trim()}
+                className="bg-indigo-600 text-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-indigo-700 disabled:bg-gray-300"
+            >
+                ➤
+            </button>
+        </form>
     </div>
   );
 };
