@@ -10,6 +10,12 @@ from . import views
 from rest_framework_simplejwt.views import TokenRefreshView
 
 urlpatterns = [
+
+     # 회원가입/로그인
+    path('signup/', views.SignupView.as_view(), name='signup'),
+    path('login/', views.LoginView.as_view(), name='login'),
+    path('logout/', views.LogoutView.as_view(), name='logout'),
+
     # 1. 인증
     # 👇 [수정] CustomTokenObtainPairView 사용 (12:41 응답)
     path('token/', views.CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
