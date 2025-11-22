@@ -25,7 +25,6 @@ from .serializers import (
     UserDeviceSerializer,
     DirectChatSerializer,
     AlertSerializer,
-
     UserProfileSerializer
 )
 
