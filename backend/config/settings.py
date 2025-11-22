@@ -30,10 +30,14 @@ load_dotenv(os.path.join(BASE_DIR, '.env'))
 SECRET_KEY = 'django-insecure-a1uohg%oa&8k5#&8yghj92gnvtx6bu!#!9@r=3(n%(&^w#0y0j'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# [수정] 보안을 위해 배포 시엔 False (환경변수로 제어 추천)
+DEBUG = 'RENDER' not in os.environ
 
-ALLOWED_HOSTS = []
+# [수정] 모든 호스트 허용 (Render가 주는 도메인 허용)
+ALLOWED_HOSTS = ['*']
 
+# [추가] CSRF 설정 (Render 도메인 신뢰)
+CSRF_TRUSTED_ORIGINS = ['https://*.onrender.com']
 
 # Application definition
 
@@ -66,6 +70,7 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     # --- 👆 여기까지 추가 ---
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', # 👈 여기 추가
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -116,12 +121,14 @@ CHANNEL_LAYERS = {
 #    }
 #else:
     # .env 파일에 DATABASE_URL이 없을 경우를 대비한 로컬 설정
+
+# [수정] DB 설정 (Render PostgreSQL 자동 연결)
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+    'default': dj_database_url.config(
+        default='sqlite:///db.sqlite3',
+        conn_max_age=600
+    )
+}
 # --- 👆 여기까지 덮어쓰기 ---
 
 PASSWORD_HASHERS = [
@@ -164,7 +171,10 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+# [수정] 정적 파일 설정
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # --- 👇 React 연동을 위한 CORS 설정 ---
 CORS_ALLOWED_ORIGINS = [
@@ -188,7 +198,22 @@ AUTH_USER_MODEL = 'user_app.User'
 # ... (파일 맨 아래, AUTH_USER_MODEL 설정 다음) ...
 
 # --- 👇 Django Rest Framework 및 JWT 설정 ---
-
+# [수정] Redis 설정 (Render Redis 자동 연결)
+if 'REDIS_URL' in os.environ:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels_redis.core.RedisChannelLayer",
+            "CONFIG": {
+                "hosts": [os.environ.get('REDIS_URL')],
+            },
+        },
+    }
+else:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels.layers.InMemoryChannelLayer"
+        }
+    }
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         # React가 'Bearer <token>' 헤더를 보내면 이 클래스가 인증을 처리
@@ -257,29 +282,8 @@ CORS_ALLOW_HEADERS = [
 ]
 
 
-# DEBUG 모드에서 더 자세한 에러 정보 표시
 DEBUG = True
 
-# LOGGING 설정 추가 (500 에러 자세히 보기)
-# LOGGING = {
-#     'version': 1,
-#     'disable_existing_loggers': False,
-#     'handlers': {
-#         'console': {
-#             'class': 'logging.StreamHandler',
-#         },
-#     },
-#     'root': {
-#         'handlers': ['console'],
-#         'level': 'INFO',
-#     },
-#     'loggers': {
-#         'django': {
-#             'handlers': ['console'],
-#             'level': 'DEBUG',
-#             'propagate': False,
-#         },
-#     },
-# }
+
 
 APPEND_SLASH = True
