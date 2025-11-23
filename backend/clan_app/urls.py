@@ -30,6 +30,10 @@ urlpatterns = [
     # (GET) /api/v1/clans/<int:pk>/rooms/
     path('<int:pk>/rooms/', views.ClanRoomListAPIView.as_view(), name='clan-room-list'),
     
+    # ▼▼▼ [신규] 클랜 합주방 대시보드 (상세 정보) ▼▼▼
+    path('<int:pk>/dashboard/', views.ClanRoomDashboardView.as_view(), name='clan-room-dashboard'),
+    # ▲▲▲ [신규] ▲▲▲
+    
     # (GET) /api/v1/clans/<int:pk>/activity/
     path('<int:pk>/activity/', views.ClanMemberActivityAPIView.as_view(), name='clan-activity'),
 

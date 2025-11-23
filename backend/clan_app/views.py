@@ -27,7 +27,7 @@ from .serializers import (
 )
 from room_app.models import Room
 # [오류 수정] room_app.serializers에서는 RoomInfoForActivitySerializer만 가져옴
-from room_app.serializers import (RoomInfoForActivitySerializer) 
+from room_app.serializers import (RoomInfoForActivitySerializer, RoomListSerializer) 
 from .permission import IsClanOwner, IsClanOwnerOrReadOnly, IsClanMember, IsClanOwnerOrAdmin
 
 # 1. Clan
@@ -377,7 +377,32 @@ class ClanMemberActivityAPIView(generics.ListAPIView):
         # 이 클랜에 속한 멤버 목록
         return clan.members.all().order_by('nickname')
 
+# --- ▼▼▼ [신규] 클랜 대시보드 뷰 추가 ▼▼▼ ---
+class ClanRoomDashboardView(APIView):
+    """
+    (GET) /api/v1/clans/<int:pk>/dashboard/
+    클랜 합주방 대시보드 (룸 리스트 + 세션 상세 정보 반환)
+    """
+    permission_classes = [permissions.IsAuthenticated]
 
+    def get(self, request, pk):
+        clan = get_object_or_404(Clan, pk=pk)
+        
+        # 멤버 확인
+        if not clan.members.filter(id=request.user.id).exists():
+             return Response({"detail": "클랜 멤버만 접근할 수 있습니다."}, status=status.HTTP_403_FORBIDDEN)
+        
+        # 해당 클랜의 진행 중인 방 목록
+        rooms = Room.objects.filter(clan=clan, ended=False).order_by('-created_at')
+        
+        # RoomListSerializer를 사용하면 sessions 정보가 포함됩니다.
+        serializer = RoomListSerializer(rooms, many=True)
+        
+        return Response({
+            "clan_name": clan.name,
+            "rooms": serializer.data
+        })
+# --- ▲▲▲ [신규] ▲▲▲ ---
 # (이하 코드는 원본 파일에 있던 테스트용 코드들입니다)
 # -----------------------------------------------------------------
 # (이하 코드는 JWT/Permission 테스트용 뷰입니다)
