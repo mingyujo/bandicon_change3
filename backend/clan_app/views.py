@@ -757,3 +757,14 @@ class ClanRoomDashboardView(APIView):
             "clan_name": clan.name,
             "rooms": serializer.data
         })
+    
+# ▼▼▼ [복구] 파일 맨 아래에 다시 추가해주세요! ▼▼▼
+class ClanMemberActivityAPIView(generics.ListAPIView):
+    serializer_class = MemberActivitySerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        clan = get_object_or_404(Clan, pk=self.kwargs['pk'])
+        if not clan.members.filter(id=self.request.user.id).exists():
+             raise PermissionDenied("클랜 멤버만 조회할 수 있습니다.")
+        return clan.members.all().order_by('nickname')
