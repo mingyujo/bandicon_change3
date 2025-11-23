@@ -1,36 +1,39 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-// [수정] apiPostForm (이미지용), apiGet (카테고리 조회용) 임포트
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { apiPostForm, apiGet } from '../../api/api';
 
 const CreatePost = ({ user }) => {
     const navigate = useNavigate();
     const location = useLocation();
+    
+    // URL 파라미터에서 정보 가져오기
+    // 예: /create-post/general -> boardType="general"
+    // 예: /create-post/clan/5 -> boardId="5" (클랜 게시판 ID)
+    const { boardType, boardId } = useParams();
 
-    // 1. 클랜 ID 확인 (클랜 페이지에서 넘어왔다면 state에 clanId가 있음)
-    const clanId = location.state?.clanId;
+    // [핵심] URL에 boardId가 있으면 '클랜 게시판' 모드입니다.
+    const isClanMode = !!boardId;
 
     // 2. State 정의
     const [boards, setBoards] = useState([]); // 일반 게시판 카테고리 목록
-    const [selectedBoardId, setSelectedBoardId] = useState(""); // 선택된 카테고리 ID
+    const [selectedBoardId, setSelectedBoardId] = useState(""); 
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
     const [imageFile, setImageFile] = useState(null);
-    const [isAnonymous, setIsAnonymous] = useState(false); // (수정) 기본값 false
+    const [isAnonymous, setIsAnonymous] = useState(false);
     const [error, setError] = useState("");
 
-    // 3. 일반 게시판 카테고리 불러오기 (클랜 글이 아닐 때만)
+    // 3. 일반 게시판일 때만 카테고리 불러오기
     useEffect(() => {
-        if (!clanId) {
+        if (!isClanMode) {
             apiGet("/boards/")
                 .then(data => {
                     setBoards(data);
-                    // 카테고리가 있으면 첫 번째 것을 기본 선택
                     if (data.length > 0) setSelectedBoardId(data[0].id);
                 })
                 .catch(err => console.error("게시판 목록 로드 실패:", err));
         }
-    }, [clanId]);
+    }, [isClanMode]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -41,64 +44,47 @@ const CreatePost = ({ user }) => {
             return;
         }
 
-        // FormData 생성 (이미지 파일 전송을 위해 필수)
         const formData = new FormData();
         formData.append('title', title);
         formData.append('content', content);
         formData.append('is_anonymous', isAnonymous);
         
         if (imageFile) {
-            formData.append('image', imageFile); // (주의) 백엔드 모델 필드명 확인 (image vs file)
+            // 백엔드 모델 필드명에 맞춰 'image_url' 대신 'image' 등으로 처리될 수 있음
+            // 보통 DRF에서는 'image'나 'file'로 받음. views.py 확인 시 serializer가 처리.
+            formData.append('file', imageFile); 
+        }
+
+        // ▼▼▼ [핵심] 데이터 구분 로직 ▼▼▼
+        if (isClanMode) {
+            // [CASE 1] 클랜 게시판: 'clan_board_id'를 보냄
+            formData.append('clan_board_id', boardId);
+        } else {
+            // [CASE 2] 일반 게시판: 'board' (카테고리 ID)를 보냄
+            if (!selectedBoardId) {
+                setError("게시판 카테고리를 선택해주세요.");
+                return;
+            }
+            formData.append('board', selectedBoardId);
         }
 
         try {
-            let response;
-            let targetUrl;
-
-            // ▼▼▼ [핵심] 클랜 ID 유무에 따라 API 주소 및 데이터 분기 ▼▼▼
-            if (clanId) {
-                // [CASE 1] 클랜 게시글 작성
-                // 주소: /api/v1/clans/<clanId>/boards/
-                targetUrl = `/clans/${clanId}/boards/`;
-                
-                // 클랜 게시판은 별도 카테고리(board) ID가 필요 없을 수 있음
-                // 하지만 백엔드 모델(ClanBoard)이 name 필드를 요구한다면 title을 넣어줌
-                formData.append('name', title); 
-            } else {
-                // [CASE 2] 일반 게시글 작성
-                // 주소: /api/v1/boards/posts/
-                targetUrl = "/boards/posts/";
-
-                if (!selectedBoardId) {
-                    setError("게시판 카테고리를 선택해주세요.");
-                    return;
-                }
-                // 일반 게시글은 어떤 게시판(자유, 질문 등)인지 ID가 필수
-                formData.append('board', selectedBoardId);
-            }
-            // ▲▲▲ [분기 종료] ▲▲▲
-
-            console.log(`게시글 작성 요청: ${targetUrl}`);
-            response = await apiPostForm(targetUrl, formData);
+            // 백엔드 PostCreateView가 일반/클랜 모두 처리 가능하므로 주소 통일
+            const response = await apiPostForm('/boards/posts/', formData);
 
             console.log("작성 성공:", response);
             alert("게시글이 등록되었습니다.");
 
-            // 이동 로직 분기
-            if (clanId) {
-                navigate(`/clans/${clanId}`); // 클랜 홈으로 이동
+            // 이동 로직
+            if (response.id) {
+                navigate(`/post/${response.id}`);
             } else {
-                // 응답에 ID가 있다면 상세 페이지로, 없으면 목록으로
-                if (response.id) {
-                    navigate(`/board/posts/${response.id}`);
-                } else {
-                    navigate("/boards");
-                }
+                // ID가 없으면 목록으로 (안전장치)
+                navigate(isClanMode ? -1 : "/boards");
             }
 
         } catch (err) {
             console.error("게시글 작성 실패:", err);
-            
             let errorMessage = "게시글 작성에 실패했습니다.";
             const errorDetail = err.response?.data?.detail || err.message;
 
@@ -107,7 +93,6 @@ const CreatePost = ({ user }) => {
             } else if (Array.isArray(errorDetail) && errorDetail[0]?.msg) {
                 errorMessage = errorDetail[0].msg;
             }
-            
             setError(errorMessage);
         }
     };
@@ -115,18 +100,18 @@ const CreatePost = ({ user }) => {
     return (
         <div style={{ maxWidth: '800px', margin: 'auto', padding: '20px' }}>
             <h2 className="page-title">
-                {clanId ? '클랜 게시글 쓰기' : '새 글 쓰기'}
+                {isClanMode ? '클랜 게시글 쓰기' : '새 글 쓰기'}
             </h2>
             
-            {clanId && (
+            {isClanMode && (
                 <div style={{ padding: '10px', background: '#e3f2fd', color: '#01579b', borderRadius: '5px', marginBottom: '15px' }}>
-                    📢 <strong>클랜 멤버들만 볼 수 있는</strong> 게시글입니다.
+                    📢 <strong>클랜 게시판</strong>에 작성됩니다.
                 </div>
             )}
 
             <form onSubmit={handleSubmit} className="card">
-                {/* 일반 게시판일 때만 카테고리 선택 보여주기 */}
-                {!clanId && boards.length > 0 && (
+                {/* 일반 모드일 때만 카테고리 선택 표시 */}
+                {!isClanMode && boards.length > 0 && (
                     <div style={{ marginBottom: '15px' }}>
                         <label>게시판 선택</label>
                         <select 
