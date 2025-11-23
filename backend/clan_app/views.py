@@ -384,6 +384,9 @@ class ClanRoomListAPIView(generics.ListCreateAPIView): # [수정] ListCreateAPIV
         # request.data는 수정 불가능할 수 있으므로 복사
         room_data = request.data.copy()
         room_data.pop('sessions', None) # 세션 데이터 분리
+# ▼▼▼ [핵심 수정] 검증 전에 방장 닉네임을 강제로 주입합니다! ▼▼▼
+        room_data['manager_nickname'] = request.user.nickname
+        # ▲▲▲ [수정 완료] ▲▲▲
 
         # 시리얼라이저 검증
         room_serializer = self.get_serializer(data=room_data)
