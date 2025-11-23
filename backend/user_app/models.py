@@ -19,6 +19,9 @@ class User(AbstractUser):
     
     # [추가] 휴대폰 번호 (회원가입 에러 해결용)
     phone_number = models.CharField(max_length=15, blank=True, null=True)
+# ▼▼▼ [추가] 마케팅 동의 필드 추가 ▼▼▼
+    marketing_consent = models.BooleanField(default=False)
+    # ▲▲▲ [추가] ▲▲▲
 
     # [필수] 권한 및 상태 필드
     role = models.CharField(
