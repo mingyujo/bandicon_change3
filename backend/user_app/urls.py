@@ -22,10 +22,6 @@ urlpatterns = [
     path('token/', views.CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('me/', views.MeAPIView.as_view(), name='user-me'),
-
-    # 2. 회원가입
-    path('signup/', views.UserCreateAPIView.as_view(), name='signup'),
-    
     # 3. SMS 인증
     # 👇 [수정] 이메일 인증으로 경로 변경
     path('send-verification-email/', views.SendVerificationSMSView.as_view(), name='send_email'),
