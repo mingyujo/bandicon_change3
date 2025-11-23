@@ -592,12 +592,17 @@ const ClanDetail = ({ user, onUpdateUser, onLogout }) => {
               ) : (
                 (clan.boards || []).map(board => (
                   <div key={board.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-                    <Link to={`/boards/clan/${board.id}`} style={{textDecoration: 'none', flex: 1}}>
+                    {/* ▼▼▼ [수정] Link에 state={{ clanId: clan.id }} 추가 ▼▼▼ */}
+                    <Link 
+                        to={`/boards/clan/${board.id}`} 
+                        state={{ clanId: clan.id }} // [핵심] 여기서 출입증을 발급합니다!
+                        style={{textDecoration: 'none', flex: 1}}
+                    >
                         <div className="card" style={{margin: 0}}>
                             {board.title}
                         </div>
                     </Link>
-                    {/* ▼▼▼ [수정 2] isOwner -> isClanAdmin으로 변경 ▼▼▼ */}
+                    {/* ▲▲▲ [수정 완료] ▲▲▲ */}
                     {isClanAdmin && (
                         <button 
                             onClick={() => handleDeleteBoard(board.id, board.title)}
