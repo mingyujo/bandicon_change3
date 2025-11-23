@@ -23,6 +23,7 @@ from .serializers import (
     ReserveSessionSerializer, RoomAvailabilitySlotSerializer,
     MyRoomListSerializer 
 )
+from clan_app.models import Clan 
 
 # 1. Room
 # -----------------------------------------------------------------
@@ -465,33 +466,69 @@ class UserRoomListView(generics.ListAPIView):
             ended=False
         ).order_by('-created_at')
     
+# ▼▼▼ 기존 ClanRoomListAPIView를 아래 코드로 통째로 교체해주세요 ▼▼▼
 class ClanRoomListAPIView(generics.ListCreateAPIView):
     """
-    (GET) /api/v1/clans/<int:clan_id>/rooms/
-    특정 클랜의 합주방 목록 조회 및 생성
+    (GET) /api/v1/clans/<int:pk>/rooms/
+    (POST) /api/v1/clans/<int:pk>/rooms/  <-- 생성 기능 추가
+    클랜 합주방 목록 조회 및 생성
     """
     serializer_class = RoomListSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        # URL에서 clan_id를 가져와서 해당 클랜의 방만 필터링
-        clan_id = self.kwargs.get('clan_id')
-        return Room.objects.filter(clan_id=clan_id, ended=False).order_by('-created_at')
+        clan = get_object_or_404(Clan, pk=self.kwargs['pk'])
+        if not clan.members.filter(id=self.request.user.id).exists():
+             raise PermissionDenied("클랜 멤버만 조회할 수 있습니다.")
+        
+        sort_by = self.request.query_params.get('sort', 'latest')
+        queryset = Room.objects.filter(clan=clan, ended=False)
+        
+        if sort_by == 'oldest':
+            return queryset.order_by('created_at')
+        
+        return queryset.order_by('-created_at')
 
-    def perform_create(self, serializer):
-        # 방 생성 시 자동으로 해당 클랜 소속으로 저장
-        clan_id = self.kwargs.get('clan_id')
-        # Clan 모델을 가져오기 위해 임포트 필요 (파일 상단에 없다면 추가 필요하지만, 
-        # 간단히 clan_id만 저장하려면 모델 관계 설정에 따라 다름. 
-        # 가장 안전한 방법은 clan_id를 직접 넣는 것입니다.)
-        from clan_app.models import Clan
-        clan = get_object_or_404(Clan, id=clan_id)
+    # [중요] 클랜 방 생성 로직 (일반 방 생성과 비슷하지만 Clan을 연결함)
+    def create(self, request, *args, **kwargs):
+        clan = get_object_or_404(Clan, pk=self.kwargs['pk'])
         
-        serializer.save(
-            manager_nickname=self.request.user.nickname,
-            clan=clan
+        # 멤버 확인
+        if not clan.members.filter(id=request.user.id).exists():
+            raise PermissionDenied("클랜 멤버만 방을 생성할 수 있습니다.")
+
+        sessions_data = request.data.get("sessions", [])
+        if not sessions_data:
+            return Response({"detail": "세션 정보가 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
+
+        room_data = request.data.copy()
+        room_data.pop('sessions', None) # 세션 데이터 분리
+
+        # 시리얼라이저를 통해 방 기본 정보 검증
+        room_serializer = self.get_serializer(data=room_data)
+        room_serializer.is_valid(raise_exception=True)
+
+        # [핵심] 방 저장 시 Clan 정보와 방장 정보를 함께 저장
+        db_room = room_serializer.save(
+            manager_nickname=request.user.nickname,
+            clan=clan  # <-- 이 부분이 있어야 클랜 방이 됩니다!
         )
-        
-        # (선택) 방 생성 후 세션 등 추가 로직이 필요하다면 
-        # RoomListCreateAPIView의 create 메서드 로직을 참고하여 오버라이딩 해야 함
-        # 하지만 지금은 '리스트 조회'가 급하므로 여기까지!
+
+        # 세션 생성 (일반 방 생성 로직과 동일)
+        session_instances = []
+        for session_name in sessions_data:
+            session_instances.append(Session(room=db_room, session_name=session_name))
+        Session.objects.bulk_create(session_instances)
+
+        # 방장 자동 참가
+        try:
+            manager_session = Session.objects.filter(room=db_room).first()
+            if manager_session:
+                manager_session.participant_nickname = request.user.nickname
+                manager_session.save()
+        except Session.DoesNotExist:
+            pass
+
+        response_serializer = self.get_serializer(db_room)
+        headers = self.get_success_headers(response_serializer.data)
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
