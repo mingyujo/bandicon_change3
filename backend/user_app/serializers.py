@@ -26,7 +26,9 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 class UserCreateSerializer(serializers.ModelSerializer): # SignupSerializer로 이름 변경 고려
     password = serializers.CharField(write_only=True)
-
+     # [수정] 회원가입 폼에서 받지 않는 필드들은 required=False로 설정하거나 read_only로 뺍니다.
+    phone_number = serializers.CharField(required=False, allow_blank=True)
+    marketing_consent = serializers.BooleanField(required=False, default=False)
     class Meta:
         model = User
         fields = (
@@ -40,12 +42,13 @@ class UserCreateSerializer(serializers.ModelSerializer): # SignupSerializer로 �
             'genres', 
             'region', 
             'marketing_consent',
-            'role' # role 필드 추가 (모델에 있다면)
+            'role', # role 필드 추가 (모델에 있다면)
+            'status'
         )
         extra_kwargs = {
             'password': {'write_only': True}
         }
-
+        read_only_fields = ['role', 'status']
     def create(self, validated_data):
         # role 처리 (기본값 MEMBER)
         role = validated_data.pop('role', 'MEMBER')
@@ -64,6 +67,7 @@ class UserCreateSerializer(serializers.ModelSerializer): # SignupSerializer로 �
             is_active=True, # 기본 활성화
             role=role
         )
+        
         return user
 # SignupView에서 사용할 Serializer 이름 맞추기 (별칭 사용)
 
