@@ -771,3 +771,22 @@ class ClanMemberActivityAPIView(generics.ListAPIView):
         if not clan.members.filter(id=self.request.user.id).exists():
              raise PermissionDenied("클랜 멤버만 조회할 수 있습니다.")
         return clan.members.all().order_by('nickname')
+    
+# ▼▼▼ [복구] 파일 맨 아래에 이 코드를 추가해주세요! ▼▼▼
+class ClanMemberActivityAPIView(generics.ListAPIView):
+    """
+    (GET) /api/v1/clans/<int:pk>/activity/
+    클랜 멤버 활동 현황 조회
+    """
+    serializer_class = MemberActivitySerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        clan = get_object_or_404(Clan, pk=self.kwargs['pk'])
+        
+        # 멤버인지 확인
+        if not clan.members.filter(id=self.request.user.id).exists():
+             raise PermissionDenied("클랜 멤버만 조회할 수 있습니다.")
+             
+        # 닉네임 순으로 정렬하여 반환
+        return clan.members.all().order_by('nickname')
