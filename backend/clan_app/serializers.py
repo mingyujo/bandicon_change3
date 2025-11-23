@@ -192,24 +192,25 @@ class RoomLatestActivitySerializer(serializers.ModelSerializer):
         model = Room
         fields = ['id', 'title', 'created_at'] # 'ended_at'은 없으므로 'created_at' 사용
 
-class MemberActivitySerializer(UserBaseSerializer):
+# ▼▼▼ [수정] MemberActivitySerializer 교체 ▼▼▼
+class MemberActivitySerializer(serializers.ModelSerializer):
     """
-    (Clan Member Activity) 클랜 멤버 활동 현황
+    클랜 활동 현황용 멤버 정보 시리얼라이저
     """
-    latest_room = serializers.SerializerMethodField()
+    activity_count = serializers.SerializerMethodField()
 
-    class Meta(UserBaseSerializer.Meta):
-        fields = UserBaseSerializer.Meta.fields + ('latest_room',)
+    class Meta:
+        model = User
+        fields = ['id', 'nickname', 'activity_count']
 
-    def get_latest_room(self, obj):
-        # 해당 유저가 참여했던 방 중 가장 최근에 생성된(또는 종료된) 방 1개
-        # (성능을 위해 더 복잡한 로직이 필요할 수 있으나, 일단 생성일 기준)
-        latest_room = Room.objects.filter(
-            members__id=obj.id, # 유저가 멤버로 참여했고
-            clan_id=self.context['view'].kwargs.get('pk') # 이 클랜 방인
-        ).order_by('-created_at').first()
+    def get_activity_count(self, obj):
+        # [수정 전] Room.objects.filter(members=obj).count() -> 에러 발생 원인
         
-        if latest_room:
-            return RoomLatestActivitySerializer(latest_room).data
-        return 
+        # [수정 후] 세션에 참가자 닉네임이 있는 방을 찾습니다.
+        # (sessions__participant_nickname은 Room -> Session -> participant_nickname 관계)
+        return Room.objects.filter(
+            sessions__participant_nickname=obj.nickname, 
+            ended=True # 종료된 합주만 활동으로 칠 경우 (선택 사항)
+        ).count()
+# ▲▲▲ [수정 완료] ▲▲▲
     
