@@ -464,3 +464,34 @@ class UserRoomListView(generics.ListAPIView):
             manager_nickname=nickname, 
             ended=False
         ).order_by('-created_at')
+    
+class ClanRoomListAPIView(generics.ListCreateAPIView):
+    """
+    (GET) /api/v1/clans/<int:clan_id>/rooms/
+    특정 클랜의 합주방 목록 조회 및 생성
+    """
+    serializer_class = RoomListSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        # URL에서 clan_id를 가져와서 해당 클랜의 방만 필터링
+        clan_id = self.kwargs.get('clan_id')
+        return Room.objects.filter(clan_id=clan_id, ended=False).order_by('-created_at')
+
+    def perform_create(self, serializer):
+        # 방 생성 시 자동으로 해당 클랜 소속으로 저장
+        clan_id = self.kwargs.get('clan_id')
+        # Clan 모델을 가져오기 위해 임포트 필요 (파일 상단에 없다면 추가 필요하지만, 
+        # 간단히 clan_id만 저장하려면 모델 관계 설정에 따라 다름. 
+        # 가장 안전한 방법은 clan_id를 직접 넣는 것입니다.)
+        from clan_app.models import Clan
+        clan = get_object_or_404(Clan, id=clan_id)
+        
+        serializer.save(
+            manager_nickname=self.request.user.nickname,
+            clan=clan
+        )
+        
+        # (선택) 방 생성 후 세션 등 추가 로직이 필요하다면 
+        # RoomListCreateAPIView의 create 메서드 로직을 참고하여 오버라이딩 해야 함
+        # 하지만 지금은 '리스트 조회'가 급하므로 여기까지!

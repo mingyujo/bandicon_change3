@@ -59,4 +59,7 @@ urlpatterns = [
     path('test/auth/', views.TestAuthView.as_view(), name='test-auth'),
     path('1/test/owner/', views.TestClanOwnerView.as_view(), name='test-owner'),
     path('1/test/member/', views.TestClanMemberView.as_view(), name='test-member'),
+
+        # ▼▼▼ 이 줄을 추가해주세요! ▼▼▼
+    path('<int:clan_id>/rooms/', views.ClanRoomListAPIView.as_view(), name='clan-room-list'),
 ]
