@@ -136,7 +136,9 @@ class PostDetailSerializer(serializers.ModelSerializer):
             return {
                 'type': 'clan',
                 'id': obj.clan_board.id,
-                'name': obj.clan_board.name,
+                # ▼▼▼ [수정] .name -> .title 로 변경 (ClanBoard 모델 필드명 일치) ▼▼▼
+                'name': obj.clan_board.title, 
+                # ▲▲▲ [수정] ▲▲▲
                 'clan_id': obj.clan_board.clan_id 
             }
         return None
