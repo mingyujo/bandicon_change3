@@ -732,4 +732,28 @@ class ClanEventListCreateView(generics.ListCreateAPIView):
         clan_id = self.kwargs.get('clan_id')
         clan = get_object_or_404(Clan, id=clan_id)
         serializer.save(creator=self.request.user, clan=clan)
+# ▼▼▼ [복구] 파일 맨 아래에 다시 추가해주세요! ▼▼▼
+class ClanRoomDashboardView(APIView):
+    """
+    (GET) /api/v1/clans/<int:pk>/dashboard/
+    클랜 합주방 대시보드 (룸 리스트 + 세션 상세 정보 반환)
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, pk):
+        clan = get_object_or_404(Clan, pk=pk)
         
+        # 멤버 확인
+        if not clan.members.filter(id=request.user.id).exists():
+             return Response({"detail": "클랜 멤버만 접근할 수 있습니다."}, status=status.HTTP_403_FORBIDDEN)
+        
+        # 해당 클랜의 진행 중인 방 목록
+        rooms = Room.objects.filter(clan=clan, ended=False).order_by('-created_at')
+        
+        # RoomListSerializer를 사용하면 sessions 정보가 포함됩니다.
+        serializer = RoomListSerializer(rooms, many=True)
+        
+        return Response({
+            "clan_name": clan.name,
+            "rooms": serializer.data
+        })
