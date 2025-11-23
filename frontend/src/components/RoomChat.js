@@ -13,8 +13,10 @@ const RoomChat = ({ roomId, roomInfo, user }) => {
 
   const fetchMessages = useCallback(async () => {
     try {
-      const data = await apiGet(`/chat/group/${roomId}`);
-      setMessages(data || []);
+      // ▼▼▼ [수정] URL 변경 (/chat/group/ -> /rooms/{id}/chat/) ▼▼▼
+      // 백엔드 room_app/urls.py에 정의된 주소로 맞춥니다.
+      const data = await apiGet(`/rooms/${roomId}/chat/`);
+      // ▲▲▲ [수정] ▲▲▲setMessages(data || []);
     } catch (err) {
       if (err.response?.status !== 404) console.error("단체 채팅 불러오기 실패:", err);
     }
@@ -34,8 +36,9 @@ const RoomChat = ({ roomId, roomInfo, user }) => {
           const formData = new FormData();
           formData.append('nickname', user.nickname);
           formData.append('related_url', `/chats/group/${roomId}`);
-          await apiPostForm('/alerts/read-by-url', formData);
-          console.log("✅ 단체 채팅 읽음 처리 완료");
+          // ▼▼▼ [수정] URL 변경 (/alerts -> /users/alerts) ▼▼▼
+          await apiPostForm('/users/alerts/read-by-url/', formData);
+          // ▲▲▲ [수정] ▲▲▲console.log("✅ 단체 채팅 읽음 처리 완료");
         } catch (err) {
           console.error("단체 채팅 읽음 처리 실패:", err);
         }
@@ -61,7 +64,9 @@ const RoomChat = ({ roomId, roomInfo, user }) => {
     formData.append('message', input.trim());
 
     try {
-      await apiPostForm(`/chat/group`, formData);
+// ▼▼▼ [수정] URL 변경 (/chat/group -> /rooms/{id}/chat/) ▼▼▼
+      await apiPostForm(`/rooms/${roomId}/chat/`, formData);
+      // ▲▲▲ [수정] ▲▲▲
       setInput("");
       
       setTimeout(() => {

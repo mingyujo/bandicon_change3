@@ -28,8 +28,9 @@ const ChatHub = ({ user }) => {
           const formData = new FormData();
           formData.append('nickname', user.nickname);
           formData.append('related_url', `/chats/direct/${id}`);
-          await apiPostForm('/alerts/read-by-url', formData);
-          console.log("✅ 개인 채팅 읽음 처리 완료");
+          // ▼▼▼ [수정] URL 변경 (/alerts -> /users/alerts) ▼▼▼
+          await apiPostForm('/users/alerts/read-by-url/', formData);
+          // ▲▲▲ [수정] ▲▲▲console.log("✅ 개인 채팅 읽음 처리 완료");
         } catch (readErr) {
           console.error("읽음 처리 실패:", readErr);
         }
@@ -78,7 +79,15 @@ const ChatHub = ({ user }) => {
       formData.append('message', input.trim());
 
       try {
-        await apiPostForm('/chat/direct', formData);
+                // ▼▼▼ [수정] 1:1 채팅도 백엔드 URL 확인 후 수정 필요 (현재는 /chat/direct로 되어있음) ▼▼▼
+        // 만약 백엔드에 해당 URL이 없다면 404가 뜰 것입니다.
+        // user_app/urls.py에는 해당 경로가 없습니다.
+        // (DirectChat 기능은 추후 구현이 필요할 수 있음)
+        // await apiPostForm('/chat/direct', formData);
+        alert("1:1 채팅 기능은 아직 서버에 구현되지 않았습니다."); 
+        // ▲▲▲ [수정] ▲▲▲
+
+        //await apiPostForm('/chat/direct', formData);
         setInput("");
         
         // 키패드 유지를 위한 포커스 복원

@@ -349,7 +349,7 @@ class ClanRoomListAPIView(generics.ListAPIView):
     (GET) /api/v1/clans/<int:pk>/rooms/
     클랜 합주방 목록
     """
-    serializer_class = RoomInfoForActivitySerializer # room_app의 시리얼라이저 사용
+    serializer_class = RoomListSerializer # room_app의 시리얼라이저 사용
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
