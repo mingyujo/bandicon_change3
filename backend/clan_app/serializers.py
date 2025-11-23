@@ -1,5 +1,4 @@
 # clan_app/serializers.py
-
 from rest_framework import serializers
 from .models import (
     Clan, ClanJoinRequest, ClanChat, 
@@ -7,7 +6,7 @@ from .models import (
 )
 from django.contrib.auth import get_user_model
 from user_app.models import User
-from room_app.models import Room
+from room_app.models import Room, Session
 from user_app.serializers import UserBaseSerializer
 from room_app.serializers import RoomInfoForActivitySerializer # 수정: room_app에서 가져옴
 
@@ -193,24 +192,40 @@ class RoomLatestActivitySerializer(serializers.ModelSerializer):
         fields = ['id', 'title', 'created_at'] # 'ended_at'은 없으므로 'created_at' 사용
 
 # ▼▼▼ [수정] MemberActivitySerializer 교체 ▼▼▼
+class MemberParticipationSerializer(serializers.ModelSerializer):
+    """
+    (Helper) 멤버가 참여한 세션과 방 정보
+    """
+    id = serializers.ReadOnlyField(source='room.id')
+    title = serializers.ReadOnlyField(source='room.title')
+    song = serializers.ReadOnlyField(source='room.song')
+    artist = serializers.ReadOnlyField(source='room.artist')
+    
+    class Meta:
+        model = Session
+        fields = ['id', 'title', 'song', 'artist', 'session_name']
+
 class MemberActivitySerializer(serializers.ModelSerializer):
     """
-    클랜 활동 현황용 멤버 정보 시리얼라이저
+    (Main) 클랜 멤버 활동 현황 (프론트엔드 구조에 맞춤)
+    Output: { "member": { "nickname": "..." }, "participating_rooms": [...] }
     """
-    activity_count = serializers.SerializerMethodField()
+    member = UserBaseSerializer(source='*', read_only=True) # 유저 정보를 'member' 필드에 담음
+    participating_rooms = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ['id', 'nickname', 'activity_count']
+        fields = ['member', 'participating_rooms']
 
-    def get_activity_count(self, obj):
-        # [수정 전] Room.objects.filter(members=obj).count() -> 에러 발생 원인
+    def get_participating_rooms(self, obj):
+        # View에서 전달받은 clan_id
+        clan_id = self.context['view'].kwargs.get('pk')
         
-        # [수정 후] 세션에 참가자 닉네임이 있는 방을 찾습니다.
-        # (sessions__participant_nickname은 Room -> Session -> participant_nickname 관계)
-        return Room.objects.filter(
-            sessions__participant_nickname=obj.nickname, 
-            ended=True # 종료된 합주만 활동으로 칠 경우 (선택 사항)
-        ).count()
+        # 이 클랜의 방들 중에서, 해당 멤버(obj)가 세션에 참여한 기록을 찾음
+        participations = Session.objects.filter(
+            room__clan_id=clan_id,           # 해당 클랜의 방
+            participant_nickname=obj.nickname # 이 멤버가 참여함
+        ).select_related('room').order_by('-room__created_at')
+        
+        return MemberParticipationSerializer(participations, many=True).data
 # ▲▲▲ [수정 완료] ▲▲▲
-    
