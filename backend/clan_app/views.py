@@ -25,7 +25,7 @@ from .serializers import (
     ClanEventSerializer, ClanMemberSerializer,
     MemberActivitySerializer, RoomLatestActivitySerializer # <-- 이 2줄
 )
-from room_app.models import Room
+from room_app.models import Room, Session
 # [오류 수정] room_app.serializers에서는 RoomInfoForActivitySerializer만 가져옴
 from room_app.serializers import (RoomInfoForActivitySerializer, RoomListSerializer) 
 from .permission import IsClanOwner, IsClanOwnerOrReadOnly, IsClanMember, IsClanOwnerOrAdmin
@@ -344,66 +344,75 @@ class ClanChatListView(generics.ListCreateAPIView):
         # TODO: (WebSocket/FCM) 클랜 멤버에게 실시간 전송
 
 
-class ClanRoomListAPIView(generics.ListAPIView):
+# ▼▼▼ ClanRoomListAPIView 전체 교체 ▼▼▼
+class ClanRoomListAPIView(generics.ListCreateAPIView): # [수정] ListCreateAPIView로 변경
     """
     (GET) /api/v1/clans/<int:pk>/rooms/
-    클랜 합주방 목록
+    (POST) /api/v1/clans/<int:pk>/rooms/
+    클랜 합주방 목록 조회 및 생성
     """
-    serializer_class = RoomListSerializer # room_app의 시리얼라이저 사용
+    serializer_class = RoomListSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        # 1. 클랜 멤버인지 확인
         clan = get_object_or_404(Clan, pk=self.kwargs['pk'])
         if not clan.members.filter(id=self.request.user.id).exists():
              raise PermissionDenied("클랜 멤버만 조회할 수 있습니다.")
         
-        # 이 클랜 ID를 가진 합주방 목록 (종료되지 않은)
-        return Room.objects.filter(clan=clan, ended=False).order_by('-created_at')
+        # 2. 정렬 및 필터링
+        sort_by = self.request.query_params.get('sort', 'latest')
+        queryset = Room.objects.filter(clan=clan, ended=False)
+        
+        if sort_by == 'oldest':
+            return queryset.order_by('created_at')
+        
+        return queryset.order_by('-created_at')
 
-
-class ClanMemberActivityAPIView(generics.ListAPIView):
-    """
-    (GET) /api/v1/clans/<int:pk>/activity/
-    클랜 멤버 활동 현황
-    """
-    serializer_class = MemberActivitySerializer # clan_app의 시리얼라이저 사용
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
+    # [복구] 생성 로직 (POST 요청 처리)
+    def create(self, request, *args, **kwargs):
         clan = get_object_or_404(Clan, pk=self.kwargs['pk'])
-        if not clan.members.filter(id=self.request.user.id).exists():
-             raise PermissionDenied("클랜 멤버만 조회할 수 있습니다.")
-             
-        # 이 클랜에 속한 멤버 목록
-        return clan.members.all().order_by('nickname')
-
-# --- ▼▼▼ [신규] 클랜 대시보드 뷰 추가 ▼▼▼ ---
-class ClanRoomDashboardView(APIView):
-    """
-    (GET) /api/v1/clans/<int:pk>/dashboard/
-    클랜 합주방 대시보드 (룸 리스트 + 세션 상세 정보 반환)
-    """
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get(self, request, pk):
-        clan = get_object_or_404(Clan, pk=pk)
         
         # 멤버 확인
         if not clan.members.filter(id=request.user.id).exists():
-             return Response({"detail": "클랜 멤버만 접근할 수 있습니다."}, status=status.HTTP_403_FORBIDDEN)
-        
-        # 해당 클랜의 진행 중인 방 목록
-        rooms = Room.objects.filter(clan=clan, ended=False).order_by('-created_at')
-        
-        # RoomListSerializer를 사용하면 sessions 정보가 포함됩니다.
-        serializer = RoomListSerializer(rooms, many=True)
-        
-        return Response({
-            "clan_name": clan.name,
-            "rooms": serializer.data
-        })
-# --- ▲▲▲ [신규] ▲▲▲ ---
-# (이하 코드는 원본 파일에 있던 테스트용 코드들입니다)
+            raise PermissionDenied("클랜 멤버만 방을 생성할 수 있습니다.")
+
+        sessions_data = request.data.get("sessions", [])
+        if not sessions_data:
+            return Response({"detail": "세션 정보가 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # request.data는 수정 불가능할 수 있으므로 복사
+        room_data = request.data.copy()
+        room_data.pop('sessions', None) # 세션 데이터 분리
+
+        # 시리얼라이저 검증
+        room_serializer = self.get_serializer(data=room_data)
+        room_serializer.is_valid(raise_exception=True)
+
+        # [핵심] 방 저장 시 Clan 정보와 방장 정보를 함께 저장
+        db_room = room_serializer.save(
+            manager_nickname=request.user.nickname,
+            clan=clan  # <-- 이 부분이 있어야 클랜 방이 됩니다!
+        )
+
+        # 세션 생성
+        session_instances = []
+        for session_name in sessions_data:
+            session_instances.append(Session(room=db_room, session_name=session_name))
+        Session.objects.bulk_create(session_instances)
+
+        # 방장 자동 참가
+        try:
+            manager_session = Session.objects.filter(room=db_room).first()
+            if manager_session:
+                manager_session.participant_nickname = request.user.nickname
+                manager_session.save()
+        except Session.DoesNotExist:
+            pass
+
+        response_serializer = self.get_serializer(db_room)
+        headers = self.get_success_headers(response_serializer.data)
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED, headers=headers)# (이하 코드는 원본 파일에 있던 테스트용 코드들입니다)
 # -----------------------------------------------------------------
 # (이하 코드는 JWT/Permission 테스트용 뷰입니다)
 # -----------------------------------------------------------------
