@@ -37,7 +37,11 @@ DEBUG = 'RENDER' not in os.environ
 ALLOWED_HOSTS = ['*']
 
 # [추가] CSRF 설정 (Render 도메인 신뢰)
-CSRF_TRUSTED_ORIGINS = ["https://bandicon-change3.onrender.com"]
+CSRF_TRUSTED_ORIGINS = [
+    "https://bandicon-change3.onrender.com",
+    "https://bandicon-test.onrender.com",
+    "http://localhost:3000",
+    ]
 
 # Application definition
 
