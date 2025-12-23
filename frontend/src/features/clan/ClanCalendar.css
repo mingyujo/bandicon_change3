@@ -1,0 +1,27 @@
+/* [새 파일] src/features/clan/ClanCalendar.css */
+
+/* 달력을 감싸는 컨테이너입니다. 이 컨테이너가 달력의 크기를 조절합니다. */
+.clan-calendar-container {
+  width: 100%;
+  max-width: 350px; /* PC 등 넓은 화면에서는 최대 350px을 넘지 않도록 설정 */
+  margin: 0 auto; /* 넓은 화면에서 가운데 정렬 */
+  flex-shrink: 0; /* 화면이 좁아질 때 다른 요소에 의해 찌그러지지 않도록 방지 */
+}
+
+/* react-calendar의 기본 너비를 무시하고 컨테이너에 꽉 차도록 설정 */
+.clan-calendar-container .react-calendar {
+  width: 100% !important;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+/* 화면 너비가 768px보다 좁아질 때 (모바일 환경) */
+@media (max-width: 768px) {
+  /* 달력 안의 날짜(tile)와 요일 글자의 여백과 크기를 줄여서 작은 화면에 맞춥니다. */
+  .clan-calendar-container .react-calendar__tile {
+    padding: 0.5em 0.25em;
+  }
+  .clan-calendar-container .react-calendar__month-view__weekdays__weekday {
+    font-size: 0.75em;
+  }
+}
