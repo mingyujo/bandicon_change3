@@ -187,6 +187,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # React 정적 파일 경로 추가
 STATICFILES_DIRS = [
     os.path.join(ROOT_DIR, 'frontend', 'build', 'static'),
+    os.path.join(ROOT_DIR, 'frontend', 'build'), # [추가] manifest.json, service-worker 등을 위해 루트 추가
 ]
 
 # --- 👇 React 연동을 위한 CORS 설정 ---
