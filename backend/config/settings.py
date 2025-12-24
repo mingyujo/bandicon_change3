@@ -18,6 +18,8 @@ from datetime import timedelta  # 이 import를 파일 상단에 추가
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+ROOT_DIR = BASE_DIR.parent  # backend/ 상위 폴더 (프로젝트 루트)
+
 
 # --- 👇 .env 파일을 로드하는 코드 추가 ---
 load_dotenv(os.path.join(BASE_DIR, '.env'))
@@ -88,7 +90,9 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            os.path.join(ROOT_DIR, 'frontend', 'build'), # React 빌드 결과물 (index.html) 위치
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -179,6 +183,11 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# React 정적 파일 경로 추가
+STATICFILES_DIRS = [
+    os.path.join(ROOT_DIR, 'frontend', 'build', 'static'),
+]
 
 # --- 👇 React 연동을 위한 CORS 설정 ---
 CORS_ALLOWED_ORIGINS = [

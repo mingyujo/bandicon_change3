@@ -5,6 +5,13 @@ set -o errexit
 # 1. 패키지 설치
 pip install -r requirements.txt
 
+# 1-1. 프론트엔드 빌드
+echo "Building Frontend..."
+cd ../frontend
+npm install
+npm run build
+cd ../backend
+
 # 2. 정적 파일 모으기 (CSS 등)
 python manage.py collectstatic --no-input
 
