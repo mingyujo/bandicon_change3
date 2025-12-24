@@ -102,10 +102,11 @@ class MyRoomListView(generics.ListAPIView):
         ).distinct().order_by('-created_at')
 
 
-class RoomDetailAPIView(generics.RetrieveUpdateAPIView):
+class RoomDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     """
     (GET) /api/v1/rooms/<int:pk>/
     (PATCH) /api/v1/rooms/<int:pk>/
+    (DELETE) /api/v1/rooms/<int:pk>/
     """
     queryset = Room.objects.all()
     serializer_class = RoomDetailSerializer
@@ -117,6 +118,13 @@ class RoomDetailAPIView(generics.RetrieveUpdateAPIView):
         if room.manager_nickname != request.user.nickname:
             raise PermissionDenied("방 정보는 방장만 수정할 수 있습니다.")
         return super().update(request, *args, **kwargs)
+
+    # (DELETE) 방장이 방 삭제
+    def destroy(self, request, *args, **kwargs):
+        room = self.get_object()
+        if room.manager_nickname != request.user.nickname:
+            raise PermissionDenied("방 삭제는 방장만 가능합니다.")
+        return super().destroy(request, *args, **kwargs)
 
 # 2. Session
 # -----------------------------------------------------------------
