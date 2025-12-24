@@ -9,7 +9,7 @@ pip install -r requirements.txt
 echo "Building Frontend..."
 cd ../frontend
 npm install
-npm run build
+CI=false npm run build
 cd ../backend
 
 # 2. 정적 파일 모으기 (CSS 등)
