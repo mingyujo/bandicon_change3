@@ -135,29 +135,18 @@ class RoomSessionJoinView(APIView):
             selected_session = Session.objects.select_for_update().get(id=session_id, room_id=room_id)
             user = request.user
 
-            # 2. Check if the user is already participating in *any* session in this room
-            current_session = Session.objects.select_for_update().filter(
-                room_id=room_id, 
-                participant_nickname=user.nickname
-            ).first()
-
-            # Case 1: User clicked the session they are already in (Cancel)
-            if current_session and current_session.id == selected_session.id:
-                current_session.participant_nickname = None
-                current_session.save()
+            # 2. Check if the user is already participating in THIS session (Cancel case)
+            if selected_session.participant_nickname == user.nickname:
+                selected_session.participant_nickname = None
+                selected_session.save()
                 return Response({"detail": "세션 참여가 취소되었습니다."}, status=status.HTTP_200_OK)
 
             # Case 2: User clicked a session that is already full
             if selected_session.participant_nickname is not None:
                 return Response({"detail": "해당 세션은 이미 참여 중인 사용자가 있습니다."}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Case 3: User clicked a new, empty session (Join or Change)
-            # (selected_session.participant_nickname is None)
-            
-            # If user was in a different session, leave it first
-            if current_session:
-                current_session.participant_nickname = None
-                current_session.save()
+            # Case 3: User clicked a new, empty session (Join)
+            # (Old logic removed: do not force leave other sessions)
                 
             # Now, join the new session
             selected_session.participant_nickname = user.nickname
