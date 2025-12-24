@@ -42,6 +42,10 @@ urlpatterns = [
     # path('friends/accept/', views.AcceptFriendRequestView.as_view(), name='friend_accept'),
     # path('friends/reject/', views.RejectFriendRequestView.as_view(), name='friend_reject'),
     
+    # ▼▼▼ [수정] 순서 변경: 구체적인 URL이 변수 URL보다 먼저 와야 함 ▼▼▼
+    path('alerts/read-by-url/', views.AlertReadByUrlView.as_view(), name='alert-read-by-url'),
+    # ▲▲▲ [수정] ▲▲▲
+
     # 6. 알림 & 푸시
     path('alerts/<str:nickname>/', views.AlertListView.as_view(), name='alert_list'),
     # path('alerts/<int:alert_id>/read/', views.AlertReadView.as_view(), name='alert_read'), 
@@ -57,9 +61,6 @@ urlpatterns = [
     # (POST /api/v1/users/alerts/<int:pk>/read/)
     path('alerts/<int:pk>/read/', views.AlertReadView.as_view(), name='alert-read'),
     # ▲▲▲ [수정] ▲▲▲
-    # ▼▼▼ [신규 추가] URL 기반 일괄 읽음 처리 URL ▼▼▼
-    path('alerts/read-by-url/', views.AlertReadByUrlView.as_view(), name='alert-read-by-url'),
-    # ▲▲▲ [신규 추가] ▲▲▲
 
    # 1. /api/v1/users/friends/<nickname>/ (기본)
     path('friends/<str:nickname>/', views.FriendshipDetailView.as_view(), name='friend-detail'),
