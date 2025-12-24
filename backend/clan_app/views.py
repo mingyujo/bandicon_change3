@@ -684,53 +684,12 @@ class ClanJoinRequestListView(generics.ListAPIView):
 # Removed duplicate ClanJoinRequestUpdateView
 
 
-class ClanKickMemberView(generics.GenericAPIView):
-    permission_classes = [permissions.IsAuthenticated, IsClanOwnerOrAdmin]
-
-    def post(self, request, clan_id, user_id):
-        clan = get_object_or_404(Clan, id=clan_id)
-        user_to_kick = get_object_or_404(User, id=user_id)
-
-        # IsClanOwnerOrAdmin이 clan_id를 기준으로 이미 검사함
-        
-        if user_to_kick == clan.owner:
-            return Response({'detail': '클랜 소유자는 강퇴할 수 없습니다.'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        if user_to_kick not in clan.members.all():
-            return Response({'detail': '클랜 멤버가 아닙니다.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        if user_to_kick in clan.admins.all():
-            clan.admins.remove(user_to_kick) # 관리자 목록에서도 제거
-            
-        clan.members.remove(user_to_kick) # 멤버 목록에서 제거
-        clan.save()
-
-        return Response({'detail': f'{user_to_kick.nickname} 님이 강퇴되었습니다.'}, status=status.HTTP_200_OK)
+# Removed duplicate ClanKickMemberView (Generic) - Using APIView version above
 
 
-class ClanApproveAllView(generics.GenericAPIView):
-    permission_classes = [permissions.IsAuthenticated, IsClanOwnerOrAdmin]
 
-    def post(self, request, clan_id):
-        clan = get_object_or_404(Clan, id=clan_id)
-        
-        # IsClanOwnerOrAdmin이 clan_id를 기준으로 이미 검사함
-        
-        pending_requests = ClanJoinRequest.objects.filter(clan=clan, status='pending')
-        
-        if not pending_requests.exists():
-            return Response({'detail': '승인 대기 중인 요청이 없습니다.'}, status=status.HTTP_400_BAD_REQUEST)
+# Removed duplicate ClanApproveAllView (Generic) - Using APIView version above
 
-        approved_count = 0
-        for req in pending_requests:
-            req.status = 'approved'
-            req.clan.members.add(req.user)
-            req.save()
-            approved_count += 1
-
-        clan.save()
-        
-        return Response({'detail': f'총 {approved_count}건의 가입 요청이 일괄 승인되었습니다.'}, status=status.HTTP_200_OK)
 
 
 # --- 3순위 (마무리): 클랜 내부 기능 ---

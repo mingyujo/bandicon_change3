@@ -21,7 +21,8 @@ urlpatterns = [
     path('<int:pk>/join/', views.ClanJoinRequestCreateView.as_view(), name='clan-join'),
     
     # (POST) /api/v1/clans/<int:clan_id>/requests/<int:req_id>/
-    path('<int:clan_id>/requests/<int:req_id>/', views.ClanJoinRequestActionView.as_view(), name='clan-request-update'),
+    # Removed duplicate path
+
 
     # (DELETE) /api/v1/clans/<int:clan_id>/members/<str:nickname>/
     path('<int:clan_id>/members/<str:nickname>/', views.ClanKickMemberView.as_view(), name='clan-kick-member'),
@@ -60,9 +61,9 @@ urlpatterns = [
     # 2순위: 클랜 관리 기능 (가입, 강퇴)
     # 'clans/<int:clan_id>/...' -> '<int:clan_id>/...'
     path('<int:clan_id>/join-requests/', views.ClanJoinRequestListView.as_view(), name='clan-join-request-list'),
-    path('<int:clan_id>/join-requests/<int:pk>/', views.ClanJoinRequestActionView.as_view(), name='clan-join-request-update'), 
-    path('<int:clan_id>/kick/<int:user_id>/', views.ClanKickMemberView.as_view(), name='clan-kick-member'),
-    path('<int:clan_id>/approve-all/', views.ClanApproveAllView.as_view(), name='clan-approve-all'),
+    path('<int:clan_id>/join-requests/<int:req_id>/', views.ClanJoinRequestActionView.as_view(), name='clan-join-request-update'), 
+    # Removed duplicate kick and approve-all paths
+
     
     # 3순위: 클랜 내부 기능 (공지사항, 캘린더, 게시판)
     path('<int:clan_id>/announcements/create/', views.ClanAnnouncementCreateView.as_view(), name='clan-announcement-create'),
