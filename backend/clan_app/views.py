@@ -203,7 +203,7 @@ class ClanJoinRequestCreateView(APIView):
         return Response({"detail": "클랜 가입을 신청했습니다."}, status=status.HTTP_201_CREATED)
 
 
-class ClanJoinRequestUpdateView(APIView):
+class ClanJoinRequestActionView(APIView):
     """
     (POST) /api/v1/clans/<int:clan_id>/requests/<int:req_id>/
     클랜 가입 승인 (approve) / 거절 (reject)
@@ -681,43 +681,7 @@ class ClanJoinRequestListView(generics.ListAPIView):
         return ClanJoinRequest.objects.filter(clan_id=clan_id, status='pending')
 
 
-class ClanJoinRequestUpdateView(generics.UpdateAPIView):
-    queryset = ClanJoinRequest.objects.all()
-    serializer_class = ClanJoinRequestSerializer
-    permission_classes = [permissions.IsAuthenticated, IsClanOwnerOrAdmin]
-    lookup_field = 'id'
-
-    def get_object(self):
-        obj = super().get_object()
-        # URL의 clan_id와 요청 대상의 clan_id가 일치하는지,
-        # 그리고 요청자가 해당 클랜의 관리자인지 확인
-        clan_id = self.kwargs.get('clan_id')
-        if obj.clan.id != clan_id:
-            raise PermissionError("URL과 요청 대상의 클랜이 일치하지 않습니다.")
-        
-        # IsClanOwnerOrAdmin 권한이 이미 view 레벨에서 체크되지만, 
-        # get_object 레벨에서 한 번 더 확인 (혹은 permission 클래스가 object-level-permission을 쓰도록 수정)
-        # 여기서는 permission_classes에 설정된 IsClanOwnerOrAdmin가
-        # view.kwargs.get('clan_id')를 사용하므로 object-level 체크가 아니어도 됨.
-        
-        return obj
-
-    def update(self, request, *args, **kwargs):
-        join_request = self.get_object()
-        action = request.data.get('action') # 'approve' or 'reject'
-
-        if action == 'approve':
-            join_request.status = 'approved'
-            join_request.clan.members.add(join_request.user)
-            join_request.clan.save()
-            join_request.save()
-            return Response({'detail': '가입이 승인되었습니다.'}, status=status.HTTP_200_OK)
-        elif action == 'reject':
-            join_request.status = 'rejected'
-            join_request.save()
-            return Response({'detail': '가입이 거절되었습니다.'}, status=status.HTTP_200_OK)
-        
-        return Response({'detail': '잘못된 요청입니다. (action: "approve" or "reject")'}, status=status.HTTP_400_BAD_REQUEST)
+# Removed duplicate ClanJoinRequestUpdateView
 
 
 class ClanKickMemberView(generics.GenericAPIView):

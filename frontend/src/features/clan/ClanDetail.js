@@ -115,25 +115,25 @@ const JoinRequests = ({ user, isOwner, clan, onAction }) => { // isOwner는 isCl
 
   const approve = async (reqId) => {
     try {
-      // [API 확인 필요] 
-      // 이 API는 이전에 '/clans/requests/{reqId}/approve' 였으나,
-      // 우리가 수정한 백엔드 API 주소는 `/clans/{clan_id}/join-requests/{id}/` 입니다. (POST가 아닌 UPDATE/PUT)
-      // 일단 기존 코드를 유지하되, 작동하지 않으면 백엔드 API 주소와 메서드를 확인해야 합니다.
-      await apiPost(`/clans/requests/${reqId}/approve?nickname=${encodeURIComponent(user.nickname)}`);
+      // [수정] 백엔드 API 형식에 맞춥니다. 
+      // URL: `/clans/${clan.id}/join-requests/${reqId}/`
+      // Body: { action: 'approve' }
+      await apiPost(`/clans/${clan.id}/join-requests/${reqId}/`, { action: 'approve' });
+      alert("승인되었습니다.");
       onAction?.();
     } catch (e) {
       console.error(e);
-      alert("승인 실패");
+      alert(e.response?.data?.detail || "승인 실패");
     }
   };
   const reject = async (reqId) => {
     try {
-      // [API 확인 필요] (위와 동일)
-      await apiPost(`/clans/requests/${reqId}/reject?nickname=${encodeURIComponent(user.nickname)}`);
+      await apiPost(`/clans/${clan.id}/join-requests/${reqId}/`, { action: 'reject' });
+      alert("거절되었습니다.");
       onAction?.();
     } catch (e) {
       console.error(e);
-      alert("거절 실패");
+      alert(e.response?.data?.detail || "거절 실패");
     }
   };
 

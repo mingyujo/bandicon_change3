@@ -127,17 +127,13 @@ class ClanJoinRequestSerializer(serializers.ModelSerializer):
     [User 모델 기준]
     User 모델에 이미지 필드가 없으므로 'user_avatar' 필드 제거
     """
+    user = UserBaseSerializer(read_only=True)
     user_nickname = serializers.ReadOnlyField(source='user.nickname')
-    # ▼▼▼ [수정 2] user_avatar 필드 정의 제거 ▼▼▼
-    # user_avatar = serializers.ImageField(source='user.image', read_only=True)
-    # ▲▲▲ [수정 2] ▲▲▲
 
     class Meta:
         model = ClanJoinRequest
-        # ▼▼▼ [수정 3] Meta.fields에서 'user_avatar' 제거 ▼▼▼
         fields = ['id', 'user', 'clan', 'status', 'requested_at', 'user_nickname']
-        # ▲▲▲ [수정 3] ▲▲▲
-        read_only_fields = ['user', 'clan']
+        read_only_fields = ['clan']
 
 
 class ClanAnnouncementSerializer(serializers.ModelSerializer):
