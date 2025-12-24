@@ -465,6 +465,16 @@ const ClanDetail = ({ user, onUpdateUser, onLogout }) => {
   const isAdmin = user && clan && clan.admins && clan.admins.some(admin => admin.nickname === user.nickname);
   // [최종] 소유자(Owner)이거나 관리자(Admin)이면 isClanAdmin = true
   const isClanAdmin = isOwner || isAdmin;
+
+  // [디버깅] 권한 확인 로그
+  console.log("DEBUG: ClanDetail Permissions", {
+    userNickname: user?.nickname,
+    ownerNickname: clan?.owner?.nickname,
+    isOwner,
+    isAdmin,
+    isClanAdmin,
+    admins: clan?.admins
+  });
   // ▲▲▲ [수정 1] ▲▲▲
 
   const isMember = user && clan && (clan.members || []).some((m) => m.nickname === user.nickname);
