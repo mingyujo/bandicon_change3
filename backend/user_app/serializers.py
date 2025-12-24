@@ -48,7 +48,7 @@ class UserCreateSerializer(serializers.ModelSerializer): # SignupSerializer로 �
         extra_kwargs = {
             'password': {'write_only': True}
         }
-        read_only_fields = ['role', 'status']
+        read_only_fields = ['status']
     def create(self, validated_data):
         # role 처리 (기본값 USER)
         role = validated_data.pop('role', 'USER')
