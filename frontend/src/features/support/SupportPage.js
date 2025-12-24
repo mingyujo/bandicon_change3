@@ -10,6 +10,7 @@ const SupportPage = ({ user }) => {
   const fetchMyTickets = useCallback(async () => {
     try {
       const data = await apiGet(`/support/my/${user.nickname}`);
+      console.log("[SupportPage] Loaded v2. Data:", data);
       setMyTickets(Array.isArray(data) ? data : (data.results || []));
     } catch (err) {
       console.error("티켓 불러오기 실패:", err);
@@ -41,7 +42,7 @@ const SupportPage = ({ user }) => {
 
   return (
     <div style={{ maxWidth: '800px', margin: 'auto', padding: '20px' }}>
-      <h2>문의/피드백</h2>
+      <h2>문의/피드백 (v2)</h2>
 
       <div className="card">
         <form onSubmit={handleSubmit}>
