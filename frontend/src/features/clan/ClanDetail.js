@@ -186,12 +186,12 @@ const JoinRequests = ({ user, isOwner, clan, onAction }) => { // isOwner는 isCl
 // 멤버 목록
 const MemberListModal = ({ user, clan, isOwner, onKicked, onClose }) => { // isOwner는 isClanAdmin 값을 받음
   const kick = async (targetNickname) => {
+    // ... (기존 강퇴 로직 유지) ...
+    // 강퇴 API가 nickname을 사용하는지 user_id를 사용하는지 확인 필요.
+    // 기존 코드는 nickname을 사용하고 있음 (`/clans/${clan.id}/members/${targetNickname}/`)
+    // backend urls.py: path('<int:clan_id>/members/<str:nickname>/', ...) -> OK
     if (!window.confirm(`${targetNickname} 님을 강퇴할까요?`)) return;
     try {
-      // [API 확인 필요]
-      // 이 API는 DELETE `/clans/{clan.id}/members/{nickname}` 이지만,
-      // 우리가 만든 API는 POST `/clans/{clan_id}/kick/{user_id}/` 입니다. (닉네임 기반이 아닌 ID 기반)
-      // 일단 기존 코드를 유지합니다.
       await apiDelete(
         `/clans/${clan.id}/members/${encodeURIComponent(
           targetNickname
@@ -201,6 +201,32 @@ const MemberListModal = ({ user, clan, isOwner, onKicked, onClose }) => { // isO
     } catch (e) {
       console.error(e);
       alert("강퇴 실패");
+    }
+  };
+
+  const promote = async (userId, nickname) => {
+    if (!window.confirm(`${nickname}님을 운영진으로 임명하시겠습니까?`)) return;
+    try {
+      // POST /api/v1/clans/<int:clan_id>/members/<int:user_id>/promote/
+      await apiPost(`/clans/${clan.id}/members/${userId}/promote/`);
+      alert(`${nickname}님을 운영진으로 임명했습니다.`);
+      onKicked?.(); // 목록 새로고침 (이름은 onKicked지만 실제로는 refresh 역할)
+    } catch (e) {
+      console.error(e);
+      alert(e.response?.data?.detail || "권한 부여 실패");
+    }
+  };
+
+  const demote = async (userId, nickname) => {
+    if (!window.confirm(`${nickname}님의 운영진 권한을 해제하시겠습니까?`)) return;
+    try {
+      // POST /api/v1/clans/<int:clan_id>/members/<int:user_id>/demote/
+      await apiPost(`/clans/${clan.id}/members/${userId}/demote/`);
+      alert(`${nickname}님의 권한을 해제했습니다.`);
+      onKicked?.();
+    } catch (e) {
+      console.error(e);
+      alert(e.response?.data?.detail || "권한 해제 실패");
     }
   };
 
@@ -226,10 +252,33 @@ const MemberListModal = ({ user, clan, isOwner, onKicked, onClose }) => { // isO
                   )}
                   {/* ▲▲▲ [추가] ▲▲▲ */}
                 </span>
+                {/* 운영자(소유자)만 볼 수 있는 관리 버튼들 */}
                 {isOwner && m.nickname !== clan.owner?.nickname && (
-                  <button onClick={() => kick(m.nickname)} className="btn btn-danger" style={{ fontSize: '0.8em', padding: '3px 8px' }}>
-                    강퇴
-                  </button>
+                  <div style={{ display: 'flex', gap: '5px' }}>
+                    {/* 1. 강퇴 버튼 */}
+                    <button onClick={() => kick(m.nickname)} className="btn btn-danger" style={{ fontSize: '0.8em', padding: '3px 8px' }}>
+                      강퇴
+                    </button>
+
+                    {/* 2. 권한 관리 버튼 */}
+                    {clan.admins && clan.admins.some(admin => admin.nickname === m.nickname) ? (
+                      <button
+                        onClick={() => demote(m.id, m.nickname)}
+                        className="btn btn-secondary"
+                        style={{ fontSize: '0.8em', padding: '3px 8px', background: '#e0a800', borderColor: '#d39e00', color: 'white' }}
+                      >
+                        권한 해제
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => promote(m.id, m.nickname)}
+                        className="btn btn-primary"
+                        style={{ fontSize: '0.8em', padding: '3px 8px', background: '#17a2b8', borderColor: '#17a2b8' }}
+                      >
+                        간부 임명
+                      </button>
+                    )}
+                  </div>
                 )}
               </li>
             ))}
