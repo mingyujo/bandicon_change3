@@ -170,6 +170,9 @@ function RoomDetail({ user }) {
     const members = room.members || [];
     const isMember = user && members.some(m => m.nickname === user.nickname);
 
+    // [디버깅] 방 확정 상태 및 사용자 권한 확인
+    console.log(`[RoomDetail] Room: ${room.title}, Confirmed: ${room.confirmed}, IsOwner: ${isOwner}, IsMember: ${isMember}`);
+
     return (
         <div className="container mx-auto p-4 max-w-6xl">
             <div className="bg-white shadow rounded-lg p-6 mb-6">
