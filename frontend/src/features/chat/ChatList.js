@@ -4,6 +4,9 @@ import { Link } from 'react-router-dom';
 import { apiGet, apiPost } from "../../api/api";
 
 const ChatList = ({ user }) => {
+    // 배포 확인용 로그 (콘솔에서 확인 가능)
+    console.log("🚀 ChatList Loaded: White Screen Fix Applied (2025-12-26 01:13)");
+
     const [myRooms, setMyRooms] = useState([]);
     const [friends, setFriends] = useState([]);
     const [pendingRequests, setPendingRequests] = useState([]);
