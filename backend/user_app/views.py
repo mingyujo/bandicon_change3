@@ -323,8 +323,8 @@ class AlertListView(views.APIView):
     """
     permission_classes = [IsAuthenticated]
 
-    def get(self, request: Request, nickname: str):
-        if request.user.nickname != nickname:
+    def get(self, request: Request, nickname: str = None):
+        if nickname and request.user.nickname != nickname:
             return Response({"detail": "권한이 없습니다."}, status=status.HTTP_403_FORBIDDEN)
 
         alerts = Alert.objects.filter(
@@ -590,8 +590,8 @@ class AlertReadByUrlView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        # 1. 요청 body에서 'url' 값을 가져옵니다.
-        url_to_read = request.data.get('url')
+        # 1. 요청 body에서 'url' 또는 'related_url' 값을 가져옵니다.
+        url_to_read = request.data.get('url') or request.data.get('related_url')
 
         if not url_to_read:
             return Response(
