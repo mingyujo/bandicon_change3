@@ -18,7 +18,7 @@ const ChatList = ({ user }) => {
                 apiGet(`/friends/${user.nickname}`),
                 apiGet(`/chats/summary?nickname=${encodeURIComponent(user.nickname)}`)
             ]);
-            setMyRooms(roomData || []);
+            setMyRooms(Array.isArray(roomData) ? roomData : (roomData?.results || []));
             setFriends(friendData.friends || []);
             setPendingRequests(friendData.pending_requests || []);
             setUnreadCounts(unreadData || {});
@@ -58,7 +58,7 @@ const ChatList = ({ user }) => {
             alert(err.response?.data?.detail || "친구 수락 실패");
         }
     };
-    
+
     const handleRejectFriend = async (requestId) => {
         try {
             await apiPost("/friends/reject", { request_id: requestId });
@@ -73,78 +73,81 @@ const ChatList = ({ user }) => {
         <div style={{ maxWidth: '800px', margin: 'auto' }}>
             <h2 className="page-title">채팅</h2>
 
-            <div className="card" style={{marginBottom: '20px'}}>
-                <h3 style={{marginTop: 0}}>친구 추가</h3>
-                <form onSubmit={handleAddFriend} style={{display: 'flex', gap: '10px'}}>
-                    <input value={newFriend} onChange={(e) => setNewFriend(e.target.value)} placeholder="닉네임으로 추가" className="input-field" style={{margin: 0, flex: 1}}/>
+            <div className="card" style={{ marginBottom: '20px' }}>
+                <h3 style={{ marginTop: 0 }}>친구 추가</h3>
+                <form onSubmit={handleAddFriend} style={{ display: 'flex', gap: '10px' }}>
+                    <input value={newFriend} onChange={(e) => setNewFriend(e.target.value)} placeholder="닉네임으로 추가" className="input-field" style={{ margin: 0, flex: 1 }} />
                     <button type="submit" className="btn btn-primary">요청</button>
                 </form>
             </div>
-            
-            <div className="card" style={{marginBottom: '20px'}}>
-                <h3 style={{marginTop: 0}}>받은 친구 요청</h3>
+
+            <div className="card" style={{ marginBottom: '20px' }}>
+                <h3 style={{ marginTop: 0 }}>받은 친구 요청</h3>
                 {pendingRequests.length > 0 ? pendingRequests.map(req => (
-                    <div key={req.id} style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--light-gray)'}}>
+                    <div key={req.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--light-gray)' }}>
                         <span><Link to={`/profile/${req.sender.nickname}`}>{req.sender.nickname}</Link> 님의 요청</span>
                         <div>
-                            <button onClick={() => handleAcceptFriend(req.id)} className="btn btn-secondary" style={{marginLeft: '5px'}}>수락</button>
-                            <button onClick={() => handleRejectFriend(req.id)} className="btn btn-secondary" style={{marginLeft: '5px'}}>거절</button>
+                            <button onClick={() => handleAcceptFriend(req.id)} className="btn btn-secondary" style={{ marginLeft: '5px' }}>수락</button>
+                            <button onClick={() => handleRejectFriend(req.id)} className="btn btn-secondary" style={{ marginLeft: '5px' }}>거절</button>
                         </div>
                     </div>
-                )) : <p style={{fontSize: '0.9em', color: '#666'}}>받은 요청이 없습니다.</p>}
+                )) : <p style={{ fontSize: '0.9em', color: '#666' }}>받은 요청이 없습니다.</p>}
             </div>
-            
-            <div className="card" style={{marginBottom: '20px'}}>
-                <h3 style={{marginTop: 0}}>친구 목록</h3>
+
+            <div className="card" style={{ marginBottom: '20px' }}>
+                <h3 style={{ marginTop: 0 }}>친구 목록</h3>
                 {friends.map(friend => {
                     const chatUrl = `/chats/direct/${friend.nickname}`;
                     const unreadCount = unreadCounts[chatUrl] || 0;
                     return (
-                     <div key={`direct-${friend.id}`} style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--light-gray)'}}>
-                        <Link to={`/profile/${friend.nickname}`} style={{ textDecoration: 'none', color: 'inherit', fontWeight: '500' }}>
-                            {friend.nickname}
-                            {unreadCount > 0 && <span style={{marginLeft: '8px', background: '#ef4444', color: 'white', borderRadius: '50%', padding: '2px 8px', fontSize: '0.8em'}}>{unreadCount}</span>}
-                        </Link>
-                        <Link to={chatUrl}>
-                            <button className="btn btn-primary">채팅</button>
-                        </Link>
-                    </div>
-                )})}
+                        <div key={`direct-${friend.id}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--light-gray)' }}>
+                            <Link to={`/profile/${friend.nickname}`} style={{ textDecoration: 'none', color: 'inherit', fontWeight: '500' }}>
+                                {friend.nickname}
+                                {unreadCount > 0 && <span style={{ marginLeft: '8px', background: '#ef4444', color: 'white', borderRadius: '50%', padding: '2px 8px', fontSize: '0.8em' }}>{unreadCount}</span>}
+                            </Link>
+                            <Link to={chatUrl}>
+                                <button className="btn btn-primary">채팅</button>
+                            </Link>
+                        </div>
+                    )
+                })}
             </div>
 
             <div className="card">
-                <h3 style={{marginTop: 0}}>단체 채팅방</h3>
-    
+                <h3 style={{ marginTop: 0 }}>단체 채팅방</h3>
+
                 {/* --- 1. 합주방 채팅 목록 (기존과 동일) --- */}
                 {myRooms.map(room => {
                     const chatUrl = `/chats/group/${room.id}`;
                     const unreadCount = unreadCounts[chatUrl] || 0;
                     return (
-                    <div key={`group-${room.id}`} style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--light-gray)'}}>
-                        <span style={{fontWeight: '500'}}>{room.title}
-                            {unreadCount > 0 && <span style={{marginLeft: '8px', background: '#ef4444', color: 'white', borderRadius: '50%', padding: '2px 8px', fontSize: '0.8em'}}>{unreadCount}</span>}
-                        </span>
-                        <Link to={chatUrl}>
-                        <button className="btn btn-primary">채팅</button>
-                        </Link>
-                    </div>
-                )})}
+                        <div key={`group-${room.id}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--light-gray)' }}>
+                            <span style={{ fontWeight: '500' }}>{room.title}
+                                {unreadCount > 0 && <span style={{ marginLeft: '8px', background: '#ef4444', color: 'white', borderRadius: '50%', padding: '2px 8px', fontSize: '0.8em' }}>{unreadCount}</span>}
+                            </span>
+                            <Link to={chatUrl}>
+                                <button className="btn btn-primary">채팅</button>
+                            </Link>
+                        </div>
+                    )
+                })}
 
                 {/* --- 2. [추가] 클랜 단체 채팅 목록 --- */}
                 {user.clans && user.clans.map(clan => {
                     const chatUrl = `/chats/clan/${clan.id}`;
                     const unreadCount = unreadCounts[chatUrl] || 0;
                     return (
-                    <div key={`clan-${clan.id}`} style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--light-gray)'}}>
-                        <span style={{fontWeight: 'bold', color: 'var(--primary-color)'}}>
-                            [클랜] {clan.name}
-                            {unreadCount > 0 && <span style={{marginLeft: '8px', background: '#ef4444', color: 'white', borderRadius: '50%', padding: '2px 8px', fontSize: '0.8em'}}>{unreadCount}</span>}
-                        </span>
-                        <Link to={chatUrl}>
-                        <button className="btn btn-primary" style={{background: '#6c757d'}}>채팅</button>
-                        </Link>
-                    </div>
-                )})}
+                        <div key={`clan-${clan.id}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--light-gray)' }}>
+                            <span style={{ fontWeight: 'bold', color: 'var(--primary-color)' }}>
+                                [클랜] {clan.name}
+                                {unreadCount > 0 && <span style={{ marginLeft: '8px', background: '#ef4444', color: 'white', borderRadius: '50%', padding: '2px 8px', fontSize: '0.8em' }}>{unreadCount}</span>}
+                            </span>
+                            <Link to={chatUrl}>
+                                <button className="btn btn-primary" style={{ background: '#6c757d' }}>채팅</button>
+                            </Link>
+                        </div>
+                    )
+                })}
             </div>
         </div>
     );
