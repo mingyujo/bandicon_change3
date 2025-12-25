@@ -18,7 +18,7 @@ const ChatList = ({ user }) => {
         try {
             const [roomData, friendData, unreadData] = await Promise.all([
                 apiGet(`/rooms/my/${user.nickname}`),
-                apiGet(`/users/friends/${user.nickname}`),
+                apiGet(`/users/friends/${user.nickname}/`),
                 apiGet(`/chats/summary?nickname=${encodeURIComponent(user.nickname)}`)
             ]);
             setMyRooms(Array.isArray(roomData) ? roomData : (roomData?.results || []));
@@ -43,7 +43,7 @@ const ChatList = ({ user }) => {
             return;
         }
         try {
-            const res = await apiPost("/users/friends/request", { sender: user.nickname, receiver: newFriend });
+            const res = await apiPost("/users/friends/request/", { sender: user.nickname, receiver_nickname: newFriend });
             alert(res.message);
             setNewFriend("");
             fetchData();
@@ -54,7 +54,7 @@ const ChatList = ({ user }) => {
 
     const handleAcceptFriend = async (requestId) => {
         try {
-            await apiPost("/users/friends/accept", { request_id: requestId });
+            await apiPost("/users/friends/accept/", { request_id: requestId });
             alert("친구 요청을 수락했습니다.");
             fetchData();
         } catch (err) {
@@ -64,7 +64,7 @@ const ChatList = ({ user }) => {
 
     const handleRejectFriend = async (requestId) => {
         try {
-            await apiPost("/users/friends/reject", { request_id: requestId });
+            await apiPost("/users/friends/reject/", { request_id: requestId });
             alert("친구 요청을 거절했습니다.");
             fetchData();
         } catch (err) {

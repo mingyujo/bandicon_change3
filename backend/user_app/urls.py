@@ -64,7 +64,7 @@ urlpatterns = [
     # ▲▲▲ [수정] ▲▲▲
 
    # 1. /api/v1/users/friends/<nickname>/ (기본)
-    path('friends/<str:nickname>/', views.FriendshipDetailView.as_view(), name='friend-detail'),
+    # path('friends/<str:nickname>/', views.FriendshipDetailView.as_view(), name='friend-detail'),
 
     # 2. /api/v1/chats/summary/ (채팅 요약)
     path('summary/', views.ChatSummaryView.as_view(), name='chat-summary'), 
