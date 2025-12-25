@@ -88,7 +88,7 @@ const ChatList = ({ user }) => {
                 <h3 style={{ marginTop: 0 }}>받은 친구 요청</h3>
                 {Array.isArray(pendingRequests) && pendingRequests.length > 0 ? pendingRequests.map(req => (
                     <div key={req.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--light-gray)' }}>
-                        <span><Link to={`/profile/${req.sender.nickname}`}>{req.sender.nickname}</Link> 님의 요청</span>
+                        <span><Link to={`/profile/${req.from_user.nickname}`}>{req.from_user.nickname}</Link> 님의 요청</span>
                         <div>
                             <button onClick={() => handleAcceptFriend(req.id)} className="btn btn-secondary" style={{ marginLeft: '5px' }}>수락</button>
                             <button onClick={() => handleRejectFriend(req.id)} className="btn btn-secondary" style={{ marginLeft: '5px' }}>거절</button>
