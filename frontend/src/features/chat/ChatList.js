@@ -15,7 +15,7 @@ const ChatList = ({ user }) => {
         try {
             const [roomData, friendData, unreadData] = await Promise.all([
                 apiGet(`/rooms/my/${user.nickname}`),
-                apiGet(`/friends/${user.nickname}`),
+                apiGet(`/users/friends/${user.nickname}`),
                 apiGet(`/chats/summary?nickname=${encodeURIComponent(user.nickname)}`)
             ]);
             setMyRooms(Array.isArray(roomData) ? roomData : (roomData?.results || []));
@@ -83,7 +83,7 @@ const ChatList = ({ user }) => {
 
             <div className="card" style={{ marginBottom: '20px' }}>
                 <h3 style={{ marginTop: 0 }}>받은 친구 요청</h3>
-                {pendingRequests.length > 0 ? pendingRequests.map(req => (
+                {Array.isArray(pendingRequests) && pendingRequests.length > 0 ? pendingRequests.map(req => (
                     <div key={req.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--light-gray)' }}>
                         <span><Link to={`/profile/${req.sender.nickname}`}>{req.sender.nickname}</Link> 님의 요청</span>
                         <div>
@@ -96,7 +96,7 @@ const ChatList = ({ user }) => {
 
             <div className="card" style={{ marginBottom: '20px' }}>
                 <h3 style={{ marginTop: 0 }}>친구 목록</h3>
-                {friends.map(friend => {
+                {Array.isArray(friends) && friends.map(friend => {
                     const chatUrl = `/chats/direct/${friend.nickname}`;
                     const unreadCount = unreadCounts[chatUrl] || 0;
                     return (
@@ -117,7 +117,7 @@ const ChatList = ({ user }) => {
                 <h3 style={{ marginTop: 0 }}>단체 채팅방</h3>
 
                 {/* --- 1. 합주방 채팅 목록 (기존과 동일) --- */}
-                {myRooms.map(room => {
+                {Array.isArray(myRooms) && myRooms.map(room => {
                     const chatUrl = `/chats/group/${room.id}`;
                     const unreadCount = unreadCounts[chatUrl] || 0;
                     return (
@@ -133,7 +133,7 @@ const ChatList = ({ user }) => {
                 })}
 
                 {/* --- 2. [추가] 클랜 단체 채팅 목록 --- */}
-                {user.clans && user.clans.map(clan => {
+                {user.clans && Array.isArray(user.clans) && user.clans.map(clan => {
                     const chatUrl = `/chats/clan/${clan.id}`;
                     const unreadCount = unreadCounts[chatUrl] || 0;
                     return (
