@@ -442,6 +442,75 @@ class SendFriendRequestView(views.APIView):
             return Response({"detail": "해당 닉네임의 유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
 
 
+class AcceptFriendRequestView(views.APIView):
+    """
+    POST: /api/v1/users/friends/accept/
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        request_id = request.data.get('request_id')
+        if not request_id:
+            return Response({"detail": "요청 ID(request_id)가 필요합니다."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            friend_req = FriendRequest.objects.get(id=request_id)
+            
+            # 본인에게 온 요청인지 확인
+            if friend_req.to_user != request.user:
+                 return Response({"detail": "권한이 없습니다."}, status=status.HTTP_403_FORBIDDEN)
+            
+            if friend_req.status == 'accepted':
+                 return Response({"detail": "이미 수락된 요청입니다."}, status=status.HTTP_400_BAD_REQUEST)
+
+            friend_req.status = 'accepted'
+            friend_req.save()
+            
+            # 양방향 친구 추가
+            friend_req.to_user.friends.add(friend_req.from_user)
+            friend_req.from_user.friends.add(friend_req.to_user)
+            
+            # 알림 생성 (요청 보낸 사람에게)
+            Alert.objects.create(
+                user=friend_req.from_user,
+                alert_type='FRIEND_Request_ACCEPTED', # or similar
+                message=f"{friend_req.to_user.nickname}님이 친구 요청을 수락했습니다.",
+                related_id=friend_req.to_user.id,
+                related_url=f"/profile/{friend_req.to_user.nickname}"
+            )
+
+            return Response({"success": True, "message": "친구 요청을 수락했습니다."})
+            
+        except FriendRequest.DoesNotExist:
+             return Response({"detail": "존재하지 않는 요청입니다."}, status=status.HTTP_404_NOT_FOUND)
+
+class RejectFriendRequestView(views.APIView):
+    """
+    POST: /api/v1/users/friends/reject/
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        request_id = request.data.get('request_id')
+        if not request_id:
+            return Response({"detail": "요청 ID(request_id)가 필요합니다."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            friend_req = FriendRequest.objects.get(id=request_id)
+            
+            if friend_req.to_user != request.user:
+                 return Response({"detail": "권한이 없습니다."}, status=status.HTTP_403_FORBIDDEN)
+            
+            # 거절 상태로 변경 또는 삭제 (여기선 삭제로 처리하거나 rejected로 변경)
+            friend_req.status = 'rejected'
+            friend_req.save()
+            # 또는 friend_req.delete()
+            
+            return Response({"success": True, "message": "친구 요청을 거절했습니다."})
+            
+        except FriendRequest.DoesNotExist:
+             return Response({"detail": "존재하지 않는 요청입니다."}, status=status.HTTP_404_NOT_FOUND)
+
 class FriendListView(views.APIView):
     """
     GET: /api/v1/users/friends/<nickname>/

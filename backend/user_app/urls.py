@@ -37,10 +37,11 @@ urlpatterns = [
 
     # 5. 친구 (12:37 응답)
     # 👇 [수정] <str:nickname>으로 변경
-    path('friends/<str:nickname>/', views.FriendListView.as_view(), name='friend_list'),
+    # 5. 친구 (순서 변경: request가 nickname보다 먼저 와야 함)
     path('friends/request/', views.SendFriendRequestView.as_view(), name='friend_request'),
-    # path('friends/accept/', views.AcceptFriendRequestView.as_view(), name='friend_accept'),
-    # path('friends/reject/', views.RejectFriendRequestView.as_view(), name='friend_reject'),
+    path('friends/accept/', views.AcceptFriendRequestView.as_view(), name='friend_accept'),
+    path('friends/reject/', views.RejectFriendRequestView.as_view(), name='friend_reject'),
+    path('friends/<str:nickname>/', views.FriendListView.as_view(), name='friend_list'),
     
     # ▼▼▼ [수정] 순서 변경: 구체적인 URL이 변수 URL보다 먼저 와야 함 ▼▼▼
     path('alerts/read-by-url/', views.AlertReadByUrlView.as_view(), name='alert-read-by-url'),
