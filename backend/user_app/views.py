@@ -602,7 +602,7 @@ class AlertReadByUrlView(APIView):
         # 2. 현재 유저의, 해당 URL을 가진, (아직) 읽지 않은 알림을 찾습니다.
         alerts_to_update = Alert.objects.filter(
             user=request.user,
-            link_url=url_to_read,
+            related_url=url_to_read,
             is_read=False
         )
 

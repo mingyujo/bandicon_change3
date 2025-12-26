@@ -129,7 +129,7 @@ class AlertSerializer(serializers.ModelSerializer):
     class Meta:
         model = Alert
         # (user_app.Alert 모델이 이 필드들을 가지고 있다고 가정합니다)
-        fields = ['id', 'user', 'message', 'link_url', 'is_read', 'created_at']
+        fields = ['id', 'user', 'message', 'related_url', 'is_read', 'created_at']
         # 'is_read'는 읽음 처리(PUT)를 위해 read_only가 아님
-        read_only_fields = ['user', 'message', 'link_url', 'created_at']
+        read_only_fields = ['user', 'message', 'related_url', 'created_at']
 # ▲▲▲ [4순위 작업] ▲▲▲
