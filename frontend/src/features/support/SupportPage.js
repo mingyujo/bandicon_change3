@@ -9,7 +9,7 @@ const SupportPage = ({ user }) => {
 
   const fetchMyTickets = useCallback(async () => {
     try {
-      const data = await apiGet(`/support/my/${user.nickname}`);
+      const data = await apiGet(`/support/my/${user.nickname}/`);
       console.log("[SupportPage] Loaded v2. Data:", data);
       setMyTickets(Array.isArray(data) ? data : (data.results || []));
     } catch (err) {
@@ -30,7 +30,7 @@ const SupportPage = ({ user }) => {
     formData.append('user_nickname', user.nickname);
 
     try {
-      await apiPostForm('/support/create', formData);
+      await apiPostForm('/support/create/', formData);
       alert(type === 'feedback' ? '피드백이 전송되었습니다!' : '문의가 접수되었습니다!');
       setTitle('');
       setContent('');
