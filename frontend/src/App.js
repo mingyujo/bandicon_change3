@@ -1,6 +1,6 @@
 // [전체 코드] src/App.js
 
-import React, { useState, useEffect, useCallback} from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Routes, Route, Link, useNavigate, useLocation } from "react-router-dom";
 
 // --- 👇 2. [수정] AuthContext.js에서 AuthContext를 import ---
@@ -53,7 +53,7 @@ import PopupAnnouncement from './components/PopupAnnouncement';
 const AppContent = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const isDashboardPage = location.pathname.includes('/dashboard'); 
+  const isDashboardPage = location.pathname.includes('/dashboard');
   const { showAlert } = useAlert();
   const [user, setUser] = useState(null);
   const [notificationCounts, setNotificationCounts] = useState({ chat: 0, profile: 0, etc: 0 });
@@ -75,48 +75,48 @@ const AppContent = () => {
     setUser(null);
     localStorage.removeItem("bandicon_user");
     localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken"); 
+    localStorage.removeItem("refreshToken");
     navigate("/login");
   }, [navigate]);
 
   const checkAlerts = useCallback(async (currentUser) => {
-      if (!currentUser?.nickname) return;
-      try {
-        const res = await apiGet(`/users/alerts/?read=false&nickname=${encodeURIComponent(currentUser.nickname)}`);
-        const mannerEvalAlert = res.find(alert => 
-            alert.related_url && 
-            alert.related_url.includes('/evaluation/') && 
-            (location.pathname + location.search) !== alert.related_url
-        );
+    if (!currentUser?.nickname) return;
+    try {
+      const res = await apiGet(`/users/alerts/?read=false&nickname=${encodeURIComponent(currentUser.nickname)}`);
+      const mannerEvalAlert = res.find(alert =>
+        alert.related_url &&
+        alert.related_url.includes('/evaluation/') &&
+        (location.pathname + location.search) !== alert.related_url
+      );
 
-        if (mannerEvalAlert) {
-            showAlert(
-              "새로운 알림",
-              mannerEvalAlert.message,
-              async () => {
-                try {
-                  // [수정] 알림 API 경로 변경
-                  await apiPost(`/users/alerts/${mannerEvalAlert.id}/read/`);
-                  navigate(mannerEvalAlert.related_url);
-                } catch (e) {
-                  console.error("Failed to mark alert as read", e);
-                  navigate(mannerEvalAlert.related_url);
-                }
-              },
-              false 
-            );
-        }
-      } catch (e) {
-        console.debug("alert check error:", e?.message || e);
+      if (mannerEvalAlert) {
+        showAlert(
+          "새로운 알림",
+          mannerEvalAlert.message,
+          async () => {
+            try {
+              // [수정] 알림 API 경로 변경
+              await apiPost(`/users/alerts/${mannerEvalAlert.id}/read/`);
+              navigate(mannerEvalAlert.related_url);
+            } catch (e) {
+              console.error("Failed to mark alert as read", e);
+              navigate(mannerEvalAlert.related_url);
+            }
+          },
+          false
+        );
       }
+    } catch (e) {
+      console.debug("alert check error:", e?.message || e);
+    }
   }, [navigate, location, showAlert]);
-  
+
   const fetchNotificationCounts = useCallback(async (currentUser) => {
     if (!currentUser?.nickname) return;
     try {
       const counts = await apiGet(`/users/notifications/counts?nickname=${encodeURIComponent(currentUser.nickname)}`);
       setNotificationCounts(counts);
-    } catch(e) {
+    } catch (e) {
       console.debug("count fetch error:", e);
     }
   }, []);
@@ -129,7 +129,7 @@ const AppContent = () => {
   const handleLogin = async (loginRes) => {
     setUser(loginRes);
     localStorage.setItem("bandicon_user", JSON.stringify(loginRes));
-    
+
     try {
       console.log("🔔 로그인 후 푸시 알림 설정 시작");
       const token = await requestForToken(loginRes.nickname);
@@ -140,7 +140,7 @@ const AppContent = () => {
     } catch (error) {
       console.error("❌ 푸시 알림 설정 실패:", error);
     }
-    
+
     checkAlerts(loginRes);
     fetchNotificationCounts(loginRes);
     navigate("/");
@@ -150,7 +150,7 @@ const AppContent = () => {
     setUser(updatedUser);
     localStorage.setItem("bandicon_user", JSON.stringify(updatedUser));
   };
-  
+
   useEffect(() => {
     const saved = localStorage.getItem("bandicon_user");
     const already = localStorage.getItem("fcm_registered_v1") === "1";
@@ -167,18 +167,18 @@ const AppContent = () => {
   useEffect(() => {
     const checkLoginStatus = async () => {
       const token = localStorage.getItem('accessToken');
-      
+
       if (token) {
         try {
-          const userData = await apiGet('/users/me/'); 
-          
+          const userData = await apiGet('/users/me/');
+
           if (userData && userData.id) {
-            setUser(userData); 
+            setUser(userData);
             localStorage.setItem("bandicon_user", JSON.stringify(userData));
           } else {
             throw new Error('Invalid user data');
           }
-          
+
         } catch (error) {
           console.error("토큰이 유효하지 않습니다. 로그아웃 처리:", error);
           if (window.location.pathname !== '/login') {
@@ -194,7 +194,7 @@ const AppContent = () => {
     };
 
     checkLoginStatus();
-  }, [handleLogout]); 
+  }, [handleLogout]);
 
   useEffect(() => {
     if (user) {
@@ -204,19 +204,19 @@ const AppContent = () => {
       const interval = setInterval(() => {
         fetchNotificationCounts(user);
       }, 10000);
-      
+
       return () => clearInterval(interval);
     }
   }, [user, location, checkAlerts, fetchNotificationCounts]);
 
   useEffect(() => {
-    if(!messaging || !user) return;
-    
+    if (!messaging || !user) return;
+
     const unsubscribe = onMessage(messaging, (payload) => {
       console.log('메시지 수신 (포그라운드): ', payload);
       fetchNotificationCounts(user);
     });
-    
+
     return () => unsubscribe();
   }, [user, fetchNotificationCounts]);
 
@@ -225,37 +225,37 @@ const AppContent = () => {
     <div className="app-container">
       {!isDashboardPage && (
         <header className="app-header">
-        <div className="header-top">
-          <Link to="/" className="brand">Bandicon</Link>
-          <div className="app-header__right">
-            {user ? (
-              // ▼▼▼ [수정] 알림벨 컴포넌트 추가 ▼▼▼
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                <NotificationBell user={user} />
-                <span style={{fontWeight: '500'}}>{user.nickname}님</span>
-              </div>
-              // ▲▲▲ [수정] ▲▲▲
-            ) : (
-              <div style={{display: 'flex', gap: '16px'}}>
-                <Link to="/login">로그인</Link>
-                <Link to="/signup">회원가입</Link>
-              </div>
-            )}
+          <div className="header-top">
+            <Link to="/" className="brand">Bandicon</Link>
+            <div className="app-header__right">
+              {user ? (
+                // ▼▼▼ [수정] 알림벨 컴포넌트 추가 ▼▼▼
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <NotificationBell user={user} />
+                  <span style={{ fontWeight: '500' }}>{user.nickname}님</span>
+                </div>
+                // ▲▲▲ [수정] ▲▲▲
+              ) : (
+                <div style={{ display: 'flex', gap: '16px' }}>
+                  <Link to="/login">로그인</Link>
+                  <Link to="/signup">회원가입</Link>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-        {user && (
-          <nav className="nav">
-            <Link to="/rooms">자유 합주방</Link>
-            <Link to="/my-rooms">내 방</Link>
-            <Link to="/boards">게시판</Link>
-            <Link to="/clans">클랜</Link>
-            <Link to="/chats">채팅 {formatCount(notificationCounts.chat)}</Link>
-            <Link to="/profile">프로필 {formatCount(notificationCounts.profile)}</Link>
-            {user.role === "ADMIN" && <Link to="/admin">운영자</Link>}
-          </nav>
-        )}
-      </header>
-    )}
+          {user && (
+            <nav className="nav">
+              <Link to="/rooms">자유 합주방</Link>
+              <Link to="/my-rooms">내 방</Link>
+              <Link to="/boards">게시판</Link>
+              <Link to="/clans">클랜</Link>
+              <Link to="/chats">채팅 {formatCount(notificationCounts.chat)}</Link>
+              <Link to="/profile">프로필 {formatCount(notificationCounts.profile)}</Link>
+              {user.role === "OPERATOR" && <Link to="/admin">운영자</Link>}
+            </nav>
+          )}
+        </header>
+      )}
       <main className="app-main">
         <Routes>
           {!user ? (
@@ -275,7 +275,7 @@ const AppContent = () => {
               <Route path="/create-room" element={<CreateRoomForm user={user} />} />
               <Route path="/rooms/:roomId" element={<RoomDetail user={user} />} />
               <Route path="/my-rooms" element={<MyRooms user={user} />} />
-              <Route path="/evaluation/:roomId" element={<MannerEval user={user} />} /> 
+              <Route path="/evaluation/:roomId" element={<MannerEval user={user} />} />
               <Route path="/boards" element={<BoardHome user={user} />} />
               <Route path="/boards/:boardType" element={<BoardList user={user} />} />
               <Route path="/boards/clan/:boardId" element={<BoardList user={user} />} />
@@ -288,13 +288,13 @@ const AppContent = () => {
               <Route path="/chats" element={<ChatList user={user} />} />
               <Route path="/chats/:type/:id" element={<ChatHub user={user} />} />
               <Route path="/clans" element={<ClanHome user={user} />} />
-              <Route path="/clans/:clanId" element={<ClanDetail user={user} onUpdateUser={handleUpdateUser} onLogout={handleLogout}/>} />
+              <Route path="/clans/:clanId" element={<ClanDetail user={user} onUpdateUser={handleUpdateUser} onLogout={handleLogout} />} />
               <Route path="/clans/:clanId/rooms" element={<ClanRoomListPage user={user} />} />
               <Route path="/clans/:clanId/dashboard" element={<ClanRoomDashboard user={user} />} />
               <Route path="/clans/:clanId/activity" element={<ClanMemberActivity user={user} />} />
               <Route path="/terms" element={<TermsPage />} />
               <Route path="/privacy" element={<PrivacyPage />} />
-              {user.role === 'ADMIN' && (
+              {user.role === 'OPERATOR' && (
                 <>
                   <Route path="/admin" element={<AdminPage user={user} />} />
                   <Route path="/admin/support" element={<AdminSupportPage user={user} />} />
@@ -308,7 +308,7 @@ const AppContent = () => {
           )}
         </Routes>
       </main>
-      
+
       {user && <PopupAnnouncement user={user} />}
     </div>
   );
