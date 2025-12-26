@@ -11,10 +11,10 @@ urlpatterns = [
     path('my/<str:nickname>/', views.MyFeedbackListView.as_view(), name='my-feedback-list'),
 
     # FastAPI의 GET /admin/feedbacks  (admin_app으로 분리 권장)
-    #path('admin/feedbacks/', views.AllFeedbackListView.as_view(), name='all-feedback-list'),
+    path('admin/feedbacks/', views.AllFeedbackListView.as_view(), name='all-feedback-list'),
     
     # FastAPI의 POST /admin/feedback/{feedback_id}/reply 
-    #path('admin/feedback/<int:feedback_id>/reply/', views.FeedbackReplyView.as_view(), name='feedback-reply'),
+    path('admin/feedback/<int:feedback_id>/reply/', views.FeedbackReplyView.as_view(), name='feedback-reply'),
 
     # FastAPI의 GET /popup-announcements/unread 
     path('popup-announcements/unread/', views.UnreadPopupView.as_view(), name='popup-unread'),

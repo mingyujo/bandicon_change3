@@ -8,7 +8,13 @@ from django.conf import settings
 from django.conf.urls.static import static
 from user_app.views import ChatSummaryView, FriendshipDetailView
 from .views import index # 추가 
+from django.views.generic import TemplateView # 추가
+
 urlpatterns = [
+    # Service Worker & Manifest (Root에서 서빙)
+    path('firebase-messaging-sw.js', TemplateView.as_view(template_name='firebase-messaging-sw.js', content_type='application/javascript')),
+    path('manifest.json', TemplateView.as_view(template_name='manifest.json', content_type='application/json')),
+
     path('admin/', admin.site.urls),
     
     # --- 👇 여기에 API 라우팅 추가 ---

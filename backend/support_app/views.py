@@ -62,7 +62,70 @@ class MyFeedbackListView(generics.ListAPIView):
         # crud.get_user_feedbacks  로직
         return Feedback.objects.filter(user=user).prefetch_related('replies__admin').order_by('-created_at')
 
-# (AllFeedbackListView, FeedbackReplyView는 admin 기능이므로 일단 생략)
+# (AllFeedbackListView, FeedbackReplyView는 admin 기능이므로 일단 생략) => 구현 시작
+
+class AllFeedbackListView(generics.ListAPIView):
+    """
+    GET: /api/v1/support/admin/feedbacks/
+    운영자용 모든 문의/피드백 조회
+    """
+    serializer_class = FeedbackSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        # 운영자 권한 체크 ( role='OPERATOR' or is_staff=True )
+        if user.role != 'OPERATOR' and not user.is_staff:
+            return Feedback.objects.none() # 권한 없음
+
+        queryset = Feedback.objects.all().prefetch_related('user', 'replies__admin').order_by('-created_at')
+
+        # 필터링
+        type_filter = self.request.query_params.get('type_filter')
+        if type_filter and type_filter != 'all':
+            queryset = queryset.filter(type=type_filter)
+            
+        return queryset
+
+    def list(self, request, *args, **kwargs):
+        user = self.request.user
+        if user.role != 'OPERATOR' and not user.is_staff:
+             return Response({"detail": "권한이 없습니다."}, status=status.HTTP_403_FORBIDDEN)
+        return super().list(request, *args, **kwargs)
+
+
+class FeedbackReplyView(views.APIView):
+    """
+    POST: /api/v1/support/admin/feedback/<int:feedback_id>/reply/
+    문의 답변 작성
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, feedback_id):
+        user = request.user
+        if user.role != 'OPERATOR' and not user.is_staff:
+            return Response({"detail": "권한이 없습니다."}, status=status.HTTP_403_FORBIDDEN)
+
+        feedback = get_object_or_404(Feedback, id=feedback_id)
+        
+        content = request.data.get('content')
+        if not content:
+            return Response({"detail": "내용을 입력해주세요."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 답변 생성
+        reply = FeedbackReply.objects.create(
+            feedback=feedback,
+            admin=user,
+            content=content
+        )
+
+        # 문의 상태를 'answered'로 변경
+        feedback.status = 'answered'
+        feedback.save()
+
+        # (선택) 질문자에게 알림 생성 로직 추가 가능
+        
+        return Response({"success": True, "message": "답변이 등록되었습니다."})
 
 # --- Popup Announcement Views ---
 
