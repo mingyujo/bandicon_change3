@@ -17,20 +17,17 @@ const ChatHub = ({ user }) => {
   const fetchMessages = useCallback(async () => {
     if (type === "direct") {
       try {
-        const encodedUser = encodeURIComponent(user.nickname);
         const encodedOther = encodeURIComponent(id);
-        const data = await apiGet(`/chat/direct/${encodedUser}/${encodedOther}`);
+        // [수정] 백엔드 경로: /users/chat/direct/<nickname>/
+        const data = await apiGet(`/users/chat/direct/${encodedOther}/`);
         setMessages(data || []);
         setOtherUser(id);
 
         // Alert 기반 읽음 처리
         try {
-          const formData = new FormData();
-          formData.append('nickname', user.nickname);
-          formData.append('related_url', `/chats/direct/${id}`);
-          // ▼▼▼ [수정] URL 변경 (/alerts -> /users/alerts) ▼▼▼
-          await apiPostForm('/users/alerts/read-by-url/', formData);
-          // ▲▲▲ [수정] ▲▲▲console.log("✅ 개인 채팅 읽음 처리 완료");
+          // [수정] URL 기반 읽음 처리 (POST /users/alerts/read-by-url/)
+          // body: { "url": "/chats/direct/<other_nickname>" }
+          await apiPost('/users/alerts/read-by-url/', { url: `/chats/direct/${id}` });
         } catch (readErr) {
           console.error("읽음 처리 실패:", readErr);
         }
@@ -73,21 +70,14 @@ const ChatHub = ({ user }) => {
   const handleSend = async () => {
     if (!input.trim()) return;
 
-    const formData = new FormData();
-    formData.append('sender', user.nickname);
-    formData.append('receiver', otherUser);
-    formData.append('message', input.trim());
-
     try {
-      // ▼▼▼ [수정] 1:1 채팅도 백엔드 URL 확인 후 수정 필요 (현재는 /chat/direct로 되어있음) ▼▼▼
-      // 만약 백엔드에 해당 URL이 없다면 404가 뜰 것입니다.
-      // user_app/urls.py에는 해당 경로가 없습니다.
-      // (DirectChat 기능은 추후 구현이 필요할 수 있음)
-      // await apiPostForm('/chat/direct', formData);
-      alert("1:1 채팅 기능은 아직 서버에 구현되지 않았습니다.");
-      // ▲▲▲ [수정] ▲▲▲
+      // [수정] 1:1 채팅 전송 (POST /users/chat/direct/)
+      // Body: { receiver: 'nickname', message: 'text' }
+      await apiPost('/users/chat/direct/', {
+        receiver: otherUser,
+        message: input.trim()
+      });
 
-      //await apiPostForm('/chat/direct', formData);
       setInput("");
 
       // 키패드 유지를 위한 포커스 복원

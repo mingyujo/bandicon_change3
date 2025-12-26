@@ -61,7 +61,13 @@ urlpatterns = [
     # ▼▼▼ [수정] URL을 더 명확하게 변경 ▼▼▼
     # (POST /api/v1/users/alerts/<int:pk>/read/)
     path('alerts/<int:pk>/read/', views.AlertReadView.as_view(), name='alert-read'),
+    # (POST /api/v1/users/alerts/<int:pk>/read/)
+    path('alerts/<int:pk>/read/', views.AlertReadView.as_view(), name='alert-read'),
     # ▲▲▲ [수정] ▲▲▲
+
+    # 7. 1:1 채팅
+    path('chat/direct/<str:nickname>/', views.DirectChatView.as_view(), name='direct_chat_detail'),
+    path('chat/direct/', views.DirectChatView.as_view(), name='direct_chat_create'),
 
    # 1. /api/v1/users/friends/<nickname>/ (기본)
     # path('friends/<str:nickname>/', views.FriendshipDetailView.as_view(), name='friend-detail'),

@@ -113,6 +113,9 @@ class FriendsListSerializer(serializers.Serializer):
 
 class DirectChatSerializer(serializers.ModelSerializer):
     # (기존 로직 유지)
+    sender = serializers.SlugRelatedField(slug_field='nickname', queryset=User.objects.all())
+    receiver = serializers.SlugRelatedField(slug_field='nickname', queryset=User.objects.all())
+
     class Meta:
         model = DirectChat
         fields = ('id', 'sender', 'receiver', 'message', 'timestamp', 'file_url')
