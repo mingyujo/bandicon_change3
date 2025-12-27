@@ -199,7 +199,14 @@ function RoomDetail({ user }) {
                     <div className="flex flex-col gap-2">
                         {isOwner && !room.confirmed && (
                             <>
-                                <button onClick={confirmRoom} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm">
+                                <button
+                                    onClick={confirmRoom}
+                                    disabled={!sessions.every(s => s.participant_nickname)}
+                                    className={`px-4 py-2 text-white rounded text-sm ${sessions.every(s => s.participant_nickname)
+                                            ? 'bg-green-600 hover:bg-green-700'
+                                            : 'bg-gray-400 cursor-not-allowed'
+                                        }`}
+                                >
                                     확정하기
                                 </button>
                                 <button onClick={deleteRoom} className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 text-sm">

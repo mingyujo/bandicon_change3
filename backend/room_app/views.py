@@ -235,6 +235,12 @@ class RoomConfirmView(APIView):
         if room.confirmed:
             return Response({"detail": "이미 확정된 방입니다."}, status=status.HTTP_400_BAD_REQUEST)
 
+        # [추가] 모든 세션이 꽉 찼는지 확인
+        # participant_nickname이 None이거나 빈 문자열인 세션이 하나라도 있으면 확정 불가
+        unfilled_sessions = room.sessions.filter(Q(participant_nickname__isnull=True) | Q(participant_nickname=""))
+        if unfilled_sessions.exists():
+             return Response({"detail": "모든 세션의 인원이 다 차야 확정할 수 있습니다."}, status=status.HTTP_400_BAD_REQUEST)
+
         room.confirmed = True
         room.confirmed_at = timezone.now()
         room.save()
