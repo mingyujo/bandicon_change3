@@ -72,9 +72,9 @@ urlpatterns = [
 
     
     # 3순위: 클랜 내부 기능 (공지사항, 캘린더, 게시판)
-    path('<int:clan_id>/announcements/create/', views.ClanAnnouncementCreateView.as_view(), name='clan-announcement-create'),
-    path('<int:clan_id>/events/', views.ClanEventListCreateView.as_view(), name='clan-event-list-create'),
-    path('<int:clan_id>/boards/', views.ClanBoardListCreateView.as_view(), name='clan-board-list-create'),
+    path('<int:clan_id>/announcements/create/', views.ClanAnnouncementListCreateView.as_view(), name='clan-announcement-create'),
+    # path('<int:clan_id>/events/', views.ClanEventListCreateView.as_view(), name='clan-event-list-create'),
+    # path('<int:clan_id>/boards/', views.ClanBoardListCreateView.as_view(), name='clan-board-list-create'),
     
     # --- (이하 테스트용 URL) ---
     path('test/all/', views.TestAllView.as_view(), name='test-all'),
