@@ -4,9 +4,10 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Routes, Route, Link, useNavigate, useLocation } from "react-router-dom";
 
 // --- 👇 2. [수정] AuthContext.js에서 AuthContext를 import ---
-import { AuthContext } from './context/AuthContext';
-import { AlertProvider } from './context/AlertContext';
-import { NotificationProvider } from './context/NotificationContext';
+// --- 👇 2. [수정] AuthContext.js에서 AuthContext를 import ---
+// import { AuthContext } from './context/AuthContext';
+// import { AlertProvider } from './context/AlertContext';
+// import { NotificationProvider } from './context/NotificationContext';
 // ▼▼▼ [신규] NotificationBell 임포트 ▼▼▼
 import NotificationBell from './components/NotificationBell';
 // ▲▲▲ [신규] ▲▲▲

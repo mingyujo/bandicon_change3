@@ -75,7 +75,7 @@ const ClanChat = ({ user }) => {
         socket.close();
       }
     };
-  }, [clanId]);
+  }, [clanId, fetchMessages]);
 
   // 3. 스크롤 자동 이동
   useEffect(() => {
