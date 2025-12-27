@@ -206,8 +206,8 @@ const PostDetail = ({ user }) => {
 
       <h2 style={{ margin: 0 }}>{post.title}</h2>
       <div style={{ color: '#666', fontSize: 13, marginBottom: 10, borderBottom: '1px solid #eee', paddingBottom: '10px' }}>
-        {/* (수정) post.is_anonymous 삭제 (Post 모델에 없음) */}
-        {post.author?.nickname || '알 수 없음'} · {new Date(post.created_at).toLocaleString()}
+        {/* (수정) post.is_anonymous 체크 복구 */}
+        {post.is_anonymous ? '익명' : (post.author?.nickname || '알 수 없음')} · {new Date(post.created_at).toLocaleString()}
       </div>
 
       {/* (수정) post.image_url -> imageUrl */}
