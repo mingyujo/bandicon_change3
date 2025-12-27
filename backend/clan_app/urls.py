@@ -77,10 +77,10 @@ urlpatterns = [
     # path('<int:clan_id>/boards/', views.ClanBoardListCreateView.as_view(), name='clan-board-list-create'),
     
     # --- (이하 테스트용 URL) ---
-    path('test/all/', views.TestAllView.as_view(), name='test-all'),
-    path('test/auth/', views.TestAuthView.as_view(), name='test-auth'),
-    path('1/test/owner/', views.TestClanOwnerView.as_view(), name='test-owner'),
-    path('1/test/member/', views.TestClanMemberView.as_view(), name='test-member'),
+    # path('test/all/', views.TestAllView.as_view(), name='test-all'),
+    # path('test/auth/', views.TestAuthView.as_view(), name='test-auth'),
+    # path('1/test/owner/', views.TestClanOwnerView.as_view(), name='test-owner'),
+    # path('1/test/member/', views.TestClanMemberView.as_view(), name='test-member'),
 
         # ▼▼▼ 이 줄을 추가해주세요! ▼▼▼
     path('<int:clan_id>/rooms/', views.ClanRoomListAPIView.as_view(), name='clan-room-list'),
