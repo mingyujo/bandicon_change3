@@ -182,8 +182,8 @@ const RoomList = ({ user }) => {
 
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '10px' }}>
                             {room.sessions && room.sessions.map(session => {
-                                const isMySession = session.nickname === user?.nickname;
-                                const isFull = session.nickname !== null;
+                                const isMySession = session.participant_nickname === user?.nickname;
+                                const isFull = !!session.participant_nickname;
                                 const isReserved = session.reservations && session.reservations.some(r => r.user.nickname === user?.nickname);
 
                                 return (
@@ -201,7 +201,7 @@ const RoomList = ({ user }) => {
                                             {session.session_name}
                                         </div>
                                         <div style={{ fontSize: '0.85em', color: '#666', marginBottom: '5px' }}>
-                                            {session.nickname || '참여 대기'}
+                                            {session.participant_nickname || '참여 대기'}
                                         </div>
 
                                         {isMySession ? (
