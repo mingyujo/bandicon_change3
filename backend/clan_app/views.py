@@ -614,6 +614,7 @@ class ClanMemberActivityAPIView(generics.ListAPIView):
     """
     serializer_class = MemberActivitySerializer
     permission_classes = [permissions.IsAuthenticated]
+    pagination_class = None # [Fix] 프론트엔드가 리스트를 기대하므로 페이지네이션 비활성화
 
     def get_queryset(self):
         clan = get_object_or_404(Clan, pk=self.kwargs['pk'])
