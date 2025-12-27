@@ -36,7 +36,7 @@ class PostListSerializer(serializers.ModelSerializer):
         return obj.comments.count()
     class Meta:
         model = Post
-        fields = ['id', 'title', 'author', 'created_at', 'likes_count', 'comments_count', 'is_liked', 'updated_at']
+        fields = ['id', 'title', 'author', 'created_at', 'likes_count', 'comments_count', 'is_liked', 'updated_at', 'is_anonymous']
 
     def get_is_liked(self, obj):
         request = self.context.get('request', None)
