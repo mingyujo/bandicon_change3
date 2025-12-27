@@ -4,19 +4,19 @@ import { apiPostForm, apiGet } from '../../api/api';
 
 const CreatePost = ({ user }) => {
     const navigate = useNavigate();
-    const location = useLocation();
-    
+    // const location = useLocation(); 
+
     // URL 파라미터에서 정보 가져오기
     // 예: /create-post/general -> boardType="general"
     // 예: /create-post/clan/5 -> boardId="5" (클랜 게시판 ID)
-    const { boardType, boardId } = useParams();
+    const { boardId } = useParams();
 
     // [핵심] URL에 boardId가 있으면 '클랜 게시판' 모드입니다.
     const isClanMode = !!boardId;
 
     // 2. State 정의
     const [boards, setBoards] = useState([]); // 일반 게시판 카테고리 목록
-    const [selectedBoardId, setSelectedBoardId] = useState(""); 
+    const [selectedBoardId, setSelectedBoardId] = useState("");
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
     const [imageFile, setImageFile] = useState(null);
@@ -48,11 +48,11 @@ const CreatePost = ({ user }) => {
         formData.append('title', title);
         formData.append('content', content);
         formData.append('is_anonymous', isAnonymous);
-        
+
         if (imageFile) {
             // 백엔드 모델 필드명에 맞춰 'image_url' 대신 'image' 등으로 처리될 수 있음
             // 보통 DRF에서는 'image'나 'file'로 받음. views.py 확인 시 serializer가 처리.
-            formData.append('file', imageFile); 
+            formData.append('file', imageFile);
         }
 
         // ▼▼▼ [핵심] 데이터 구분 로직 ▼▼▼
@@ -102,7 +102,7 @@ const CreatePost = ({ user }) => {
             <h2 className="page-title">
                 {isClanMode ? '클랜 게시글 쓰기' : '새 글 쓰기'}
             </h2>
-            
+
             {isClanMode && (
                 <div style={{ padding: '10px', background: '#e3f2fd', color: '#01579b', borderRadius: '5px', marginBottom: '15px' }}>
                     📢 <strong>클랜 게시판</strong>에 작성됩니다.
@@ -114,8 +114,8 @@ const CreatePost = ({ user }) => {
                 {!isClanMode && boards.length > 0 && (
                     <div style={{ marginBottom: '15px' }}>
                         <label>게시판 선택</label>
-                        <select 
-                            value={selectedBoardId} 
+                        <select
+                            value={selectedBoardId}
                             onChange={(e) => setSelectedBoardId(e.target.value)}
                             className="input-field"
                         >
@@ -174,7 +174,7 @@ const CreatePost = ({ user }) => {
                 </div>
 
                 {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
-                
+
                 <button type="submit" className="btn btn-primary" style={{ width: "100%", padding: '10px', fontSize: '1.1em' }}>
                     등록하기
                 </button>

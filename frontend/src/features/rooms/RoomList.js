@@ -1,7 +1,7 @@
 // frontend/src/features/rooms/RoomList.js
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { apiGet, apiPostForm, apiPost } from '../../api/api';
+import { apiGet, apiPost } from '../../api/api';
 import { useAlert } from '../../context/AlertContext';
 
 const RoomList = ({ user }) => {
@@ -11,7 +11,7 @@ const RoomList = ({ user }) => {
     const navigate = useNavigate();
     const { showAlert } = useAlert();
 
-    const fetchRooms = useCallback(async (currentSearch, currentSortBy) => { 
+    const fetchRooms = useCallback(async (currentSearch, currentSortBy) => {
         try {
             const data = await apiGet(`/rooms/?search=${encodeURIComponent(currentSearch)}&sort=${currentSortBy}`);
             setRooms(data || []);
@@ -22,7 +22,7 @@ const RoomList = ({ user }) => {
 
     useEffect(() => {
         const delayDebounceFn = setTimeout(() => {
-            fetchRooms(searchTerm, sortBy); 
+            fetchRooms(searchTerm, sortBy);
         }, 300);
         return () => clearTimeout(delayDebounceFn);
     }, [searchTerm, sortBy, fetchRooms]);
@@ -51,7 +51,7 @@ const RoomList = ({ user }) => {
             alert(err.response?.data?.detail || "참가에 실패했습니다.");
         }
     };
-    
+
     // ✅ 수정된 handleLeaveSession
     const handleLeaveSession = async (room, sessionName) => {
         // 세션 ID를 찾기
@@ -92,7 +92,7 @@ const RoomList = ({ user }) => {
                     const res = await apiPost(`/rooms/sessions/${session.id}/reserve/`);
                     showAlert("성공", res.detail || "예약이 완료되었습니다.", () => fetchRooms(searchTerm, sortBy), false);
                 } catch (err) {
-                    showAlert("실패", err.response?.data?.detail || "예약 실패", () => {}, false);
+                    showAlert("실패", err.response?.data?.detail || "예약 실패", () => { }, false);
                 }
             }
         );
@@ -113,7 +113,7 @@ const RoomList = ({ user }) => {
                     const res = await apiPost(`/rooms/sessions/${session.id}/cancel-reserve/`);
                     showAlert("성공", res.detail || "예약이 취소되었습니다.", () => fetchRooms(searchTerm, sortBy), false);
                 } catch (err) {
-                    showAlert("실패", err.response?.data?.detail || "예약 취소 실패", () => {}, false);
+                    showAlert("실패", err.response?.data?.detail || "예약 취소 실패", () => { }, false);
                 }
             }
         );
@@ -124,14 +124,14 @@ const RoomList = ({ user }) => {
         const message = session.reservations.length > 0
             ? session.reservations.map((r, index) => `${index + 1}. ${r.user.nickname}`).join('\n')
             : "예약자가 없습니다.";
-        
-        showAlert(title, message, () => {}, false);
+
+        showAlert(title, message, () => { }, false);
     };
 
     return (
         <div style={{ padding: 20 }}>
             <h2 className="page-title">합주방 목록</h2>
-            
+
             <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
                 <input
                     type="text"
@@ -151,8 +151,8 @@ const RoomList = ({ user }) => {
                     <option value="oldest">오래된순</option>
                     <option value="popularity">인기순</option>
                 </select>
-                <button 
-                    onClick={() => navigate('/create-room')} 
+                <button
+                    onClick={() => navigate('/create-room')}
                     className="btn btn-primary"
                 >
                     방 만들기
@@ -172,11 +172,11 @@ const RoomList = ({ user }) => {
                             </Link>
                             {room.is_private && <span style={{ marginLeft: '10px', fontSize: '0.9em', color: '#666' }}>🔒</span>}
                         </h3>
-                        
+
                         <p style={{ color: '#666', marginBottom: '10px' }}>{room.description}</p>
-                        
+
                         <div style={{ fontSize: '0.85em', color: '#888', marginBottom: '10px' }}>
-                            방장: {room.manager_nickname} | 
+                            방장: {room.manager_nickname} |
                             생성일: {new Date(room.created_at).toLocaleDateString()}
                         </div>
 
@@ -187,8 +187,8 @@ const RoomList = ({ user }) => {
                                 const isReserved = session.reservations && session.reservations.some(r => r.user.nickname === user?.nickname);
 
                                 return (
-                                    <div 
-                                        key={session.id} 
+                                    <div
+                                        key={session.id}
                                         style={{
                                             padding: '10px',
                                             border: isMySession ? '2px solid var(--primary-color)' : '1px solid #ddd',
@@ -203,9 +203,9 @@ const RoomList = ({ user }) => {
                                         <div style={{ fontSize: '0.85em', color: '#666', marginBottom: '5px' }}>
                                             {session.nickname || '참여 대기'}
                                         </div>
-                                        
+
                                         {isMySession ? (
-                                            <button 
+                                            <button
                                                 onClick={() => handleLeaveSession(room, session.session_name)}
                                                 className="btn btn-secondary"
                                                 style={{ fontSize: '0.85em', padding: '5px 10px' }}
@@ -214,7 +214,7 @@ const RoomList = ({ user }) => {
                                             </button>
                                         ) : isFull ? (
                                             isReserved ? (
-                                                <button 
+                                                <button
                                                     onClick={() => handleCancelReservation(room, session.session_name)}
                                                     className="btn btn-secondary"
                                                     style={{ fontSize: '0.85em', padding: '5px 10px' }}
@@ -222,7 +222,7 @@ const RoomList = ({ user }) => {
                                                     예약 취소
                                                 </button>
                                             ) : (
-                                                <button 
+                                                <button
                                                     onClick={() => handleReserveSession(room, session.session_name)}
                                                     className="btn btn-primary"
                                                     style={{ fontSize: '0.85em', padding: '5px 10px' }}
@@ -231,7 +231,7 @@ const RoomList = ({ user }) => {
                                                 </button>
                                             )
                                         ) : (
-                                            <button 
+                                            <button
                                                 onClick={() => handleJoinSession(room, session.session_name)}
                                                 className="btn btn-primary"
                                                 style={{ fontSize: '0.85em', padding: '5px 10px' }}
@@ -239,10 +239,10 @@ const RoomList = ({ user }) => {
                                                 참가하기
                                             </button>
                                         )}
-                                        
+
                                         {session.reservations && session.reservations.length > 0 && (
                                             <div style={{ marginTop: '5px' }}>
-                                                <button 
+                                                <button
                                                     onClick={() => showReservations(session)}
                                                     style={{
                                                         background: 'none',

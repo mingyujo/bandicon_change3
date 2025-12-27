@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { apiPost, apiPostForm } from "../../api/api";
+import { apiPost } from "../../api/api";
 
 export default function SignupForm() {
   // --- 1. 모든 useState 선언 ---

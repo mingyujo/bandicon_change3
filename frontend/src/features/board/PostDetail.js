@@ -6,15 +6,15 @@ import Linkify from '../../components/Linkify';
 
 // (Comment 컴포넌트는 변경 없음)
 const Comment = ({ comment, onReplySubmit, user }) => {
-  const [showReplyForm, setShowReplyForm] = useState(false);
-  const [replyContent, setReplyContent] = useState('');
+  // const [showReplyForm, setShowReplyForm] = useState(false);
+  // const [replyContent, setReplyContent] = useState('');
 
-  const handleReply = () => {
-    if (!replyContent.trim()) return;
-    onReplySubmit(replyContent, comment.id);
-    setReplyContent('');
-    setShowReplyForm(false);
-  };
+  // const handleReply = () => {
+  //   if (!replyContent.trim()) return;
+  //   onReplySubmit(replyContent, comment.id);
+  //   setReplyContent('');
+  //   setShowReplyForm(false);
+  // };
 
   return (
     <div style={{ marginLeft: comment.parent_id ? '30px' : '0', marginTop: 10, borderTop: '1px solid #f0f0f0', paddingTop: '10px' }}>
@@ -65,8 +65,8 @@ const Comment = ({ comment, onReplySubmit, user }) => {
       ))}
       */}
     </div>
-    );
-    };
+  );
+};
 
 const PostDetail = ({ user }) => {
   const { postId } = useParams();
@@ -74,9 +74,9 @@ const PostDetail = ({ user }) => {
   const [post, setPost] = useState(null);
   const [commentInput, setCommentInput] = useState('');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  
+
   // (수정) canDelete -> isOwner 로 명칭 변경
-  const [isOwner, setIsOwner] = useState(false); 
+  const [isOwner, setIsOwner] = useState(false);
 
   const fetchPost = useCallback(async () => {
     if (!user?.nickname) return;
@@ -86,7 +86,7 @@ const PostDetail = ({ user }) => {
       setPost(data);
       // (수정) is_owner 로직 변경
       setIsOwner(data.author?.nickname === user.nickname);
-      
+
     } catch (e) {
       console.error('게시글 조회 실패:', e);
       alert('게시글을 불러오는 데 실패했습니다.');
@@ -131,10 +131,10 @@ const PostDetail = ({ user }) => {
       // --- 👇 [수정] URL 변경 ---
       const res = await apiPost(`/boards/posts/${postId}/scrap/`);
       // --- 👇 [수정] 응답 값(scrapped, scraps_count)으로 상태 업데이트 ---
-      setPost(prev => ({ 
-        ...prev, 
-        is_scrapped: res.scrapped, 
-        scraps_count: res.scraps_count 
+      setPost(prev => ({
+        ...prev,
+        is_scrapped: res.scrapped,
+        scraps_count: res.scraps_count
       }));
     } catch (e) {
       console.error('스크랩 실패:', e);
@@ -143,12 +143,12 @@ const PostDetail = ({ user }) => {
 
   const handleDeletePost = async () => {
     if (!user?.nickname) return;
-    
+
     try {
       // (수정) URL 변경
       await apiDelete(`/boards/posts/${postId}/`);
       alert('게시글이 삭제되었습니다.');
-      navigate(-1); 
+      navigate(-1);
     } catch (e) {
       console.error('게시글 삭제 실패:', e);
       const errorMsg = e.response?.data?.detail || '게시글 삭제에 실패했습니다.';
@@ -172,7 +172,7 @@ const PostDetail = ({ user }) => {
   };
 
   if (!post) return <div style={{ padding: 20 }}>로딩중…</div>;
-  
+
   // (수정) post.image_url -> post.image (모델 필드명)
   const imageUrl = post.image ? (
     post.image.startsWith('http') ? post.image : `${API_BASE_SERVER}${post.image}`
@@ -184,16 +184,16 @@ const PostDetail = ({ user }) => {
         <button onClick={() => navigate(-1)}>
           ← 목록으로
         </button>
-        
+
         {/* (수정) canDelete -> isOwner */}
         {isOwner && (
-          <button 
+          <button
             onClick={() => setShowDeleteModal(true)}
-            style={{ 
-              backgroundColor: '#dc3545', 
-              color: 'white', 
-              border: 'none', 
-              padding: '8px 12px', 
+            style={{
+              backgroundColor: '#dc3545',
+              color: 'white',
+              border: 'none',
+              padding: '8px 12px',
               borderRadius: '4px',
               cursor: 'pointer',
               fontSize: '0.9em'
@@ -235,15 +235,15 @@ const PostDetail = ({ user }) => {
         <div className="modal-overlay">
           <div className="modal-content">
             <h3>게시글 삭제</h3>
-            <p>정말로 이 게시글을 삭제하시겠습니까?<br/>삭제된 게시글은 복구할 수 없습니다.</p>
+            <p>정말로 이 게시글을 삭제하시겠습니까?<br />삭제된 게시글은 복구할 수 없습니다.</p>
             <div className="modal-actions">
-              <button 
+              <button
                 onClick={() => setShowDeleteModal(false)}
                 className="btn btn-secondary"
               >
                 취소
               </button>
-              <button 
+              <button
                 onClick={() => {
                   setShowDeleteModal(false);
                   handleDeletePost();
@@ -273,11 +273,11 @@ const PostDetail = ({ user }) => {
 
       <div>
         {(post.comments || [])
-          .slice() 
-          .sort((a, b) => new Date(a.created_at) - new Date(b.created_at)) 
+          .slice()
+          .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
           .map((c) => (
             <Comment key={c.id} comment={c} onReplySubmit={submitComment} user={user} />
-        ))}
+          ))}
       </div>
     </div>
   );

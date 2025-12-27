@@ -599,6 +599,14 @@ class ClanRoomDashboardView(APIView):
             "rooms": serializer.data
         })
 
+class ClanJoinRequestListView(generics.ListAPIView):
+    serializer_class = ClanJoinRequestSerializer
+    permission_classes = [permissions.IsAuthenticated, IsClanOwnerOrAdmin]
+
+    def get_queryset(self):
+        clan_id = self.kwargs.get('clan_id')
+        return ClanJoinRequest.objects.filter(clan_id=clan_id, status='pending')
+
 class ClanMemberActivityAPIView(generics.ListAPIView):
     """
     (GET) /api/v1/clans/<int:pk>/activity/

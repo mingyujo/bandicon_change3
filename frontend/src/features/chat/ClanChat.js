@@ -18,14 +18,14 @@ const ClanChat = ({ user }) => {
   const socketRef = useRef(null);
 
   // 1. 기존 메시지 불러오기 (처음 1회만 HTTP 요청)
-  const fetchMessages = async () => {
+  const fetchMessages = React.useCallback(async () => {
     try {
       const data = await apiGet(`/clans/${clanId}/chat/`);
       setMessages(data);
     } catch (err) {
       console.error("채팅 기록 로딩 실패", err);
     }
-  };
+  }, [clanId]);
 
   useEffect(() => {
     if (!clanId) return;

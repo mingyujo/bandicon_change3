@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useParams } from "react-router-dom";
-import { apiGet, apiPostForm, apiPost } from "../../api/api";
+import { apiGet, apiPost } from "../../api/api";
 import RoomChat from "../../components/RoomChat";
 import ClanChat from "../chat/ClanChat";
 
@@ -35,7 +35,7 @@ const ChatHub = ({ user }) => {
         console.error("1:1 채팅 불러오기 실패:", err);
       }
     }
-  }, [type, id, user.nickname]);
+  }, [type, id]); // user.nickname dependency removed as it's not used
 
   useEffect(() => {
     if (type === "direct") {

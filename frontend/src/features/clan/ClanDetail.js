@@ -1,7 +1,7 @@
 // [전체 코드] src/features/clan/ClanDetail.js
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom"; // Link 추가
-import { apiGet, apiPost, apiDelete, apiPostForm } from "../../api/api"; // apiPost가 이미 import 되어 있습니다.
+import { apiGet, apiPost, apiDelete } from "../../api/api"; // apiPost가 이미 import 되어 있습니다.
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { useAlert } from "../../context/AlertContext";
