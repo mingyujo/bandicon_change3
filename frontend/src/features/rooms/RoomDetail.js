@@ -203,8 +203,8 @@ function RoomDetail({ user }) {
                                     onClick={confirmRoom}
                                     disabled={!sessions.every(s => s.participant_nickname)}
                                     className={`px-4 py-2 text-white rounded text-sm ${sessions.every(s => s.participant_nickname)
-                                            ? 'bg-green-600 hover:bg-green-700'
-                                            : 'bg-gray-400 cursor-not-allowed'
+                                        ? 'bg-green-600 hover:bg-green-700'
+                                        : 'bg-gray-400 cursor-not-allowed'
                                         }`}
                                 >
                                     확정하기
@@ -213,6 +213,25 @@ function RoomDetail({ user }) {
                                     삭제하기
                                 </button>
                             </>
+                        )}
+                        {/* [추가] 합주 종료 버튼 */}
+                        {isOwner && room.confirmed && !room.ended && (
+                            <button
+                                onClick={async () => {
+                                    if (window.confirm("합주를 종료하시겠습니까? 종료 후에는 매너 평가가 가능합니다.")) {
+                                        try {
+                                            await apiPost(`/rooms/${roomId}/end/`, {});
+                                            showAlert('합주가 종료되었습니다.', 'success');
+                                            fetchRoomDetail();
+                                        } catch (err) {
+                                            showAlert(err.message, 'error');
+                                        }
+                                    }
+                                }}
+                                className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 text-sm"
+                            >
+                                합주 종료
+                            </button>
                         )}
                         {user && isMember && !isOwner && !room.confirmed && (
                             <button onClick={leaveRoom} className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 text-sm">

@@ -58,6 +58,12 @@ urlpatterns = [
     # (GET, POST) /api/v1/clans/<int:clan_id>/boards/
     path('<int:clan_id>/boards/', views.ClanBoardListCreateView.as_view(), name='clan-boards'),
 
+    # (DELETE) /api/v1/clans/announcements/<int:pk>/
+    path('announcements/<int:pk>/', views.ClanAnnouncementDestroyView.as_view(), name='clan-announcement-delete'),
+
+    # (DELETE) /api/v1/clans/events/<int:pk>/
+    path('events/<int:pk>/', views.ClanEventDestroyView.as_view(), name='clan-event-delete'),
+
     # 2순위: 클랜 관리 기능 (가입, 강퇴)
     # 'clans/<int:clan_id>/...' -> '<int:clan_id>/...'
     path('<int:clan_id>/join-requests/', views.ClanJoinRequestListView.as_view(), name='clan-join-request-list'),

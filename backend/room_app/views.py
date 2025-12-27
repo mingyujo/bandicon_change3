@@ -33,8 +33,24 @@ class RoomListCreateAPIView(generics.ListCreateAPIView):
     (GET) /api/v1/rooms/
     (POST) /api/v1/rooms/
     """
-    queryset = Room.objects.filter(confirmed=False, ended=False, clan__isnull=True).order_by('-created_at')
     serializer_class = RoomListSerializer
+    
+    def get_queryset(self):
+        queryset = Room.objects.filter(confirmed=False, ended=False, clan__isnull=True)
+        sort_by = self.request.query_params.get('sort', 'latest')
+
+        if sort_by == 'oldest':
+            return queryset.order_by('created_at')
+        elif sort_by == 'empty_desc': # 빈 세션 많은 순
+            return queryset.annotate(
+                empty_count=Count('sessions', filter=Q(sessions__participant_nickname__isnull=True) | Q(sessions__participant_nickname=''))
+            ).order_by('-empty_count', '-created_at')
+        elif sort_by == 'empty_asc': # 빈 세션 적은 순
+            return queryset.annotate(
+                empty_count=Count('sessions', filter=Q(sessions__participant_nickname__isnull=True) | Q(sessions__participant_nickname=''))
+            ).order_by('empty_count', '-created_at')
+        
+        return queryset.order_by('-created_at')
     
     # [수정] 방 생성은 로그인한 사용자만
     permission_classes = [permissions.IsAuthenticatedOrReadOnly] 

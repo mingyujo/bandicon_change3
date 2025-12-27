@@ -69,7 +69,8 @@ class PostDetailSerializer(serializers.ModelSerializer):
             'comments', 
             'likes_count', 'is_liked',
             'scraps_count', 'is_scrapped',
-            'board', 'clan_board', 'board_info'
+            'board', 'clan_board', 'board_info',
+            'is_anonymous'
         ]
         read_only_fields = [
             'author', 'created_at', 'updated_at', 'comments',
