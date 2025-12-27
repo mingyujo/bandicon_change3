@@ -12,7 +12,7 @@ const ClanMemberActivity = ({ user }) => {
 
     const fetchData = useCallback(async () => {
         try {
-            const data = await apiGet(`/clans/${clanId}/activity`);
+            const data = await apiGet(`/clans/${clanId}/activity/`);
             // [Fix] 백엔드가 페이지네이션(results)을 반환할 수도 있고, 배열을 반환할 수도 있음
             if (Array.isArray(data)) {
                 setActivityData(data);

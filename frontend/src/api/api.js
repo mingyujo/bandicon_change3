@@ -64,32 +64,32 @@ api.interceptors.response.use(
 
         // 401 에러 + 재시도 아님 + 토큰 관련 요청 아님
         if (
-            error.response?.status === 401 && 
-            !originalRequest._retry && 
+            error.response?.status === 401 &&
+            !originalRequest._retry &&
             !originalRequest.url.includes('/users/token/')
         ) {
             originalRequest._retry = true;
-            
+
             const refreshToken = localStorage.getItem('refreshToken');
-            
+
             if (refreshToken) {
                 try {
                     console.log("🔄 토큰 만료됨. 갱신 시도 중...");
-                    
+
                     // adminApi를 사용하여 갱신 요청 (순환 참조 방지)
-                    const response = await adminApi.post('/users/token/refresh/', { 
-                        refresh: refreshToken 
+                    const response = await adminApi.post('/users/token/refresh/', {
+                        refresh: refreshToken
                     });
-                    
+
                     const { access } = response.data;
-                    
+
                     localStorage.setItem('accessToken', access);
                     console.log("✅ 토큰 갱신 성공!");
-                    
+
                     // 새 토큰으로 헤더 교체 후 재요청
                     originalRequest.headers['Authorization'] = `Bearer ${access}`;
                     return api(originalRequest);
-                    
+
                 } catch (refreshError) {
                     console.error("❌ 토큰 갱신 실패 (완전 만료):", refreshError);
                     handleLogout();
@@ -100,7 +100,7 @@ api.interceptors.response.use(
                 handleLogout();
             }
         }
-        
+
         return Promise.reject(error);
     }
 );
@@ -190,7 +190,7 @@ export const adminPost = async (url, body) => {
 export const adminPostForm = async (url, formData) => {
     try {
         const res = await adminApi.post(url, formData, {
-            headers: { 
+            headers: {
                 "Content-Type": "multipart/form-data",
                 "X-Admin-Token": ADMIN_TOKEN
             }
