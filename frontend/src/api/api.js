@@ -7,8 +7,8 @@ import axios from "axios";
 // [중요] 배포된 Django 백엔드 주소를 여기에 정확히 입력하세요. (끝에 '/' 제외)
 const DEPLOYED_BACKEND_URL = "https://bandicon-test.onrender.com";
 
-// 개발 환경인지 확인
-const isDevelopment = process.env.NODE_ENV === 'development';
+// 개발 환경인지 확인 (NODE_ENV가 불안정할 경우를 대비해 호스트네임도 체크)
+const isDevelopment = process.env.NODE_ENV === 'development' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
 // [수정] 다른 파일에서 사용할 수 있도록 export 추가
 export const API_BASE_SERVER = isDevelopment ? "http://127.0.0.1:8000" : DEPLOYED_BACKEND_URL;
