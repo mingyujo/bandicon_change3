@@ -16,7 +16,8 @@ const RoomChat = ({ roomId, roomInfo, user }) => {
       // ▼▼▼ [수정] URL 변경 (/chat/group/ -> /rooms/{id}/chat/) ▼▼▼
       // 백엔드 room_app/urls.py에 정의된 주소로 맞춥니다.
       const data = await apiGet(`/rooms/${roomId}/chat/`);
-      // ▲▲▲ [수정] ▲▲▲setMessages(data || []);
+      // 페이지네이션 대응 (data.results가 있으면 사용, 아니면 data 자체가 배열)
+      setMessages(Array.isArray(data) ? data : (data.results || []));
     } catch (err) {
       if (err.response?.status !== 404) console.error("단체 채팅 불러오기 실패:", err);
     }
@@ -50,35 +51,35 @@ const RoomChat = ({ roomId, roomInfo, user }) => {
 
   useEffect(() => {
     if (messages.length > 0 && isInitialLoad.current && messageListRef.current) {
-        messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
-        isInitialLoad.current = false;
+      messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
+      isInitialLoad.current = false;
     }
   }, [messages]);
 
   const handleSend = async () => {
     if (!input.trim()) return;
-    
+
     const formData = new FormData();
     formData.append('sender', user.nickname);
     formData.append('room_id', roomId);
     formData.append('message', input.trim());
 
     try {
-// ▼▼▼ [수정] URL 변경 (/chat/group -> /rooms/{id}/chat/) ▼▼▼
+      // ▼▼▼ [수정] URL 변경 (/chat/group -> /rooms/{id}/chat/) ▼▼▼
       await apiPostForm(`/rooms/${roomId}/chat/`, formData);
       // ▲▲▲ [수정] ▲▲▲
       setInput("");
-      
+
       setTimeout(() => {
         if (inputRef.current) {
           inputRef.current.focus();
         }
       }, 50);
-      
+
       await fetchMessages();
       setTimeout(() => {
         if (messageListRef.current) {
-            messageListRef.current.scrollTo({ top: messageListRef.current.scrollHeight, behavior: 'smooth' });
+          messageListRef.current.scrollTo({ top: messageListRef.current.scrollHeight, behavior: 'smooth' });
         }
       }, 100);
     } catch (err) {
@@ -92,7 +93,7 @@ const RoomChat = ({ roomId, roomInfo, user }) => {
   };
 
   const handleImageUploadClick = () => {
-      showAlert("알림", "아직 열리지 않은 기능입니다.", () => {}, false);
+    showAlert("알림", "아직 열리지 않은 기능입니다.", () => { }, false);
   };
 
   const formatDate = (dateString) => {
@@ -100,29 +101,29 @@ const RoomChat = ({ roomId, roomInfo, user }) => {
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
-    
+
     if (date.toDateString() === today.toDateString()) {
       return "오늘";
     } else if (date.toDateString() === yesterday.toDateString()) {
       return "어제";
     } else {
-      return date.toLocaleDateString('ko-KR', { 
-        year: '2-digit', 
-        month: '2-digit', 
-        day: '2-digit' 
+      return date.toLocaleDateString('ko-KR', {
+        year: '2-digit',
+        month: '2-digit',
+        day: '2-digit'
       }).replace(/\./g, '.').replace(/\s/g, '');
     }
   };
 
   const formatTime = (timestamp) => {
     if (!timestamp) return "방금";
-    
+
     try {
       const date = new Date(timestamp);
-      return date.toLocaleTimeString('ko-KR', { 
-        hour: '2-digit', 
+      return date.toLocaleTimeString('ko-KR', {
+        hour: '2-digit',
         minute: '2-digit',
-        hour12: false 
+        hour12: false
       });
     } catch (error) {
       return "방금";
@@ -133,9 +134,9 @@ const RoomChat = ({ roomId, roomInfo, user }) => {
     if (!prevMsg) return true;
     const currentTime = currentMsg.timestamp;
     const prevTime = prevMsg.timestamp;
-    
+
     if (!currentTime || !prevTime) return false;
-    
+
     const currentDate = new Date(currentTime).toDateString();
     const prevDate = new Date(prevTime).toDateString();
     return currentDate !== prevDate;
@@ -144,7 +145,7 @@ const RoomChat = ({ roomId, roomInfo, user }) => {
   return (
     <div className="room-chat-wrapper" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div className="chat-header" style={{ position: 'relative', height: '45px' }}>
-        <button 
+        <button
           className="chat-back-button"
           onClick={() => window.history.back()}
         >
@@ -152,7 +153,7 @@ const RoomChat = ({ roomId, roomInfo, user }) => {
         </button>
         {roomInfo ? `${roomInfo.song} - ${roomInfo.artist}` : '합주방 채팅'}
       </div>
-      
+
       <div ref={messageListRef} className="message-list">
         {messages.map((msg, index) => (
           <React.Fragment key={msg.id}>
@@ -174,7 +175,7 @@ const RoomChat = ({ roomId, roomInfo, user }) => {
                 </div>
               </div>
             )}
-            
+
             <div style={{
               display: 'flex',
               alignItems: 'flex-end',
@@ -197,19 +198,19 @@ const RoomChat = ({ roomId, roomInfo, user }) => {
                 )}
                 {msg.message && <div>{msg.message}</div>}
                 {msg.image_url && (
-                  <img 
-                    src={msg.image_url} 
-                    alt="채팅 이미지" 
-                    style={{ 
-                      maxWidth: '200px', 
-                      maxHeight: '200px', 
+                  <img
+                    src={msg.image_url}
+                    alt="채팅 이미지"
+                    style={{
+                      maxWidth: '200px',
+                      maxHeight: '200px',
                       borderRadius: '8px',
                       marginTop: msg.message ? '8px' : '0'
-                    }} 
+                    }}
                   />
                 )}
               </div>
-              
+
               <div style={{
                 fontSize: '10px',
                 color: '#999',
@@ -222,11 +223,11 @@ const RoomChat = ({ roomId, roomInfo, user }) => {
           </React.Fragment>
         ))}
       </div>
-      
+
       <form onSubmit={handleFormSubmit} className="message-input-form">
-        <button 
-          type="button" 
-          onClick={handleImageUploadClick} 
+        <button
+          type="button"
+          onClick={handleImageUploadClick}
           className="attach-button"
         >
           +
