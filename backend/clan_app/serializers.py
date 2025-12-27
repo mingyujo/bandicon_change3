@@ -190,16 +190,21 @@ class RoomLatestActivitySerializer(serializers.ModelSerializer):
 # ▼▼▼ [수정] MemberActivitySerializer 교체 ▼▼▼
 class MemberParticipationSerializer(serializers.ModelSerializer):
     """
-    (Helper) 멤버가 참여한 세션과 방 정보
+    (Helper) 멤버가 참여한 세션과 방 정보 + 상태(참여/확정/예약)
     """
     id = serializers.ReadOnlyField(source='room.id')
     title = serializers.ReadOnlyField(source='room.title')
     song = serializers.ReadOnlyField(source='room.song')
     artist = serializers.ReadOnlyField(source='room.artist')
+    status = serializers.SerializerMethodField()
     
     class Meta:
         model = Session
-        fields = ['id', 'title', 'song', 'artist', 'session_name']
+        fields = ['id', 'title', 'song', 'artist', 'session_name', 'status']
+
+    def get_status(self, obj):
+        # get_participating_rooms에서 주입한 _custom_status가 있으면 사용
+        return getattr(obj, '_custom_status', '참여')
 
 class MemberActivitySerializer(serializers.ModelSerializer):
     """
@@ -217,11 +222,40 @@ class MemberActivitySerializer(serializers.ModelSerializer):
         # View에서 전달받은 clan_id
         clan_id = self.context['view'].kwargs.get('pk')
         
-        # 이 클랜의 방들 중에서, 해당 멤버(obj)가 세션에 참여한 기록을 찾음
+        results = []
+
+        # 1. 실제 참여 중인 세션 (Confirmed 여부 포함)
         participations = Session.objects.filter(
-            room__clan_id=clan_id,           # 해당 클랜의 방
-            participant_nickname=obj.nickname # 이 멤버가 참여함
-        ).select_related('room').order_by('-room__created_at')
+            room__clan_id=clan_id,
+            participant_nickname=obj.nickname
+        ).select_related('room')
+
+        for session in participations:
+            if session.room.ended:
+                session._custom_status = "종료"
+            elif session.room.confirmed:
+                session._custom_status = "확정"
+            else:
+                session._custom_status = "참여"
+            results.append(session)
+
+        # 2. 예약 중인 세션
+        reservations = SessionReservation.objects.filter(
+            session__room__clan_id=clan_id,
+            user=obj
+        ).select_related('session', 'session__room')
+
+        for reservation in reservations:
+            # 중복 제거: 이미 참여 중인 세션에 예약 데이터가 남아있을 경우(논리상 없어야 하지만) 방지
+            # 하지만 예약과 참여는 별개 상태로 봅니다.
+            session = reservation.session
+            # 예약 상태임을 표시하기 위해 객체 복사 혹은 속성 할당
+            # (같은 session 객체를 공유하면 덮어씌워질 수 있으므로 주의, 하지만 여기선 쿼리가 다름)
+            session._custom_status = "예약"
+            results.append(session)
+
+        # 3. 최신순 정렬 (방 생성 시간 기준)
+        results.sort(key=lambda s: s.room.created_at, reverse=True)
         
-        return MemberParticipationSerializer(participations, many=True).data
+        return MemberParticipationSerializer(results, many=True).data
 # ▲▲▲ [수정 완료] ▲▲▲
