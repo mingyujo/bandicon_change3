@@ -5,6 +5,7 @@ import { apiGet } from '../../api/api';
 const ScrappedPosts = ({ user }) => {
   const [posts, setPosts] = useState([]);
   const [serverDebug, setServerDebug] = useState(null);
+  const [errorMsg, setErrorMsg] = useState(null);
   const navigate = useNavigate();
 
   const fetchScrappedPosts = useCallback(async () => {
@@ -24,6 +25,7 @@ const ScrappedPosts = ({ user }) => {
       }
     } catch (e) {
       console.error('스크랩 목록 조회 실패:', e);
+      setErrorMsg(e.response?.data?.detail || e.message || "Unknown Error");
     }
   }, [user]); // (user.nickname -> user)
 
@@ -42,7 +44,8 @@ const ScrappedPosts = ({ user }) => {
         Frontend User: {user?.nickname}<br />
         Frontend Count: {posts.length}<br />
         Server User: {serverDebug?.user || 'N/A'}<br />
-        Server DB Count: {serverDebug?.count || 'N/A'}
+        Server DB Count: {serverDebug?.count || 'N/A'}<br />
+        <span style={{ color: 'red' }}>Error: {errorMsg || 'None'}</span>
       </div>
 
       {posts.length === 0 ? (
