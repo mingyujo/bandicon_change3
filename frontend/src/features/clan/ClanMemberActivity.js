@@ -91,9 +91,30 @@ const ClanMemberActivity = ({ user }) => {
                         {participating_rooms.length > 0 ? (
                             <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                                 {participating_rooms.map((room, index) => {
-                                    // 예약 정보인지 확인
-                                    const isReservation = room.session_name.includes('예약');
-                                    const isManager = room.session_name === '방장';
+                                    // [수정] 백엔드 status 필드 활용
+                                    const status = room.status;
+                                    const isReservation = status === '예약';
+                                    const isManager = room.session_name === '방장'; // 기존 로직 유지 (필요 시 수정)
+                                    const isConfirmed = status === '확정';
+                                    const isEnded = status === '종료';
+
+                                    // 상태에 따른 색상/텍스트 정의
+                                    let badgeColor = '#666';
+                                    let badgeBg = '#f0f0f0';
+
+                                    if (isReservation) {
+                                        badgeColor = '#ff6b35';
+                                        badgeBg = '#fff3e0';
+                                    } else if (isManager) {
+                                        badgeColor = '#28a745';
+                                        badgeBg = '#e8f5e9';
+                                    } else if (isConfirmed) {
+                                        badgeColor = '#007bff'; // 확정 파란색
+                                        badgeBg = '#e3f2fd';
+                                    } else if (isEnded) {
+                                        badgeColor = '#999';
+                                        badgeBg = '#eee';
+                                    }
 
                                     return (
                                         <li key={`${member.nickname}-${room.id}-${room.session_name}-${index}`}
@@ -102,14 +123,14 @@ const ClanMemberActivity = ({ user }) => {
                                                 <strong>{room.song}</strong> - {room.artist}
                                                 <span style={{
                                                     float: 'right',
-                                                    color: isReservation ? '#ff6b35' : isManager ? '#28a745' : '#666',
-                                                    background: isReservation ? '#fff3e0' : isManager ? '#e8f5e9' : '#f0f0f0',
+                                                    color: badgeColor,
+                                                    background: badgeBg,
                                                     padding: '3px 8px',
                                                     borderRadius: '12px',
                                                     fontSize: '0.9em',
-                                                    fontWeight: isReservation || isManager ? 'bold' : 'normal'
+                                                    fontWeight: (isReservation || isManager || isConfirmed) ? 'bold' : 'normal'
                                                 }}>
-                                                    {room.session_name}
+                                                    {status === '예약' ? `(예약) ${room.session_name}` : room.session_name}
                                                 </span>
                                             </Link>
                                         </li>
