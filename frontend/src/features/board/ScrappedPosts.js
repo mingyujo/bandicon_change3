@@ -10,12 +10,21 @@ const ScrappedPosts = ({ user }) => {
     if (!user?.nickname) return;
     try {
       // --- 👇 [수정] API URL 변경 ---
-      const data = await apiGet(`/boards/my-scraps/`);
-      setPosts(data || []);
-    } catch (e) {
-      console.error('스크랩 목록 조회 실패:', e);
-    }
-  }, [user]); // (user.nickname -> user)
+      try {
+        const data = await apiGet(`/boards/my-scraps/`);
+        console.log("Scrapped posts data:", data);
+
+        if (Array.isArray(data)) {
+          setPosts(data);
+        } else if (data && Array.isArray(data.results)) {
+          setPosts(data.results);
+        } else {
+          setPosts([]);
+        }
+      } catch (e) {
+        console.error('스크랩 목록 조회 실패:', e);
+      }
+    }, [user]); // (user.nickname -> user)
 
   useEffect(() => {
     fetchScrappedPosts();
@@ -26,11 +35,11 @@ const ScrappedPosts = ({ user }) => {
   return (
     <div style={{ padding: 20, maxWidth: '800px', margin: 'auto' }}>
       <h2 className="page-title">내 스크랩</h2>
-      
+
       {posts.length === 0 ? (
-          <div className="card" style={{ padding: '20px', textAlign: 'center', color: '#888' }}>
-            스크랩한 게시글이 없습니다.
-          </div>
+        <div className="card" style={{ padding: '20px', textAlign: 'center', color: '#888' }}>
+          스크랩한 게시글이 없습니다.
+        </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {posts.map((post) => (
