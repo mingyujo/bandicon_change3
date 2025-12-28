@@ -722,7 +722,7 @@ const ClanDetail = ({ user, onUpdateUser, onLogout }) => {
           user={user}
           clan={clan}
           // ▼▼▼ [수정 2] isOwner -> isClanAdmin으로 전달 ▼▼▼
-          isOwner={isClanAdmin}
+          isOwner={isOwner}
           // ▲▲▲ [수정 2] ▲▲▲
           onKicked={fetchClan}
           onClose={() => setShowMemberListModal(false)}

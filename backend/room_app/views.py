@@ -139,8 +139,19 @@ class RoomDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     # (DELETE) 방장이 방 삭제
     def destroy(self, request, *args, **kwargs):
         room = self.get_object()
-        if room.manager_nickname != request.user.nickname:
-            raise PermissionDenied("방 삭제는 방장만 가능합니다.")
+        
+        is_manager = room.manager_nickname == request.user.nickname
+        is_clan_admin = False
+        if room.clan:
+            # 클랜 방인 경우, 클랜장 또는 운영진도 삭제 가능
+            is_clan_admin = (
+                room.clan.owner == request.user or 
+                room.clan.admins.filter(id=request.user.id).exists()
+            )
+
+        if not (is_manager or is_clan_admin):
+            raise PermissionDenied("방 삭제 권한이 없습니다.")
+            
         return super().destroy(request, *args, **kwargs)
 
 # 2. Session
@@ -218,8 +229,16 @@ class RoomKickView(APIView):
         room = get_object_or_404(Room, pk=pk)
         target_nickname = request.data.get('nickname')
 
-        if room.manager_nickname != request.user.nickname:
-            raise PermissionDenied("강퇴는 방장만 가능합니다.")
+        is_manager = room.manager_nickname == request.user.nickname
+        is_clan_admin = False
+        if room.clan:
+             is_clan_admin = (
+                room.clan.owner == request.user or 
+                room.clan.admins.filter(id=request.user.id).exists()
+            )
+        
+        if not (is_manager or is_clan_admin):
+            raise PermissionDenied("강퇴 권한이 없습니다.")
             
         if room.manager_nickname == target_nickname:
             return Response({"detail": "방장을 강퇴할 수 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
