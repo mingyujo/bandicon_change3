@@ -4,6 +4,7 @@ import { apiGet } from '../../api/api';
 
 const ScrappedPosts = ({ user }) => {
   const [posts, setPosts] = useState([]);
+  const [serverDebug, setServerDebug] = useState(null);
   const navigate = useNavigate();
 
   const fetchScrappedPosts = useCallback(async () => {
@@ -17,6 +18,7 @@ const ScrappedPosts = ({ user }) => {
         setPosts(data);
       } else if (data && Array.isArray(data.results)) {
         setPosts(data.results);
+        setServerDebug({ user: data.debug_server_user, count: data.debug_db_count });
       } else {
         setPosts([]);
       }
@@ -37,8 +39,10 @@ const ScrappedPosts = ({ user }) => {
       {/* 디버깅용 메시지 (나중에 제거 예정) */}
       <div style={{ background: '#fff3cd', padding: '10px', marginBottom: '15px', borderRadius: '4px', fontSize: '0.9em' }}>
         🔧 <strong>Debug Info:</strong><br />
-        Posts Count: {posts.length}<br />
-        User: {user?.nickname}
+        Frontend User: {user?.nickname}<br />
+        Frontend Count: {posts.length}<br />
+        Server User: {serverDebug?.user || 'N/A'}<br />
+        Server DB Count: {serverDebug?.count || 'N/A'}
       </div>
 
       {posts.length === 0 ? (
