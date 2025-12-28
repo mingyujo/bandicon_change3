@@ -34,6 +34,12 @@ const ScrappedPosts = ({ user }) => {
   return (
     <div style={{ padding: 20, maxWidth: '800px', margin: 'auto' }}>
       <h2 className="page-title">내 스크랩</h2>
+      {/* 디버깅용 메시지 (나중에 제거 예정) */}
+      <div style={{ background: '#fff3cd', padding: '10px', marginBottom: '15px', borderRadius: '4px', fontSize: '0.9em' }}>
+        🔧 <strong>Debug Info:</strong><br />
+        Posts Count: {posts.length}<br />
+        User: {user?.nickname}
+      </div>
 
       {posts.length === 0 ? (
         <div className="card" style={{ padding: '20px', textAlign: 'center', color: '#888' }}>
