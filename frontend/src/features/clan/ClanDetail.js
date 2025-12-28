@@ -310,7 +310,8 @@ const ClanCalendar = ({ user, clanId, isOwner, events, onAction }) => { // isOwn
       setTitle("");
       setDescription("");
     } catch (err) {
-      alert(err.response?.data?.detail || "일정 추가 실패");
+      console.error(err.response?.data);
+      alert(JSON.stringify(err.response?.data) || "일정 추가 실패");
     }
   };
 
