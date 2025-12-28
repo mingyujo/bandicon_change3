@@ -458,13 +458,20 @@ class RoomAvailabilityView(APIView):
         user = request.user
         # 프론트에서 ["2025-11-10T14:00:00Z", "2025-11-10T15:00:00Z"] 형태로 보냄
         selected_times = request.data.get('times', []) 
+        selected_slot_ids = request.data.get('slot_ids', [])
 
         # 1. 이 유저의 기존 투표를 모두 제거
         existing_votes = RoomAvailabilitySlot.objects.filter(room=room, voters=user)
         for slot in existing_votes:
             slot.voters.remove(user)
 
-        # 2. 이 유저의 새 투표를 추가
+        # 2-1. [추가] 기존 슬롯 ID로 투표
+        if selected_slot_ids:
+            slots_to_vote = RoomAvailabilitySlot.objects.filter(id__in=selected_slot_ids, room=room)
+            for slot in slots_to_vote:
+                slot.voters.add(user)
+
+        # 2-2. [유지] 새로운 시간 문자열로 투표
         for time_str in selected_times:
             try:
                 # '2025-11-10T14:00:00' (naive) 또는
