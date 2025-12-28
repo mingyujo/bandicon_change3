@@ -56,7 +56,11 @@ urlpatterns = [
     path('<int:clan_id>/events/', views.ClanEventListCreateView.as_view(), name='clan-events'),
     
     # (GET, POST) /api/v1/clans/<int:clan_id>/boards/
+    # (GET, POST) /api/v1/clans/<int:clan_id>/boards/
     path('<int:clan_id>/boards/', views.ClanBoardListCreateView.as_view(), name='clan-boards'),
+
+    # (DELETE) /api/v1/clans/boards/<int:pk>/
+    path('boards/<int:pk>/', views.ClanBoardDestroyView.as_view(), name='clan-board-delete'),
 
     # (DELETE) /api/v1/clans/announcements/<int:pk>/
     path('announcements/<int:pk>/', views.ClanAnnouncementDestroyView.as_view(), name='clan-announcement-delete'),

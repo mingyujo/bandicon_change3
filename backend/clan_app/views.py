@@ -638,7 +638,11 @@ class ClanAnnouncementDestroyView(generics.DestroyAPIView):
     def perform_destroy(self, instance):
         # 작성자 본인 또는 클랜장만 삭제 가능
         # instance.clan.owner check
-        if instance.clan.owner != self.request.user and instance.author != self.request.user:
+        is_owner = instance.clan.owner == self.request.user
+        is_admin = instance.clan.admins.filter(id=self.request.user.id).exists()
+        is_author = instance.author == self.request.user
+        
+        if not (is_owner or is_admin or is_author):
              raise PermissionDenied("공지 삭제 권한이 없습니다.")
         instance.delete()
 
@@ -653,6 +657,28 @@ class ClanEventDestroyView(generics.DestroyAPIView):
 
     def perform_destroy(self, instance):
         # 작성자 본인 또는 클랜장만 삭제 가능
-        if instance.clan.owner != self.request.user and instance.creator != self.request.user:
+        is_owner = instance.clan.owner == self.request.user
+        is_admin = instance.clan.admins.filter(id=self.request.user.id).exists()
+        is_creator = instance.creator == self.request.user
+        
+        if not (is_owner or is_admin or is_creator):
              raise PermissionDenied("일정 삭제 권한이 없습니다.")
+        instance.delete()
+
+class ClanBoardDestroyView(generics.DestroyAPIView):
+    """
+    (DELETE) /api/v1/clans/boards/<int:pk>/
+    클랜 게시판 삭제
+    """
+    queryset = ClanBoard.objects.all()
+    serializer_class = ClanBoardSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_destroy(self, instance):
+        is_owner = instance.clan.owner == self.request.user
+        is_admin = instance.clan.admins.filter(id=self.request.user.id).exists()
+        is_author = instance.author == self.request.user 
+        
+        if not (is_owner or is_admin or is_author):
+             raise PermissionDenied("게시판 삭제 권한이 없습니다.")
         instance.delete()
