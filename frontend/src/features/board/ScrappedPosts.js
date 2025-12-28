@@ -10,21 +10,20 @@ const ScrappedPosts = ({ user }) => {
     if (!user?.nickname) return;
     try {
       // --- 👇 [수정] API URL 변경 ---
-      try {
-        const data = await apiGet(`/boards/my-scraps/`);
-        console.log("Scrapped posts data:", data);
+      const data = await apiGet(`/boards/my-scraps/`);
+      console.log("Scrapped posts data:", data);
 
-        if (Array.isArray(data)) {
-          setPosts(data);
-        } else if (data && Array.isArray(data.results)) {
-          setPosts(data.results);
-        } else {
-          setPosts([]);
-        }
-      } catch (e) {
-        console.error('스크랩 목록 조회 실패:', e);
+      if (Array.isArray(data)) {
+        setPosts(data);
+      } else if (data && Array.isArray(data.results)) {
+        setPosts(data.results);
+      } else {
+        setPosts([]);
       }
-    }, [user]); // (user.nickname -> user)
+    } catch (e) {
+      console.error('스크랩 목록 조회 실패:', e);
+    }
+  }, [user]); // (user.nickname -> user)
 
   useEffect(() => {
     fetchScrappedPosts();
