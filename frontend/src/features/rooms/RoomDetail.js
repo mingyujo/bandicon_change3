@@ -164,7 +164,8 @@ function RoomDetail({ user }) {
 
     // [중요] 안전장치 (?.) 유지 - user나 room.members가 undefined일 때 보호
     // user가 null일 수 있으므로 user?.nickname 사용
-    const isOwner = user && room.manager_nickname === user.nickname;
+    // [수정] 방장이거나, 클랜 방인 경우 클랜 관리자 권한이 있으면 Owner 권한 부여
+    const isOwner = user && (room.manager_nickname === user.nickname || room.user_is_clan_admin);
 
     // room.members가 없으면 빈 배열로 취급
     const members = room.members || [];

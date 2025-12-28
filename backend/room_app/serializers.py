@@ -90,6 +90,9 @@ class RoomDetailSerializer(serializers.ModelSerializer):
     # 'availability_slots'는 Room 모델의 related_name (models.py에서 설정)
     availability_slots = RoomAvailabilitySlotSerializer(many=True, read_only=True)
     
+    # [추가] 로그인한 유저가 이 방의 클랜 관리자(삭제/강퇴 권한 보유)인지 여부
+    user_is_clan_admin = serializers.SerializerMethodField()
+
     class Meta:
         model = Room
         fields = [
@@ -97,13 +100,31 @@ class RoomDetailSerializer(serializers.ModelSerializer):
             'manager_nickname', 'sessions', 'confirmed', 'ended', 
             'created_at', 'confirmed_at', 'ended_at',
             'availability_slots', # 2순위: 일정 조율 슬롯
-            'clan'
+            'clan',
+            'user_is_clan_admin' # [추가]
         ]
         read_only_fields = [
             'manager_nickname', 'sessions', 'confirmed', 'ended', 
             'created_at', 'confirmed_at', 'ended_at',
-            'availability_slots', 'clan'
+            'availability_slots', 'clan',
+            'user_is_clan_admin'
         ]
+
+    def get_user_is_clan_admin(self, obj):
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return False
+            
+        if not obj.clan:
+            return False
+            
+        # 클랜장 또는 운영진인지 확인
+        try:
+             is_owner = obj.clan.owner == request.user
+             is_admin = obj.clan.admins.filter(id=request.user.id).exists()
+             return is_owner or is_admin
+        except Exception:
+            return False
 
 
 class MyRoomListSerializer(RoomListSerializer):
