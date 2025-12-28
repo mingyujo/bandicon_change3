@@ -6,7 +6,7 @@ from .models import (
 )
 from django.contrib.auth import get_user_model
 from user_app.models import User
-from room_app.models import Room, Session
+from room_app.models import Room, Session, SessionReservation
 from user_app.serializers import UserBaseSerializer
 from room_app.serializers import RoomInfoForActivitySerializer # 수정: room_app에서 가져옴
 
