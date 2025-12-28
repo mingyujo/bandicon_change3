@@ -299,10 +299,10 @@ const ClanCalendar = ({ user, clanId, isOwner, events, onAction }) => { // isOwn
   const handleCreateEvent = async () => {
     if (!title.trim()) return alert("일정 제목을 입력해주세요.");
     try {
-      const utcDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-      // [API 확인 필요] 이 API(`/clans/{clanId}/events`)는 우리가 아직 만들지 않은 3순위 기능입니다.
+      const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+
       await apiPost(`/clans/${clanId}/events/`, {
-        title, description, date: utcDate.toISOString(),
+        title, description, date: formattedDate,
       }, { params: { nickname: user.nickname } });
       alert("일정이 추가되었습니다.");
       onAction();
