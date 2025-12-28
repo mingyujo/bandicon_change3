@@ -213,15 +213,6 @@ class MyScrapListView(generics.ListAPIView):
     def get_queryset(self):
         return self.request.user.scrapped_posts.all().order_by('-created_at')
 
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-        serializer = self.get_serializer(queryset, many=True)
-        return Response({
-            'debug_server_user': str(request.user),
-            'debug_db_count': queryset.count(),
-            'results': serializer.data
-        })
-
 class PostListByTypeView(generics.ListAPIView):
     """
     board_type(문자열)으로 게시글 목록 조회
