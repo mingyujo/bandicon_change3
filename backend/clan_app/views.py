@@ -385,7 +385,7 @@ class ClanAnnouncementListCreateView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         clan = get_object_or_404(Clan, pk=self.kwargs['clan_id'])
-        if not clan.members.filter(id=self.request.user.id).exists():
+        if clan.owner != self.request.user and not clan.members.filter(id=self.request.user.id).exists():
              raise PermissionDenied("클랜 멤버만 조회할 수 있습니다.")
         return ClanAnnouncement.objects.filter(clan=clan).order_by('-created_at')
 
@@ -422,7 +422,7 @@ class ClanEventListCreateView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         clan = get_object_or_404(Clan, pk=self.kwargs['clan_id'])
-        if not clan.members.filter(id=self.request.user.id).exists():
+        if clan.owner != self.request.user and not clan.members.filter(id=self.request.user.id).exists():
              raise PermissionDenied("클랜 멤버만 조회할 수 있습니다.")
         
         # 쿼리 파라미터로 월별 필터링 (예: ?year=2025&month=11)
@@ -444,7 +444,7 @@ class ClanEventListCreateView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         clan = get_object_or_404(Clan, pk=self.kwargs['clan_id'])
-        if not clan.members.filter(id=self.request.user.id).exists():
+        if clan.owner != self.request.user and not clan.members.filter(id=self.request.user.id).exists():
             raise PermissionDenied("클랜 멤버만 이벤트를 생성할 수 있습니다.")
         serializer.save(clan=clan, creator=self.request.user)
 
@@ -459,13 +459,13 @@ class ClanBoardListCreateView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         clan = get_object_or_404(Clan, pk=self.kwargs['clan_id'])
-        if not clan.members.filter(id=self.request.user.id).exists():
+        if clan.owner != self.request.user and not clan.members.filter(id=self.request.user.id).exists():
              raise PermissionDenied("클랜 멤버만 조회할 수 있습니다.")
         return ClanBoard.objects.filter(clan=clan).order_by('-created_at')
 
     def perform_create(self, serializer):
         clan = get_object_or_404(Clan, pk=self.kwargs['clan_id'])
-        if not clan.members.filter(id=self.request.user.id).exists():
+        if clan.owner != self.request.user and not clan.members.filter(id=self.request.user.id).exists():
             raise PermissionDenied("클랜 멤버만 게시글을 작성할 수 있습니다.")
         serializer.save(clan=clan, author=self.request.user)
 
