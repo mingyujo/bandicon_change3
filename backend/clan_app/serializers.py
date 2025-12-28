@@ -152,6 +152,11 @@ class ClanEventSerializer(serializers.ModelSerializer):
         model = ClanEvent
         fields = ['id', 'clan', 'creator', 'creator_nickname', 'title', 'description', 'date', 'time']
         read_only_fields = ['clan', 'creator']
+        extra_kwargs = {
+            'time': {'required': False, 'allow_null': True},
+            'description': {'required': False, 'allow_blank': True},
+            'date': {'required': False}
+        }
 
 
 class ClanBoardSerializer(serializers.ModelSerializer):
