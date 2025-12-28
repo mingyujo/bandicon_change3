@@ -195,7 +195,7 @@ const MemberListModal = ({ user, clan, isOwner, onKicked, onClose }) => { // isO
       await apiDelete(
         `/clans/${clan.id}/members/${encodeURIComponent(
           targetNickname
-        )}?nickname=${encodeURIComponent(user.nickname)}`
+        )}/?nickname=${encodeURIComponent(user.nickname)}`
       );
       onKicked?.();
     } catch (e) {
@@ -318,7 +318,7 @@ const ClanCalendar = ({ user, clanId, isOwner, events, onAction }) => { // isOwn
   const handleDeleteEvent = async (eventId) => {
     if (!window.confirm("이 일정을 삭제하시겠습니까?")) return;
     try {
-      await apiDelete(`/clans/events/${eventId}?nickname=${user.nickname}`);
+      await apiDelete(`/clans/events/${eventId}/?nickname=${user.nickname}`);
       alert("일정이 삭제되었습니다.");
       onAction();
     } catch (err) {
@@ -433,7 +433,7 @@ const ClanDetail = ({ user, onUpdateUser, onLogout }) => {
       async () => {
         try {
           // [API 확인 필요] 3순위 기능 (미구현)
-          await apiDelete(`/clans/announcements/${announcementId}?nickname=${user.nickname}`);
+          await apiDelete(`/clans/announcements/${announcementId}/?nickname=${user.nickname}`);
           alert("공지를 삭제했습니다.");
           fetchClan();
         } catch (err) {
@@ -450,7 +450,7 @@ const ClanDetail = ({ user, onUpdateUser, onLogout }) => {
       async () => {
         try {
           // [API 확인 필요] 3순위 기능 (미구현)
-          await apiDelete(`/clans/boards/${boardId}?nickname=${encodeURIComponent(user.nickname)}`);
+          await apiDelete(`/clans/boards/${boardId}/?nickname=${encodeURIComponent(user.nickname)}`);
           showAlert("성공", "게시판이 삭제되었습니다.", fetchClan, false);
         } catch (e) {
           showAlert("오류", e.response?.data?.detail || "삭제 실패", () => { }, false);
