@@ -505,12 +505,16 @@ class ClanRoomListAPIView(generics.ListCreateAPIView): # [수정] ListCreateAPIV
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        print(f"DEBUG: ClanRoomListAPIView.get_queryset kwargs={self.kwargs}")
         # 1. 클랜 멤버인지 확인
-        clan = get_object_or_404(Clan, pk=self.kwargs['pk'])
+        clan_pk = self.kwargs.get('pk') or self.kwargs.get('clan_id')
+        print(f"DEBUG: Looking for clan {clan_pk}")
+        clan = get_object_or_404(Clan, pk=clan_pk)
         
         # 2. 정렬 및 필터링
         sort_by = self.request.query_params.get('sort', 'latest')
         queryset = Room.objects.filter(clan=clan, ended=False)
+        print(f"DEBUG: Found {queryset.count()} active rooms for clan {clan.name}")
         
         # 3. 정렬 로직 적용
         from django.db.models import Count, Q # Ensure imports
