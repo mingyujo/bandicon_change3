@@ -148,8 +148,8 @@ const RoomList = ({ user }) => {
                     style={{ width: '150px' }}
                 >
                     <option value="latest">최신순</option>
-                    <option value="oldest">오래된순</option>
-                    <option value="popularity">인기순</option>
+                    <option value="empty_desc">빈 세션 많은 순</option>
+                    <option value="empty_asc">빈 세션 적은 순</option>
                 </select>
                 <button
                     onClick={() => navigate('/create-room')}
