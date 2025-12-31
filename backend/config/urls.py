@@ -20,6 +20,7 @@ urlpatterns = [
     # --- 👇 여기에 API 라우팅 추가 ---
     # FastAPI의 /signup, /login, /profile/{nickname} 등을 처리
     path('api/v1/users/', include('user_app.urls')), 
+    path('api/v1/admin/', include('user_app.admin_urls')), # [추가] 관리자 API 
     
     # FastAPI의 /rooms, /clans, /posts 등을 처리
     path('api/v1/rooms/', include('room_app.urls')),

@@ -7,12 +7,8 @@ import { useNavigate } from 'react-router-dom';
 const roles = ["멤버", "간부", "운영자"];
 
 export default function AdminPage({ user }) {
-  const [pending, setPending] = useState([]);
   const [loading, setLoading] = useState(false);
-  console.log("AdminPage User:", user);
-  console.log("Role:", user?.role);
   const isAdmin = user?.role === "OPERATOR";
-  console.log("IsAdmin:", isAdmin);
   const [popupAnnouncements, setPopupAnnouncements] = useState([]);
   const [showCreatePopup, setShowCreatePopup] = useState(false);
   const [popupTitle, setPopupTitle] = useState('');
@@ -116,14 +112,7 @@ export default function AdminPage({ user }) {
   };
 
   if (!isAdmin) {
-    return (
-      <div style={{ maxWidth: 800, margin: "40px auto" }}>
-        운영자만 접근 가능합니다.<br />
-        현재 사용자: {user?.nickname} ({user?.username})<br />
-        현재 권한: '{user?.role}' <br />
-        (IsAdmin 판정: {isAdmin ? 'true' : 'false'})
-      </div>
-    );
+    return <div style={{ maxWidth: 800, margin: "40px auto" }}>운영자만 접근 가능합니다.</div>;
   }
 
   return (
