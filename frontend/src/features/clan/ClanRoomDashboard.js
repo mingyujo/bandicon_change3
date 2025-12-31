@@ -174,8 +174,8 @@ const ClanRoomDashboard = ({ user }) => {
                         }}
                     >
                         <option value="latest">최신순</option>
-                        <option value="fewest_empty">빈 세션 ↓</option>
-                        <option value="most_empty">빈 세션 ↑</option>
+                        <option value="most_empty">빈 세션 많은 순</option>
+                        <option value="fewest_empty">빈 세션 적은 순</option>
                     </select>
                 </div>
             </div>
