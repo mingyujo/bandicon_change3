@@ -21,7 +21,16 @@ const ClanChat = ({ user }) => {
   const fetchMessages = React.useCallback(async () => {
     try {
       const data = await apiGet(`/clans/${clanId}/chat/`);
-      setMessages(data);
+      // [수정] 서버에서는 최신순(-timestamp)으로 50개를 주므로,
+      // 화면에 과거 -> 최신 순으로 보여주기 위해 배열을 뒤집습니다.
+      if (Array.isArray(data)) {
+        setMessages([...data].reverse());
+      } else if (data.results) {
+        // 혹시 페이지네이션 된 경우
+        setMessages([...data.results].reverse());
+      } else {
+        setMessages([]);
+      }
     } catch (err) {
       console.error("채팅 기록 로딩 실패", err);
     }
