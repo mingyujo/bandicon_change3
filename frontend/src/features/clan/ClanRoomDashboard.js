@@ -13,7 +13,7 @@ const ClanRoomDashboard = ({ user }) => {
     const [sortBy, setSortBy] = useState('latest');
     const [basicSessions, setBasicSessions] = useState([]);
     const [customSessions, setCustomSessions] = useState([]);
-    const [showCustomSessions, setShowCustomSessions] = useState(false);    
+    const [showCustomSessions, setShowCustomSessions] = useState(false);
     const [isPortrait, setIsPortrait] = useState(window.innerHeight > window.innerWidth);
 
     useEffect(() => {
@@ -42,11 +42,16 @@ const ClanRoomDashboard = ({ user }) => {
 
     const fetchClanRooms = useCallback(async () => {
         if (!user || !clanId) return;
+
         try {
-            const dashboardData = await apiGet(`/clans/${clanId}/dashboard?nickname=${encodeURIComponent(user.nickname)}`);
+            // [수정] url 끝에 slash(/) 필수
+            const dashboardData = await apiGet(`/clans/${clanId}/dashboard/?nickname=${encodeURIComponent(user.nickname)}`);
+
+            console.log("DASHBOARD DATA RECEIVED:", dashboardData);
+
             setClanName(dashboardData.clan_name);
             setRooms(dashboardData.rooms || []);
-            
+
             const sessionSet = new Set();
             (dashboardData.rooms || []).forEach(room => {
                 room.sessions.forEach(session => {
@@ -63,6 +68,7 @@ const ClanRoomDashboard = ({ user }) => {
             setBasicSessions(basics);
             setCustomSessions(customs);
         } catch (err) {
+            console.error("DASHBOARD FETCH ERROR:", err);
             alert(err.response?.data?.detail || "데이터를 불러오는데 실패했습니다.");
             navigate('/clans');
         }
@@ -77,11 +83,11 @@ const ClanRoomDashboard = ({ user }) => {
         const message = session.reservations.length > 0
             ? session.reservations.map((r, i) => `${i + 1}. ${r.user.nickname}`).join('\n')
             : "예약자가 없습니다.";
-        showAlert(title, message, () => {}, false);
+        showAlert(title, message, () => { }, false);
     };
 
     return (
-        <div style={{ 
+        <div style={{
             position: 'fixed',
             top: 0,
             left: 0,
@@ -93,28 +99,28 @@ const ClanRoomDashboard = ({ user }) => {
             overflow: 'hidden'
         }}>
             {/* 상단 헤더 - 고정 */}
-            <div style={{ 
+            <div style={{
                 borderBottom: '2px solid var(--light-gray)',
                 padding: '15px 20px',
                 background: 'white',
                 flexShrink: 0
             }}>
-                <div style={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
+                <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
                     alignItems: 'center',
                     gap: '10px'
                 }}>
-                    <div style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
                         gap: '10px',
                         flex: '1 1 auto',  // 추가: 유연하게 크기 조정
                         minWidth: 0  // 추가: 축소 가능하게
                     }}>
-                        <button 
+                        <button
                             onClick={() => navigate(`/clans/${clanId}`)}
-                            style={{ 
+                            style={{
                                 background: 'transparent',
                                 border: 'none',
                                 fontSize: '1.5em',
@@ -125,39 +131,39 @@ const ClanRoomDashboard = ({ user }) => {
                         >
                             ←
                         </button>
-                        <h2 style={{ 
-                            margin: 0, 
+                        <h2 style={{
+                            margin: 0,
                             fontSize: isPortrait ? '1em' : '1.2em',  // 수정: 세로모드에서 폰트 작게
                             color: 'var(--primary-color)',
                             overflow: 'hidden',  // 추가
                             textOverflow: 'ellipsis',  // 추가
                             whiteSpace: 'nowrap'  // 추가: 제목이 길면 말줄임
                         }}>
-                    {clanName} 리스트
-                    </h2>
-                    {customSessions.length > 0 && (
-                        <button 
-                            onClick={() => setShowCustomSessions(!showCustomSessions)}
-                            style={{ 
-                                padding: '5px 8px',  // 수정: 패딩 줄임
-                                background: showCustomSessions ? 'var(--primary-color)' : '#f0f0f0',
-                                color: showCustomSessions ? 'white' : '#333',
-                                border: '1px solid var(--light-gray)',
-                                borderRadius: '5px',
-                                cursor: 'pointer',
-                                fontSize: '0.75em',  // 수정: 폰트 더 작게
-                                whiteSpace: 'nowrap',
-                                flexShrink: 0  // 추가: 버튼 크기 고정
-                            }}
-                        >
-                            {showCustomSessions ? '추가 세션 숨기기' : '추가 세션 보기'}
-                        </button>
-                    )}
+                            {clanName} 리스트
+                        </h2>
+                        {customSessions.length > 0 && (
+                            <button
+                                onClick={() => setShowCustomSessions(!showCustomSessions)}
+                                style={{
+                                    padding: '5px 8px',  // 수정: 패딩 줄임
+                                    background: showCustomSessions ? 'var(--primary-color)' : '#f0f0f0',
+                                    color: showCustomSessions ? 'white' : '#333',
+                                    border: '1px solid var(--light-gray)',
+                                    borderRadius: '5px',
+                                    cursor: 'pointer',
+                                    fontSize: '0.75em',  // 수정: 폰트 더 작게
+                                    whiteSpace: 'nowrap',
+                                    flexShrink: 0  // 추가: 버튼 크기 고정
+                                }}
+                            >
+                                {showCustomSessions ? '추가 세션 숨기기' : '추가 세션 보기'}
+                            </button>
+                        )}
                     </div>
                     <select
                         value={sortBy}
                         onChange={(e) => setSortBy(e.target.value)}
-                        style={{ 
+                        style={{
                             padding: '6px 8px',  // 수정: 패딩 줄임
                             borderRadius: '8px',
                             border: '1px solid var(--light-gray)',
@@ -175,39 +181,39 @@ const ClanRoomDashboard = ({ user }) => {
             </div>
 
             {/* 테이블 영역 - 스크롤 가능 */}
-            <div style={{ 
+            <div style={{
                 flex: 1,
                 overflow: 'auto',
                 padding: '20px'
             }}>
                 {sortedRooms.length === 0 ? (
-                    <div style={{ 
-                        textAlign: 'center', 
+                    <div style={{
+                        textAlign: 'center',
                         padding: '40px',
                         color: '#888'
                     }}>
                         합주방이 없습니다.
                     </div>
                 ) : (
-                    <div style={{ 
+                    <div style={{
                         overflowX: 'auto',  // 항상 auto
                         height: '100%'
                     }}>
-                        <table style={{ 
+                        <table style={{
                             width: '100%',
                             minWidth: '600px',  // 테이블 최소 너비 추가
                             borderCollapse: 'collapse',
                             fontSize: isPortrait ? '0.85em' : '0.95em',  // 세로 모드에서 폰트 작게
                             tableLayout: 'fixed'  // 유지
                         }}>
-                            <thead style={{ 
+                            <thead style={{
                                 position: 'sticky',
                                 top: 0,
                                 background: '#f8f9fa',
                                 zIndex: 10
                             }}>
                                 <tr>
-                                    <th style={{ 
+                                    <th style={{
                                         padding: '12px',
                                         textAlign: 'left',
                                         borderBottom: '2px solid var(--light-gray)',
@@ -218,7 +224,7 @@ const ClanRoomDashboard = ({ user }) => {
                                     }}>
                                         곡제목
                                     </th>
-                                    <th style={{ 
+                                    <th style={{
                                         padding: '12px',
                                         textAlign: 'left',
                                         borderBottom: '2px solid var(--light-gray)',
@@ -227,7 +233,7 @@ const ClanRoomDashboard = ({ user }) => {
                                         아티스트
                                     </th>
                                     {(showCustomSessions ? [...basicSessions, ...customSessions] : basicSessions).map(s => (
-                                        <th key={s} style={{ 
+                                        <th key={s} style={{
                                             padding: '12px',
                                             textAlign: 'center',
                                             borderBottom: '2px solid var(--light-gray)',
@@ -241,11 +247,11 @@ const ClanRoomDashboard = ({ user }) => {
                             </thead>
                             <tbody>
                                 {sortedRooms.map(room => (
-                                    <tr key={room.id} style={{ 
+                                    <tr key={room.id} style={{
                                         borderBottom: '1px solid #f0f0f0',
                                         '&:hover': { background: '#f8f9fa' }
                                     }}>
-                                        <td style={{ 
+                                        <td style={{
                                             padding: '10px 12px',
                                             fontWeight: 'bold',
                                             overflow: 'hidden',
@@ -258,7 +264,7 @@ const ClanRoomDashboard = ({ user }) => {
                                         }}>
                                             {room.song}
                                         </td>
-                                        <td style={{ 
+                                        <td style={{
                                             padding: '10px 12px',
                                             color: '#666',
                                             overflow: 'hidden',
@@ -270,11 +276,11 @@ const ClanRoomDashboard = ({ user }) => {
                                         </td>
                                         {(showCustomSessions ? [...basicSessions, ...customSessions] : basicSessions).map(sessionName => {
                                             const session = room.sessions.find(s => s.session_name === sessionName);
-                                            
+
                                             if (!session) {
                                                 return <td key={sessionName} style={{ padding: '10px', textAlign: 'center', color: '#999', fontSize: '0.8em' }}>X</td>;
                                             }
-                                            
+
                                             if (!session.participant_nickname) {
                                                 return (
                                                     <td key={sessionName} style={{ padding: '10px', textAlign: 'center', background: '#e3f2fd', fontWeight: 'bold', color: '#1976d2', fontSize: '0.85em' }}>
@@ -287,7 +293,7 @@ const ClanRoomDashboard = ({ user }) => {
                                                     </td>
                                                 );
                                             }
-                                            
+
                                             return (
                                                 <td key={sessionName} style={{ padding: '10px', textAlign: 'center', fontSize: '0.85em' }}>
                                                     <div style={{ fontWeight: '500' }}>

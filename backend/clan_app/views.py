@@ -591,11 +591,9 @@ class ClanRoomDashboardView(APIView):
         # 멤버 확인
         if not clan.members.filter(id=request.user.id).exists():
              return Response({"detail": "클랜 멤버만 접근할 수 있습니다."}, status=status.HTTP_403_FORBIDDEN)
-        
-        # 해당 클랜의 진행 중인 방 목록
+             
         rooms = Room.objects.filter(clan=clan, ended=False).order_by('-created_at')
         
-        # RoomListSerializer를 사용하면 sessions 정보가 포함됩니다.
         serializer = RoomListSerializer(rooms, many=True)
         
         return Response({
