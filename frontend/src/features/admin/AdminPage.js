@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 const roles = ["멤버", "간부", "운영자"];
 
 export default function AdminPage({ user }) {
+  const [pending, setPending] = useState([]);
   const [loading, setLoading] = useState(false);
   const isAdmin = user?.role === "OPERATOR";
   const [popupAnnouncements, setPopupAnnouncements] = useState([]);
