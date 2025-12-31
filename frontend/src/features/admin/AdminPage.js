@@ -9,7 +9,7 @@ const roles = ["멤버", "간부", "운영자"];
 export default function AdminPage({ user }) {
   const [pending, setPending] = useState([]);
   const [loading, setLoading] = useState(false);
-  const isAdmin = user?.role === "운영자";
+  const isAdmin = user?.role === "OPERATOR";
   const [popupAnnouncements, setPopupAnnouncements] = useState([]);
   const [showCreatePopup, setShowCreatePopup] = useState(false);
   const [popupTitle, setPopupTitle] = useState('');
@@ -87,7 +87,7 @@ export default function AdminPage({ user }) {
         title: popupTitle.trim(),
         content: popupContent.trim()
       });
-    
+
       alert("팝업 공지가 생성되었습니다!");
       setPopupTitle('');
       setPopupContent('');
@@ -164,8 +164,8 @@ export default function AdminPage({ user }) {
 
       <section style={{ marginTop: 32 }}>
         <h2>피드백/문의 관리</h2>
-        <button 
-          className="btn btn-primary" 
+        <button
+          className="btn btn-primary"
           onClick={() => navigate('/admin/support')}
         >
           피드백/문의 확인하기
@@ -173,18 +173,18 @@ export default function AdminPage({ user }) {
       </section>
 
       <section style={{ marginTop: 32 }}>
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center', 
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
           marginBottom: 16,
           padding: '12px 0',
           borderBottom: '1px solid #eee'
         }}>
           <h2 style={{ margin: 0 }}> 밴디콘 전체 공지</h2>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <span style={{ 
-              fontSize: '0.9em', 
+            <span style={{
+              fontSize: '0.9em',
               color: '#666',
               backgroundColor: '#f8f9fa',
               padding: '4px 8px',
@@ -192,13 +192,13 @@ export default function AdminPage({ user }) {
             }}>
               {popupAnnouncements.length}개
             </span>
-            <button 
+            <button
               onClick={() => setShowAnnouncementSection(!showAnnouncementSection)}
-              style={{ 
-                backgroundColor: showAnnouncementSection ? '#dc3545' : '#6c757d', 
-                color: 'white', 
-                border: 'none', 
-                padding: '8px 16px', 
+              style={{
+                backgroundColor: showAnnouncementSection ? '#dc3545' : '#6c757d',
+                color: 'white',
+                border: 'none',
+                padding: '8px 16px',
                 borderRadius: '4px',
                 cursor: 'pointer',
                 fontSize: '0.9em'
@@ -213,13 +213,13 @@ export default function AdminPage({ user }) {
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <h3 style={{ margin: 0 }}>공지 목록</h3>
-              <button 
+              <button
                 onClick={() => setShowCreatePopup(!showCreatePopup)}
-                style={{ 
-                  backgroundColor: showCreatePopup ? '#dc3545' : '#28a745', 
-                  color: 'white', 
-                  border: 'none', 
-                  padding: '8px 16px', 
+                style={{
+                  backgroundColor: showCreatePopup ? '#dc3545' : '#28a745',
+                  color: 'white',
+                  border: 'none',
+                  padding: '8px 16px',
                   borderRadius: '4px',
                   cursor: 'pointer'
                 }}
@@ -229,10 +229,10 @@ export default function AdminPage({ user }) {
             </div>
 
             {showCreatePopup && (
-              <form onSubmit={createPopupAnnouncement} style={{ 
-                border: '1px solid #ddd', 
-                padding: 16, 
-                borderRadius: 8, 
+              <form onSubmit={createPopupAnnouncement} style={{
+                border: '1px solid #ddd',
+                padding: 16,
+                borderRadius: 8,
                 marginBottom: 16,
                 backgroundColor: '#f8f9fa'
               }}>
@@ -256,14 +256,14 @@ export default function AdminPage({ user }) {
                     style={{ width: '100%', padding: 8, border: '1px solid #ccc', borderRadius: 4, resize: 'vertical' }}
                   />
                 </div>
-                <button 
+                <button
                   type="submit"
-                  style={{ 
-                    backgroundColor: '#007bff', 
-                    color: 'white', 
-                    border: 'none', 
-                    padding: '10px 20px', 
-                    borderRadius: 4, 
+                  style={{
+                    backgroundColor: '#007bff',
+                    color: 'white',
+                    border: 'none',
+                    padding: '10px 20px',
+                    borderRadius: 4,
                     cursor: 'pointer',
                     marginRight: 8
                   }}
@@ -281,8 +281,8 @@ export default function AdminPage({ user }) {
               ) : (
                 <div>
                   {popupAnnouncements.map((announcement, index) => (
-                    <div key={announcement.id} style={{ 
-                      padding: 16, 
+                    <div key={announcement.id} style={{
+                      padding: 16,
                       borderBottom: index < popupAnnouncements.length - 1 ? '1px solid #eee' : 'none'
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
@@ -298,12 +298,12 @@ export default function AdminPage({ user }) {
                         {announcement.is_active && (
                           <button
                             onClick={() => deactivatePopupAnnouncement(announcement.id)}
-                            style={{ 
-                              backgroundColor: '#ffc107', 
-                              color: '#000', 
-                              border: 'none', 
-                              padding: '4px 8px', 
-                              borderRadius: 4, 
+                            style={{
+                              backgroundColor: '#ffc107',
+                              color: '#000',
+                              border: 'none',
+                              padding: '4px 8px',
+                              borderRadius: 4,
                               cursor: 'pointer',
                               fontSize: '0.8em'
                             }}
@@ -312,10 +312,10 @@ export default function AdminPage({ user }) {
                           </button>
                         )}
                       </div>
-                      <div style={{ 
-                        backgroundColor: '#f8f9fa', 
-                        padding: 12, 
-                        borderRadius: 4, 
+                      <div style={{
+                        backgroundColor: '#f8f9fa',
+                        padding: 12,
+                        borderRadius: 4,
                         whiteSpace: 'pre-wrap',
                         color: announcement.is_active ? '#000' : '#666'
                       }}>
