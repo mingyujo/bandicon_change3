@@ -239,6 +239,15 @@ function RoomDetail({ user }) {
                                 나가기
                             </button>
                         )}
+                        {/* [추가] 매너 평가 하기 버튼 */}
+                        {room.ended && (isMember || isOwner) && (
+                            <button
+                                onClick={() => navigate(`/evaluation/${roomId}`)}
+                                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+                            >
+                                매너 평가 하기
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
