@@ -72,7 +72,7 @@ class RoomListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'title', 'song', 'artist', 'manager_nickname', 
             'sessions', 'session_count', 'participant_count', 
-            'created_at', 'clan'
+            'created_at', 'clan', 'confirmed', 'is_private'
         ]
 
     def get_session_count(self, obj):
