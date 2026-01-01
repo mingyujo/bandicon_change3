@@ -36,10 +36,8 @@ class RoomListCreateAPIView(generics.ListCreateAPIView):
     serializer_class = RoomListSerializer
     
     def get_queryset(self):
-        # Debugging: Check all rooms
-        print(f"DEBUG: Checking rooms. Count before filter: {Room.objects.count()}")
-        queryset = Room.objects.filter(ended=False)
-        print(f"DEBUG: Queryset count: {queryset.count()}")
+        # [수정] 확정된 방(confirmed=True)도 포함하되, 종료된 방 제외, 클랜 방 제외
+        queryset = Room.objects.filter(ended=False, clan__isnull=True)
         sort_by = self.request.query_params.get('sort', 'latest')
 
         if sort_by == 'oldest':
