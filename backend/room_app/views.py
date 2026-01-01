@@ -36,7 +36,7 @@ class RoomListCreateAPIView(generics.ListCreateAPIView):
     serializer_class = RoomListSerializer
     
     def get_queryset(self):
-        queryset = Room.objects.filter(confirmed=False, ended=False, clan__isnull=True)
+        queryset = Room.objects.filter(ended=False, clan__isnull=True)
         sort_by = self.request.query_params.get('sort', 'latest')
 
         if sort_by == 'oldest':
