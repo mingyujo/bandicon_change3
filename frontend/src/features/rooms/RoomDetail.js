@@ -167,9 +167,8 @@ function RoomDetail({ user }) {
     // [수정] 방장이거나, 클랜 방인 경우 클랜 관리자 권한이 있으면 Owner 권한 부여
     const isOwner = user && (room.manager_nickname === user.nickname || room.user_is_clan_admin);
 
-    // room.members가 없으면 빈 배열로 취급
-    const members = room.members || [];
-    const isMember = user && members.some(m => m.nickname === user.nickname);
+    // room.members가 없으므로 sessions에서 참여 여부 확인
+    const isMember = user && room.sessions?.some(s => s.participant_nickname === user.nickname);
 
     // [디버깅] 방 확정 상태 및 사용자 권한 확인
     console.log(`[RoomDetail] Room: ${room.title}, Confirmed: ${room.confirmed}, IsOwner: ${isOwner}, IsMember: ${isMember}`);
