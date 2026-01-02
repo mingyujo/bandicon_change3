@@ -267,7 +267,7 @@ function RoomDetail({ user }) {
                     {/* 세션 목록 */}
                     <div className="bg-white shadow rounded-lg p-6">
                         <h2 className="text-xl font-bold mb-4 border-b pb-2">
-                            세션 현황 <span className="text-sm font-normal text-gray-500">({members.length} / {room.max_members || '-'}명)</span>
+                            세션 현황 <span className="text-sm font-normal text-gray-500">({sessions.filter(s => s.participant_nickname).length} / {room.max_members || '-'}명)</span>
                         </h2>
                         <div className="space-y-3">
                             {sessions.map(session => {
