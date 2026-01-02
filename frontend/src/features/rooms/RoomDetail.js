@@ -171,7 +171,16 @@ function RoomDetail({ user }) {
     const isMember = user && room.sessions?.some(s => s.participant_nickname === user.nickname);
 
     // [디버깅] 방 확정 상태 및 사용자 권한 확인
-    console.log(`[RoomDetail] Room: ${room.title}, Confirmed: ${room.confirmed}, IsOwner: ${isOwner}, IsMember: ${isMember}`);
+    console.log('[RoomDetail Debug] ------------------');
+    console.log('User:', user);
+    console.log('Room:', room);
+    console.log('Room Ended:', room.ended);
+    console.log('Room Manager:', room.manager_nickname);
+    console.log('Sessions:', room.sessions);
+    console.log('IsOwner:', isOwner);
+    console.log('IsMember Calc:', user && room.sessions?.some(s => s.participant_nickname === user.nickname));
+    console.log('Button Condition:', room.ended && (isMember || isOwner));
+    console.log('-------------------------------------');
 
     return (
         <div className="container mx-auto p-4 max-w-6xl">
