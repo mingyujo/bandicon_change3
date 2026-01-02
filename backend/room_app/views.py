@@ -115,8 +115,7 @@ class MyRoomListView(generics.ListAPIView):
         # 내가 매니저이거나, 내가 세션에 참여 중인 방
         return Room.objects.filter(
             Q(manager_nickname=user.nickname) | 
-            Q(sessions__participant_nickname=user.nickname),
-            ended=False # 끝나지 않은 방
+            Q(sessions__participant_nickname=user.nickname)
         ).prefetch_related('sessions').distinct().order_by('-created_at')
 
 
