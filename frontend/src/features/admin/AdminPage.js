@@ -1,7 +1,7 @@
 // [전체 코드] src/features/admin/AdminPage.js
 import React, { useEffect, useState, useCallback } from "react";
 // [수정] adminPost 대신 adminPostForm을 가져옵니다.
-import { adminGet, adminPostForm, adminPost, adminPut } from "../../api/api";
+import { apiGet, apiPostForm, apiPost, apiPut } from "../../api/api";
 import { useNavigate } from 'react-router-dom';
 
 const roles = ["멤버", "간부", "운영자"];
@@ -21,7 +21,7 @@ export default function AdminPage({ user }) {
     if (!isAdmin) return;
     setLoading(true);
     try {
-      const data = await adminGet("/admin/pending-users");
+      const data = await apiGet("/admin/pending-users");
       setPending(data || []);
     } catch (e) {
       alert(e.response?.data?.detail || "대기 사용자 조회 실패");
@@ -35,7 +35,7 @@ export default function AdminPage({ user }) {
       // [수정] FormData를 사용하여 닉네임을 서류 양식에 담아 보냅니다.
       const formData = new FormData();
       formData.append('nickname', nickname);
-      await adminPostForm(`/admin/approve-user`, formData);
+      await apiPostForm(`/admin/approve-user`, formData);
       alert(`승인 완료: ${nickname}`);
       load();
     } catch (e) {
@@ -50,7 +50,7 @@ export default function AdminPage({ user }) {
       const formData = new FormData();
       formData.append('nickname', nickname);
       formData.append('role', role);
-      await adminPostForm(`/admin/set-role`, formData);
+      await apiPostForm(`/admin/set-role`, formData);
       alert(`역할 변경 완료: ${nickname} → ${role}`);
       load();
     } catch (e) {
@@ -61,7 +61,7 @@ export default function AdminPage({ user }) {
   const loadPopupAnnouncements = useCallback(async () => {
     if (!isAdmin) return;
     try {
-      const data = await adminGet("/admin/popup-announcements");
+      const data = await apiGet("/admin/popup-announcements");
       setPopupAnnouncements(data || []);
     } catch (e) {
       console.error("팝업 공지 조회 실패:", e);
@@ -83,7 +83,7 @@ export default function AdminPage({ user }) {
     }
 
     try {
-      await adminPost(`/admin/popup-announcements?nickname=${encodeURIComponent(user.nickname)}`, {
+      await apiPost(`/admin/popup-announcements?nickname=${encodeURIComponent(user.nickname)}`, {
         title: popupTitle.trim(),
         content: popupContent.trim()
       });
@@ -104,7 +104,7 @@ export default function AdminPage({ user }) {
     }
 
     try {
-      await adminPut(`/admin/popup-announcements/${announcementId}/deactivate`);
+      await apiPut(`/admin/popup-announcements/${announcementId}/deactivate`);
       alert("공지가 비활성화되었습니다.");
       loadPopupAnnouncements();
     } catch (e) {
