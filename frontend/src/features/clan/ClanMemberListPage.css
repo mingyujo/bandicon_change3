@@ -1,0 +1,426 @@
+/* ClanMemberListPage.css */
+
+.member-list-container {
+    padding: 0 16px 20px 16px;
+    background-color: white;
+    min-height: calc(100vh - 110px);
+    /* Adjust based on headers */
+}
+
+/* Search Bar */
+.member-search-wrapper {
+    position: relative;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.member-search-input {
+    flex: 1;
+    height: 48px;
+    padding: 0 16px 0 44px;
+    /* Space for icon */
+    border: 1px solid #0ea5e9;
+    /* Sky 500 */
+    border-radius: 12px;
+    font-size: 14px;
+    color: #0f172a;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.member-search-input::placeholder {
+    color: #94a3b8;
+}
+
+.member-search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    color: #0ea5e9;
+    pointer-events: none;
+}
+
+/* Join Requests Section */
+.join-requests-section {
+    margin-bottom: 24px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.join-requests-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.join-requests-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.btn-approve-all {
+    background-color: #0ea5e9;
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: none;
+    cursor: pointer;
+}
+
+.join-request-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.join-request-item:last-child {
+    border-bottom: none;
+}
+
+.requester-info {
+    font-size: 14px;
+    color: #0f172a;
+}
+
+.request-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.btn-request-action {
+    padding: 4px 10px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+}
+
+.btn-reject {
+    background-color: #ef4444;
+    /* Red */
+    color: white;
+}
+
+.btn-approve {
+    background-color: #0ea5e9;
+    /* Sky */
+    color: white;
+}
+
+/* Member List Section */
+.member-list-section {
+    background-color: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 0 16px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.member-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.member-list-item:last-child {
+    border-bottom: none;
+}
+
+.member-info-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.member-nickname {
+    font-size: 15px;
+    color: #0f172a;
+    font-weight: 400;
+}
+
+.member-role-badge {
+    font-size: 13px;
+    font-weight: 500;
+    color: #0ea5e9;
+    /* Sky 500 */
+    min-width: 40px;
+    text-align: right;
+}
+
+.member-info-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* --- New Role Management Styles (Inline) --- */
+.member-actions-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+/* 'Change' Button */
+.btn-role-change {
+    padding: 4px 8px;
+    background-color: #f1f5f9;
+    color: #64748b;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-role-change:hover {
+    background-color: #e2e8f0;
+    color: #475569;
+}
+
+/* Inline Menu Container */
+.role-menu-inline {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    animation: fadeIn 0.2s ease-in-out;
+}
+
+/* Role Option Buttons */
+.btn-role-option {
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.btn-promote {
+    background-color: #e0f2fe;
+    /* Light Sky */
+    color: #0284c7;
+    /* Sky 600 */
+}
+
+.btn-demote {
+    background-color: #fee2e2;
+    /* Light Red */
+    color: #dc2626;
+    /* Red 600 */
+}
+
+.btn-transfer {
+    background-color: #dcfce7;
+    /* Light Green */
+    color: #16a34a;
+    /* Green 600 */
+}
+
+.btn-role-cancel {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 4px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.btn-role-cancel:hover {
+    color: #64748b;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Detail Button (Optional, if needed next to search) */
+.btn-detail-view {
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 48px;
+    padding: 0 16px;
+    background-color: #f1f5f9;
+    border-radius: 12px;
+    color: #0f172a;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+    display: none;
+    /* Hidden based on design interpretation, search bar seems to take full width or be alongside */
+}
+
+.btn-expand {
+    height: 48px;
+    padding: 0 16px;
+    background-color: #0ea5e9;
+    color: white;
+    border: 1px solid #0ea5e9;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+}
+
+.btn-expand:hover {
+    opacity: 0.9;
+    color: white;
+}
+
+
+/* Expanded View */
+.member-list-section.expanded-view {
+    padding: 0;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+}
+
+.activity-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* Member Activity Card */
+.member-activity-card {
+    background: var(--white);
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    padding-bottom: 8px;
+    border: 1px solid var(--light-gray);
+}
+
+.mac-header {
+    background-color: #f8fafc;
+    /* Keep this essentially white/light-gray */
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--light-gray);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.mac-info {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.mac-nickname {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-color);
+}
+
+.mac-count {
+    font-size: 13px;
+    color: #0ea5e9;
+    /* Blue */
+    font-weight: 600;
+}
+
+/* Timeline/List in Card */
+.mac-timeline {
+    padding: 8px 16px;
+}
+
+.mac-timeline-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--light-gray);
+}
+
+.mac-timeline-item:last-child {
+    border-bottom: none;
+}
+
+.mac-song-info {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-right: 12px;
+}
+
+.mac-song {
+    font-size: 14px;
+    color: #333;
+    /* Standard dark gray */
+}
+
+.mac-session-info {
+    flex-shrink: 0;
+}
+
+.mac-session-badge {
+    font-size: 12px;
+    font-weight: 500;
+    color: #666;
+}
+
+/* Reserved Session */
+.badge-reserved {
+    color: #f59e0b;
+    /* Orange - Keep as accent or use var(--color-주황색) if available, but this is specific */
+}
+
+.badge-reserved.clickable {
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.badge-reserved.clickable:hover {
+    color: #d97706;
+}
+
+.mac-empty {
+    padding: 16px;
+    text-align: center;
+    color: #999;
+    font-size: 14px;
+}
+
+/* Toggle Button Active State */
+.btn-expand.active {
+    background-color: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+}
+
+.btn-expand.active:hover {
+    background-color: #e2e8f0;
+    color: #1e293b;
+}

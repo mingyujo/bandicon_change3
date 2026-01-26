@@ -1,0 +1,233 @@
+/* src/features/profile/Profile.css */
+
+/* Restore Logout Button Style */
+.profile-logout-btn {
+    background-color: #F87171;
+    /* red-400 */
+    color: white;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+/* === Content Area (Frame 58) === */
+.profile-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 10px 16px 80px 16px;
+    /* Bottom padding for nav */
+    overflow-y: auto;
+    /* Scroll ONLY inside content if needed */
+}
+
+/* Profile Info Row (Info + Manner) */
+.profile-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.profile-info-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.profile-img-box {
+    width: 64px;
+    height: 64px;
+    padding: 3px;
+    background: white;
+    border-radius: 50%;
+    border: 1.5px solid var(--color-검은색);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.profile-img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.profile-names {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.p-name {
+    font-size: 16px;
+    color: var(--color-검은색);
+    font-weight: 600;
+}
+
+.p-affil {
+    font-size: 12px;
+    color: #64748B;
+}
+
+.profile-manner-box {
+    width: 150px;
+    padding: 8px 12px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.15);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.manner-col-left {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.manner-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--color-검은색);
+}
+
+.manner-divider {
+    width: 1px;
+    height: 24px;
+    background: #F1F5F9;
+}
+
+.manner-col-right {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: center;
+}
+
+.manner-val {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-검은색);
+}
+
+
+/* Action Buttons Row */
+.profile-btn-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+}
+
+.profile-action-btn-l {
+    flex: 1;
+    height: 40px;
+    background: #F8FAFC;
+    /* slate-50 */
+    border-radius: 12px;
+    border: 1px solid #E2E8F0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    text-decoration: none;
+    color: var(--color-검은색);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+
+/* Menu List Box */
+.profile-menu-container {
+    width: 100%;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.1);
+    padding: 6px 16px;
+    display: flex;
+    flex-direction: column;
+}
+
+.menu-item-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 0;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    width: 100%;
+}
+
+.menu-item-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.menu-icon-box {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.menu-text {
+    font-size: 15px;
+    color: var(--color-검은색);
+    font-weight: 500;
+}
+
+.menu-arrow-icon {
+    width: 6px;
+    height: 10px;
+    fill: #CBD5E1;
+    /* slate-300 */
+}
+
+.menu-divider {
+    width: 100%;
+    height: 1px;
+    background-color: #F1F5F9;
+}
+
+
+/* Bottom Nav */
+.profile-bottom-nav {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    /* 56+padding */
+    background: white;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border-top: 1px solid #F1F5F9;
+    padding-bottom: 0;
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-검은색);
+    text-decoration: none;
+    width: 50px;
+    height: 100%;
+}

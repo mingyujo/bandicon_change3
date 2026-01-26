@@ -1,0 +1,309 @@
+/* SettlementModal.css */
+/* Overlay */
+.settlement-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.2s ease-out;
+}
+
+/* Container (Calculater style) */
+.settlement-container {
+    width: 320px;
+    height: 483px;
+    background-color: white;
+    border-radius: 20px;
+    position: relative;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: scaleUp 0.1s ease-out;
+}
+
+/* Header */
+.settlement-header {
+    height: 48px;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    /* Absolute positioning for 'Back' based on design, but flex is safer */
+}
+
+.settlement-back {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #64748B;
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    padding: 0;
+}
+
+/* Input Fields Area */
+.settlement-inputs {
+    padding: 0 31px;
+    /* Matching the left-[31px] from design */
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.sett-input-group {
+    width: 100%;
+    height: 40px;
+    background-color: #F1F5F9;
+    /* slate-100 */
+    border-radius: 10px;
+    box-shadow: 1px 1px 1px 0px rgba(0, 0, 0, 0.25);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+}
+
+.sett-input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    color: #334155;
+    /* slate-700 */
+    outline: none;
+}
+
+.sett-input::placeholder {
+    color: #64748B;
+    /* slate-500 */
+}
+
+/* Search Bar */
+.sett-search-area {
+    margin-top: 20px;
+    margin-left: 31px;
+    margin-right: 31px;
+    width: calc(100% - 62px);
+    height: 40px;
+    /* The design had a separate rectangle border-slate-500 */
+    border: 1px solid #64748B;
+    border-radius: 20px;
+    /* Rounded pill shape common in search */
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+}
+
+.sett-search-icon {
+    width: 16px;
+    height: 16px;
+    color: #64748B;
+    margin-right: 8px;
+}
+
+.sett-search-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 14px;
+    color: #334155;
+}
+
+/* Participant List */
+.sett-list-scroll {
+    flex: 1;
+    margin: 10px 31px;
+    margin-bottom: 70px;
+    /* Space for button */
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.sett-list-scroll::-webkit-scrollbar {
+    width: 4px;
+}
+
+.sett-list-scroll::-webkit-scrollbar-thumb {
+    background-color: #CBD5E1;
+    border-radius: 4px;
+}
+
+/* Participant Item */
+.sett-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #F1F5F9;
+}
+
+.sett-item-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sett-check-circle {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 1.5px solid #083344;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.sett-check-circle.checked {
+    background-color: #083344;
+}
+
+.sett-check-icon {
+    width: 12px;
+    height: 12px;
+    color: white;
+}
+
+.sett-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #eee;
+    object-fit: cover;
+}
+
+.sett-name {
+    font-size: 14px;
+    color: #083344;
+    font-weight: 500;
+    width: 60px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sett-item-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sett-amount-val {
+    font-size: 12px;
+    color: #083344;
+    font-weight: 600;
+    width: 70px;
+    text-align: right;
+    border: none;
+    background: transparent;
+    outline: none;
+    border-bottom: 1px dashed #CBD5E1;
+}
+
+.sett-amount-val:focus {
+    border-bottom: 1px solid #0EA5E9;
+    color: #0EA5E9;
+}
+
+.sett-edit-icon {
+    width: 12px;
+    height: 12px;
+    color: #64748B;
+    cursor: pointer;
+}
+
+/* Submit Button */
+.sett-submit-btn {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    height: 44px;
+    background-color: #0EA5E9;
+    /* Sky 500 */
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(14, 165, 233, 0.2);
+    transition: background 0.2s;
+}
+
+.sett-submit-btn:hover {
+    background-color: #0284C7;
+}
+
+/* Chat Bubble for Settlement */
+.rc-settlement-bubble {
+    background-color: white;
+    border: 1px solid #CBD5E1;
+    border-radius: 12px;
+    padding: 12px;
+    width: 240px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    font-family: 'Inter', sans-serif;
+    text-align: left;
+}
+
+.rc-sett-header {
+    font-size: 14px;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #E2E8F0;
+}
+
+.rc-sett-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 13px;
+    color: #334155;
+}
+
+.rc-sett-row {
+    line-height: 1.4;
+}
+
+.rc-sett-row strong {
+    font-weight: 600;
+}
+
+.rc-sett-info-link {
+    color: #0EA5E9;
+    text-decoration: underline;
+    cursor: pointer;
+    margin-left: 4px;
+}
+
+.rc-sett-account-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.rc-sett-copy-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px;
+    color: #3B82F6;
+    display: flex;
+    align-items: center;
+}
+
+.rc-sett-copy-btn:hover {
+    color: #2563EB;
+}

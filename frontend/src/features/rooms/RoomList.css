@@ -1,0 +1,498 @@
+/* Previous styling with precise colors from design snippet */
+
+.room-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 20px 10px 20px;
+    background: white;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.room-page-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--color-검은색);
+    margin: 0;
+}
+
+.btn-create-room {
+    background-color: var(--color-파란색);
+    color: var(--color-흰색);
+    border: none;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.room-list-container {
+    padding: 0 20px 80px 20px;
+    overflow-y: auto;
+}
+
+.room-controls {
+    display: flex;
+    align-items: center;
+    /* Vertically align search bar and filter */
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.search-bar-wrapper {
+    flex: 1;
+    background-color: white;
+    border: 1px solid var(--color-파란색);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    height: 40px;
+}
+
+.search-icon-wrapper {
+    color: var(--color-파란색);
+    margin-right: 8px;
+}
+
+.search-input {
+    border: none;
+    background: transparent;
+    flex: 1;
+    font-size: 14px;
+    color: var(--color-검은색);
+    outline: none;
+}
+
+/* Filter */
+.filter-wrapper {
+    position: relative;
+}
+
+.filter-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-width: 80px;
+    height: 40px;
+    background-color: var(--color-옅은-회색);
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--color-검은색-70);
+    padding: 0 12px;
+}
+
+.filter-popup-ui {
+    position: absolute;
+    top: 45px;
+    right: 0;
+    z-index: 50;
+}
+
+.filter-dropdown-content {
+    width: 100px;
+    background-color: white;
+    border-radius: 8px;
+    border: 1px solid var(--color-옅은-회색);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 5px 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.filter-item {
+    padding: 8px 12px;
+    font-size: 13px;
+    color: var(--color-검은색-70);
+    cursor: pointer;
+    text-align: left;
+}
+
+.filter-item:hover {
+    background-color: var(--color-옅은-회색);
+}
+
+/* Room Card */
+.room-card {
+    background-color: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    /* Could use custom shadow if defined */
+    border: none;
+    cursor: pointer;
+}
+
+.room-header-section {
+    display: flex;
+    align-items: center;
+    /* Center align image and text */
+    margin-bottom: 12px;
+}
+
+.room-title-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 5px;
+}
+
+.room-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--color-검은색);
+}
+
+.lock-svg {
+    width: 16px;
+    height: 16px;
+    color: var(--color-검은색-70);
+}
+
+.room-song-info {
+    font-size: 14px;
+    color: var(--color-파란색);
+    font-weight: 600;
+}
+
+.room-divider {
+    height: 1px;
+    background-color: var(--color-옅은-회색);
+    margin: 15px 0;
+    display: none;
+}
+
+.session-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.session-slot {
+    background-color: transparent;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.instrument-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--color-검은색);
+    display: flex;
+    align-items: center;
+}
+
+.reservation-text {
+    font-size: 12px;
+    color: var(--color-주황색);
+    margin-left: 6px;
+    font-weight: 500;
+}
+
+.reservation-text.clickable:hover {
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.participant-name {
+    font-size: 13px;
+    color: var(--color-검은색-70);
+    min-height: 19px;
+    /* Ensure height even if empty */
+}
+
+/* New style for empty slot text */
+.participant-name.empty {
+    color: var(--color-회색);
+    /* Used 회색 instead of hardcoded hex */
+}
+
+.slot-action-btn {
+    width: 100%;
+    padding: 8px 0;
+    border-radius: 20px;
+    border: none;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 4px;
+}
+
+/* Detailed Button Styles matched to design snippet */
+.btn-participate {
+    background-color: var(--color-파란색);
+    color: var(--color-흰색);
+}
+
+.btn-reserve {
+    background-color: var(--color-주황색);
+    color: var(--color-흰색);
+}
+
+.btn-cancel {
+    background-color: var(--color-옅은-회색);
+    color: var(--color-검은색);
+}
+
+.btn-cancel-reservation {
+    background-color: var(--color-옅은-회색);
+    color: var(--color-검은색);
+}
+
+/* ... Modal Styles ... */
+/* ... Modal Styles ... */
+.password-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.password-modal-box {
+    width: 300px;
+    background: white;
+    border-radius: 20px;
+    padding: 24px;
+    position: relative;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.05);
+    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.password-modal-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--color-검은색);
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+.password-input-wrapper {
+    background-color: var(--color-옅은-회색);
+    border-radius: 12px;
+    padding: 0 16px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    margin-bottom: 24px;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+}
+
+.password-input-wrapper:focus-within {
+    border-color: var(--color-파란색);
+    background-color: white;
+    box-shadow: 0 0 0 3px rgba(0, 189, 248, 0.1);
+}
+
+.password-input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-size: 15px;
+    outline: none;
+}
+
+.password-submit-btn {
+    width: 100%;
+    height: 48px;
+    background-color: var(--color-파란색);
+    color: var(--color-흰색);
+    border-radius: 12px;
+    border: none;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.password-submit-btn:hover {
+    opacity: 0.9;
+}
+
+.password-close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: var(--color-검은색-10);
+    cursor: pointer;
+    line-height: 1;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.password-close-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.reservation-modal-box {
+    width: 280px;
+    max-height: 450px;
+    background: var(--color-흰색);
+    border-radius: 20px;
+    padding: 24px;
+    position: relative;
+    border: 1px solid var(--color-주황색);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reservation-modal-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--color-검은색);
+    /* text-cyan-950 */
+    margin-bottom: 12px;
+}
+
+.reservation-list-container {
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.reservation-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    /* Minimal padding */
+    background-color: transparent;
+    border-bottom: 1px solid var(--color-옅은-회색);
+}
+
+.reservation-item:last-child {
+    border-bottom: none;
+}
+
+.reservation-user {
+    font-size: 15px;
+    /* text-base */
+    font-weight: 400;
+    /* font-normal */
+    color: var(--color-검은색);
+    /* text-cyan-950 */
+    font-family: 'Inter', sans-serif;
+}
+
+.reservation-time {
+    font-size: 12px;
+    color: var(--color-회색);
+}
+
+.feedback-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 16px 24px;
+    border-radius: 30px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 110;
+    font-weight: 600;
+    font-size: 14px;
+    text-align: center;
+}
+
+.feedback-error {
+    color: var(--color-빨간색);
+    border: 1px solid var(--color-빨간색);
+}
+
+.feedback-success {
+    color: var(--color-파란색);
+    border: 1px solid var(--color-파란색);
+}
+
+/* Custom Popup Styles (Shared with RoomDetail) */
+.custom-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 3000;
+}
+
+.room-confirm-popup {
+    width: 288px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.12);
+    padding: 12px;
+    position: relative;
+    animation: fadeIn 0.2s ease-out;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.confirm-text {
+    font-size: 13px;
+    color: #083344;
+    text-align: center;
+    white-space: pre-wrap;
+    line-height: 1.4;
+    margin-bottom: 12px;
+}
+
+.confirm-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.confirm-btn-cancel {
+    width: 44px;
+    height: 24px;
+    background-color: #f1f5f9;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: #083344;
+    cursor: pointer;
+}
+
+.confirm-btn-ok {
+    width: 44px;
+    height: 24px;
+    background-color: #0ea5e9;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: white;
+    cursor: pointer;
+}

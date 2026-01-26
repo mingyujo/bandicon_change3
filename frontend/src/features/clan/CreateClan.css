@@ -1,0 +1,243 @@
+/* src/features/clan/CreateClan.css */
+
+.create-clan-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0 0 80px 0;
+    /* Sticky footer padding might be needed */
+    background-color: var(--color-흰색);
+    height: 100vh;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+/* Header */
+.create-clan-header {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    background-color: var(--color-흰색);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.back-btn-icon {
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    margin-right: 12px;
+}
+
+.create-page-title {
+    font-size: 20px;
+    font-weight: 400;
+    /* As per design feels */
+    color: var(--color-검은색);
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Content Body */
+.create-clan-body {
+    padding: 0 20px 100px 20px;
+    /* Padding for bottom buttons */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Profile Image Section */
+.profile-upload-section {
+    position: relative;
+    margin: 20px 0 30px 0;
+    cursor: pointer;
+}
+
+.profile-img-preview {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid #cbd5e1;
+    /* Slate-300ish */
+    background-color: #f1f5f9;
+}
+
+.camera-icon-badge {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background-color: var(--color-흰색);
+    border-radius: 50%;
+    padding: 4px;
+    /* Box shadow or border if needed */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.profile-upload-label {
+    margin-top: 10px;
+    font-size: 12px;
+    color: #64748b;
+    /* Slate-500 */
+    text-align: center;
+}
+
+/* Form Fields */
+.form-group {
+    width: 100%;
+    margin-bottom: 24px;
+}
+
+.form-label {
+    display: block;
+    font-size: 16px;
+    color: var(--color-검은색);
+    margin-bottom: 8px;
+    font-family: 'Inter', sans-serif;
+}
+
+.input-field-custom {
+    width: 100%;
+    height: 48px;
+    background-color: #f1f5f9;
+    /* Slate-100 */
+    border: none;
+    border-radius: 10px;
+    padding: 0 16px;
+    font-size: 14px;
+    color: var(--color-검은색);
+    outline: none;
+    box-shadow: 1px 1px 1px 0px rgba(0, 0, 0, 0.05);
+    /* Subtle shadow per design */
+    box-sizing: border-box;
+}
+
+.input-field-custom::placeholder {
+    color: #64748b;
+    /* Slate-500 */
+    font-size: 12px;
+}
+
+.textarea-field-custom {
+    width: 100%;
+    height: 120px;
+    background-color: #f1f5f9;
+    border: none;
+    border-radius: 10px;
+    padding: 16px;
+    font-size: 14px;
+    color: var(--color-검은색);
+    outline: none;
+    resize: none;
+    box-shadow: 1px 1px 1px 0px rgba(0, 0, 0, 0.05);
+    box-sizing: border-box;
+}
+
+/* Proof Section */
+.proof-section {
+    width: 100%;
+    margin-bottom: 24px;
+}
+
+.proof-link-row {
+    position: relative;
+    margin-bottom: 12px;
+}
+
+.link-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    color: #64748b;
+}
+
+.input-with-icon {
+    padding-left: 40px;
+    /* Space for icon */
+}
+
+.proof-upload-box {
+    width: 100%;
+    height: 40px;
+    background-color: var(--color-흰색);
+    border: 1px dashed #94a3b8;
+    /* Slate-400 */
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #64748b;
+}
+
+/* Required/Optional Tags in placeholder handled in JS or logic, 
+   but design has label text like "(필수)" below title? No, it's placeholder. 
+   Updated based on image:
+   Label: "클랜 이름"
+   Input Placeholder: "(필수)"
+*/
+
+.required-mark {
+    font-size: 12px;
+    color: #64748b;
+    margin-left: 4px;
+}
+
+/* Bottom Actions */
+.bottom-actions {
+    position: fixed;
+    /* Or absolute if container relative */
+    bottom: 80px;
+    /* Above BottomNav */
+    left: 0;
+    width: 100%;
+    /* MobileLayout constraint usually means we need to fit inside 430px if centered */
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    padding: 0 20px;
+    box-sizing: border-box;
+    z-index: 20;
+}
+
+/* Max Width Constraint for fixed bottom actions when on Desktop */
+@media (min-width: 768px) {
+    .bottom-actions {
+        left: 50%;
+        transform: translateX(-50%);
+        max-width: 430px;
+    }
+}
+
+.btn-action-cancel {
+    flex: 1;
+    height: 48px;
+    background-color: #f1f5f9;
+    color: var(--color-검은색);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+}
+
+.btn-action-create {
+    flex: 1;
+    height: 48px;
+    background-color: var(--color-파란색);
+    color: var(--color-흰색);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+}

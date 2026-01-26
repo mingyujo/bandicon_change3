@@ -1,0 +1,41 @@
+
+import os
+import django
+import sys
+
+# Set up Django environment
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
+django.setup()
+
+from user_app.models import User
+
+def setup_admin():
+    username = "admin"
+    password = "adminpassword123"
+    nickname = "BestAdmin"
+    email = "admin@example.com"
+    
+    if User.objects.filter(username=username).exists():
+        print(f"User '{username}' already exists. Updating to Operator/Superuser...")
+        user = User.objects.get(username=username)
+        user.role = 'OPERATOR'
+        user.is_staff = True
+        user.is_superuser = True
+        user.set_password(password)
+        user.save()
+        print(f"User '{username}' updated to Operator.")
+    else:
+        User.objects.create_user(
+            username=username,
+            password=password,
+            nickname=nickname,
+            email=email,
+            role='OPERATOR',
+            is_staff=True,
+            is_superuser=True
+        )
+        print(f"Operator User '{username}' created successfully.")
+
+if __name__ == "__main__":
+    setup_admin()

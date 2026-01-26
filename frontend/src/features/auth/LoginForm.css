@@ -1,0 +1,223 @@
+/* src/features/auth/LoginForm.css */
+
+.login-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: var(--color-흰색);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Inter', sans-serif;
+    color: var(--color-검은색);
+    padding: 20px;
+    box-sizing: border-box;
+    overflow: hidden;
+    z-index: 9999;
+}
+
+.login-container .login-content-wrapper {
+    width: 100%;
+    max-width: 400px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding-bottom: 20px;
+    box-sizing: border-box;
+}
+
+/* Header Links */
+.login-container .login-header {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    gap: 20px;
+    font-size: 16px;
+    font-weight: 400;
+    padding-top: 10px;
+    flex-shrink: 0;
+}
+
+.login-container .header-link {
+    color: var(--color-검은색);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.login-container .header-link.active {
+    font-weight: 700;
+}
+
+/* Logo Section */
+.login-container .logo-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-height: 100px;
+    width: 100%;
+}
+
+.login-container .logo-image {
+    width: 120px;
+    height: auto;
+    max-height: 20vh;
+    border-radius: 6px;
+    object-fit: cover;
+    margin-bottom: 8px;
+}
+
+@media (max-height: 700px) {
+    .login-container .logo-image {
+        width: 80px;
+        margin-bottom: 4px;
+    }
+
+    .login-container .brand-title {
+        font-size: 24px !important;
+    }
+
+    .login-container .brand-subtitle {
+        font-size: 13px !important;
+    }
+}
+
+.login-container .brand-title {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    font-size: 32px;
+    color: var(--color-파란색);
+    line-height: 1.2;
+    text-align: center;
+    transform: translateX(-50px);
+    /* Stagger Left */
+    margin-right: -30px;
+}
+
+.login-container .brand-subtitle {
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--color-검은색);
+    margin-top: 4px;
+    text-align: center;
+    transform: translateX(50px);
+    /* Stagger Right */
+}
+
+/* Login Card */
+.login-container .login-card {
+    width: 100%;
+    background: var(--color-흰색);
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    box-sizing: border-box;
+    flex-shrink: 0;
+}
+
+@media (max-height: 700px) {
+    .login-container .login-card {
+        padding: 16px;
+        gap: 12px;
+    }
+}
+
+.login-container .card-center-title {
+    font-size: 20px;
+    font-weight: 500;
+    margin: 0;
+    color: var(--color-검은색);
+    text-align: center;
+    /* Centered in Login Design */
+    margin-bottom: 10px;
+}
+
+.login-container .input-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-검은색);
+    margin-bottom: 4px;
+    display: block;
+}
+
+.login-container .input-gray-bar {
+    background-color: var(--color-옅은-회색);
+    border-radius: 8px;
+    padding: 12px;
+    border: 1px solid transparent;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    color: #334155;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.login-container .input-gray-bar:focus {
+    outline: none;
+    border-color: var(--color-파란색);
+    background-color: var(--color-흰색);
+}
+
+.login-container .btn-login {
+    width: 100%;
+    height: 48px;
+    background-color: var(--color-파란색);
+    color: var(--color-흰색);
+    border-radius: 8px;
+    border: none;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.login-container .divider-text {
+    width: 100%;
+    text-align: left;
+    /* Aligned with others */
+    font-size: 14px;
+    color: var(--color-검은색);
+    margin: 5px 0;
+    font-weight: 500;
+    /* Match input label weight if desired, or keep normal */
+}
+
+.login-container .btn-kakao {
+    width: 100%;
+    height: 48px;
+    background-color: var(--color-카카오-노란색);
+    color: var(--color-검은색);
+    border-radius: 8px;
+    border: none;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Footer Links */
+.login-container .footer-links {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-top: 10px;
+}
+
+.login-container .footer-link {
+    font-size: 13px;
+    color: var(--color-검은색);
+    text-decoration: none;
+    cursor: pointer;
+}

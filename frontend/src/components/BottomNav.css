@@ -1,0 +1,50 @@
+/* frontend/src/components/BottomNav.css */
+
+.bottom-nav-fixed {
+    position: fixed;
+    /* Changed to fixed to always stay at bottom of screen */
+    bottom: 0;
+    width: 100%;
+    height: auto;
+    min-height: 60px;
+    /* Matched Profile.css exact height */
+    padding-bottom: env(safe-area-inset-bottom);
+    /* iPhone Safe Area */
+    background-color: white;
+    border-top: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 20;
+    max-width: 430px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-검은색);
+    text-decoration: none;
+    width: 50px;
+    /* Exact match to Profile.css */
+    height: 100%;
+    cursor: pointer;
+    background: none;
+    border: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.nav-item:active {
+    background-color: #f8fafc;
+}
+
+/* Ensure it fits within the mobile layout wrapper if applicable */
+@media (min-width: 430px) {
+    .bottom-nav-fixed {
+        /* If we want it to stay within the 430px bounds */
+        /* It's already handled by left: 50% + transform + max-width */
+    }
+}

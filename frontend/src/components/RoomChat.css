@@ -1,0 +1,517 @@
+/* RoomChat.css */
+/* RoomChat.css */
+.room-chat-page {
+    /* Flex Column Layout */
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+    background-color: #fff;
+    position: relative;
+    padding-top: 10px;
+}
+
+/* Header */
+.rc-header {
+    /* Fixed Height, No Sticky needed in Flex Layout */
+    position: relative;
+    width: 100%;
+    height: 60px;
+    background-color: #fff;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    border-bottom: 2px solid #F1F5F9;
+    flex-shrink: 0;
+}
+
+/* ... (back btn, etc) ... */
+
+/* Message List */
+.rc-message-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    background-color: #fff;
+}
+
+/* ... (rest of msg list styles) ... */
+
+/* Input Area */
+.rc-input-area {
+    /* Sit naturally at bottom of flex container */
+    position: relative;
+    width: 100%;
+    min-height: 60px;
+    /* Changed from fixed height */
+    height: auto;
+    background-color: #fff;
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+    /* Added vertical padding */
+    border-top: 2px solid #F1F5F9;
+    z-index: 10;
+    flex-shrink: 0;
+}
+
+.rc-back-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #083344;
+    cursor: pointer;
+    margin-right: 12px;
+}
+
+.rc-header-title-box {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.rc-room-img {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+    background-color: #eee;
+}
+
+.rc-room-title {
+    font-size: 18px;
+    font-weight: 500;
+    color: #083344;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rc-vote-btn {
+    background-color: #0EA5E9;
+    /* Sky-500 */
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+/* Message List */
+.rc-message-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    background-color: #fff;
+}
+
+/* Date Separator */
+.rc-date-separator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 20px 0;
+    position: relative;
+}
+
+.rc-date-text {
+    background-color: #fff;
+    padding: 0 10px;
+    color: #64748B;
+    /* Slate-500 */
+    font-size: 12px;
+    z-index: 1;
+}
+
+.rc-date-line {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background-color: #E2E8F0;
+    /* Slate-200 */
+}
+
+/* Message Item */
+.rc-msg-item {
+    display: flex;
+    gap: 8px;
+    max-width: 80%;
+}
+
+.rc-msg-item.mine {
+    display: flex;
+    flex-direction: row-reverse;
+    margin-left: auto;
+    /* Push to right */
+    justify-content: flex-start;
+}
+
+.rc-profile-img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1.3px solid #083344;
+    flex-shrink: 0;
+}
+
+.rc-msg-content-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.rc-msg-item.mine .rc-msg-content-wrapper {
+    align-items: flex-end;
+}
+
+.rc-sender-name {
+    font-size: 14px;
+    color: #083344;
+    margin-bottom: 4px;
+}
+
+.rc-bubble-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+}
+
+.rc-msg-item.mine .rc-bubble-row {
+    flex-direction: row-reverse;
+}
+
+.rc-bubble {
+    border: 1px solid #083344;
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 16px;
+    line-height: 1.4;
+    color: #083344;
+    background-color: #fff;
+    max-width: 100%;
+    word-break: break-word;
+}
+
+.rc-msg-item.mine .rc-bubble {
+    background-color: #fff;
+    /* Design shows white bubbles for mine too? usually my bubbles are colored. Checking image... Image shows both white bubbles with outline. So I stick to white. */
+    /* wait, screenshot shows:
+       Other: white bg, dark outline.
+       Mine: white bg, dark outline. (Actually "수고하셨습니다" is mine, blue outline?)
+       Image "수고하셨습니다" has blue outline (sky-500).
+       "안녕하세요" has dark outline.
+    */
+}
+
+.rc-msg-item.mine .rc-bubble {
+    border-color: #0EA5E9;
+    /* Sky-500 */
+}
+
+.rc-msg-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+.rc-unread-count {
+    color: #0EA5E9;
+    /* Sky-500 */
+    font-size: 10px;
+    text-align: center;
+    margin-bottom: 2px;
+}
+
+.rc-time {
+    color: #64748B;
+    /* Slate-500 */
+    font-size: 10px;
+}
+
+/* Input Area */
+/* Duplicate fixed input area removed to fix layout overlap */
+
+.rc-input-plus-btn {
+    width: 24px;
+    height: 24px;
+    border: 1.5px solid #64748B;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    background: none;
+    cursor: pointer;
+    color: #64748B;
+    font-size: 16px;
+    padding: 0;
+}
+
+.rc-input-field {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 16px;
+    color: #083344;
+    background: transparent;
+}
+
+.rc-input-field::placeholder {
+    color: #94A3B8;
+}
+
+.rc-send-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin-left: 12px;
+    color: #64748B;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Jeongsan Card (Settlement) */
+.rc-jeongsan-card {
+    border: 1px solid #083344;
+    border-radius: 10px;
+    padding: 12px;
+    width: 260px;
+    background-color: #fff;
+    margin-bottom: 4px;
+}
+
+.rc-jeongsan-title {
+    font-family: 'Comfortaa', cursive;
+    /* Assuming font availability or fallback */
+    font-size: 16px;
+    color: #083344;
+    margin-bottom: 8px;
+    white-space: pre-wrap;
+}
+
+.rc-jeongsan-info {
+    font-size: 16px;
+    color: #083344;
+    line-height: 1.5;
+}
+
+.rc-label-sky {
+    color: #0EA5E9;
+}
+
+.rc-copy-icon {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 1.5px solid #0EA5E9;
+    margin-left: 4px;
+    vertical-align: middle;
+}
+
+/* Plus Menu Popup */
+.rc-plus-menu {
+    position: absolute;
+    bottom: 100%;
+    left: 16px;
+    width: 150px;
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 8px;
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 10px;
+    border: 1px solid #e2e8f0;
+    animation: fadeIn 0.2s ease-in-out;
+}
+
+.rc-plus-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    border-radius: 8px;
+    color: #083344;
+    font-size: 13px;
+    font-weight: 500;
+    width: 100%;
+    text-align: left;
+    transition: background-color 0.1s;
+}
+
+.rc-plus-menu-item:hover {
+    background-color: #f1f5f9;
+}
+
+.rc-plus-icon-box {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #083344;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Blinking Animation for Vote Button */
+@keyframes blink-animation {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.7);
+    }
+
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 6px rgba(14, 165, 233, 0);
+    }
+
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(14, 165, 233, 0);
+    }
+}
+
+.rc-vote-btn.blinking {
+    animation: blink-animation 2s infinite;
+    background-color: #0EA5E9;
+    color: white;
+    border: none;
+}
+
+/* Vote Bubble Styles */
+.rc-vote-bubble {
+    background-color: white;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 12px;
+    width: 220px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.rc-vote-bubble-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.rc-vote-icon {
+    font-size: 14px;
+}
+
+.rc-vote-bubble-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #083344;
+    line-height: 1.3;
+}
+
+.rc-vote-bubble-info {
+    font-size: 12px;
+    color: #64748B;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.rc-vote-bubble-btn {
+    background-color: #0EA5E9;
+    /* Sky blue as requested? Or similar to design? */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: background-color 0.2s;
+}
+
+.rc-vote-bubble-btn:hover {
+    background-color: #0284C7;
+}
+
+/* Settlement Bubble Styles (Synced from ClanChat usage) */
+.rc-settlement-bubble {
+    background-color: white;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 16px;
+    width: 260px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.rc-sett-header {
+    font-size: 15px;
+    font-weight: 700;
+    color: #083344;
+    margin-bottom: 6px;
+    text-align: center;
+}
+
+.rc-sett-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.rc-sett-row {
+    font-size: 14px;
+    color: #334155;
+    line-height: 1.5;
+}
+
+.rc-sett-account-row {
+    font-size: 14px;
+    color: #0EA5E9;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 500;
+}
+
+.rc-sett-copy-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #0EA5E9;
+    padding: 2px;
+    display: flex;
+    align-items: center;
+}

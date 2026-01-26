@@ -1,0 +1,325 @@
+/* ChatList.css */
+.chat-list-container {
+    width: 100%;
+    height: 100%;
+    background-color: #f8fafc;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-tabs {
+    display: flex;
+    justify-content: center;
+    background-color: white;
+    padding-top: 10px;
+    border-bottom: 1px solid #e2e8f0;
+    flex-shrink: 0;
+}
+
+.chat-tab {
+    padding: 10px 20px;
+    font-size: 18px;
+    font-weight: 500;
+    color: #64748B;
+    cursor: pointer;
+    width: 50%;
+    text-align: center;
+    position: relative;
+}
+
+.chat-tab.active {
+    color: #083344;
+    font-weight: 700;
+}
+
+.chat-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 25%;
+    width: 50%;
+    height: 3px;
+    background-color: #083344;
+}
+
+.chat-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    gap: 20px;
+    overflow: hidden;
+}
+
+.chat-section {
+    display: flex;
+    flex-direction: column;
+    height: 48%;
+    flex: 1;
+    min-height: 0;
+}
+
+.chat-section-header {
+    font-size: 16px;
+    font-weight: 700;
+    color: #083344;
+    margin-bottom: 12px;
+    flex-shrink: 0;
+}
+
+.chat-items-container {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-right: 5px;
+}
+
+.chat-item-card {
+    background-color: white;
+    border-radius: 12px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+}
+
+.chat-item-img {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 1px solid #083344;
+    object-fit: cover;
+    margin-right: 15px;
+    flex-shrink: 0;
+}
+
+.chat-item-info {
+    flex: 1;
+    overflow: hidden;
+}
+
+.chat-item-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #083344;
+    margin-bottom: 4px;
+}
+
+.chat-item-message {
+    font-size: 12px;
+    color: #64748B;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.chat-msg-time {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+}
+
+.chat-preview-right {
+    font-size: 10px;
+    color: #94A3B8;
+}
+
+.chat-badge {
+    background-color: #0EA5E9;
+    color: white;
+    font-size: 10px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* --- FRIEND TAB STYLES --- */
+
+.friend-tab-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    overflow: hidden;
+    /* Remove background-color: white if we want gray bg for full page, but containers are white. Keeping clean. */
+}
+
+/* Search Bar Area (Retaining the "Pixel Perfect" Search Style) */
+.friend-search-area {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-shrink: 0;
+    /* Ensure it fits */
+    width: 100%;
+}
+
+.friend-search-bar {
+    flex: 1;
+    height: 44px;
+    border: 1px solid #0EA5E9;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    background: white;
+}
+
+.search-icon-wrapper {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 5px;
+}
+
+.friend-search-input {
+    border: none;
+    outline: none;
+    width: 100%;
+    font-size: 16px;
+    color: #334155;
+}
+
+.friend-add-btn-wrapper {
+    margin-left: 10px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1.3px solid #0EA5E9;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    background: white;
+    flex-shrink: 0;
+}
+
+/* Content Scroll */
+.friend-content-scroll {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    /* padding-bottom for mobile nav */
+    padding-bottom: 20px;
+}
+
+/* Section Title */
+.section-title {
+    font-size: 14px;
+    color: #64748B;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+/* New Friends Section (Responsive Box) */
+.new-friends-container {
+    width: 100%;
+}
+
+.new-friends-box {
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 5px 0;
+}
+
+.friend-request-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 15px;
+    border-bottom: 1px solid #F1F5F9;
+}
+
+.friend-request-item:last-child {
+    border-bottom: none;
+}
+
+/* Friend List Section */
+.friend-list-container {
+    width: 100%;
+    flex: 1;
+}
+
+.friend-list-box {
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 5px 0;
+    /* min-height for looks */
+    min-height: 200px;
+}
+
+.friend-item-link {
+    display: block;
+    text-decoration: none;
+    padding: 12px 15px;
+    border-bottom: 1px solid #F1F5F9;
+}
+
+.friend-item-link:last-child {
+    border-bottom: none;
+}
+
+.friend-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.friend-profile-img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid #083344;
+    object-fit: cover;
+}
+
+.friend-name {
+    font-size: 16px;
+    font-weight: 500;
+    color: #083344;
+}
+
+.friend-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.friend-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* Buttons */
+.btn-reject {
+    padding: 4px 12px;
+    border-radius: 20px;
+    background-color: #F8FAFC;
+    color: #64748B;
+    font-size: 12px;
+    border: 1px solid #E2E8F0;
+    cursor: pointer;
+}
+
+.btn-accept {
+    padding: 4px 12px;
+    border-radius: 20px;
+    background-color: #0EA5E9;
+    color: white;
+    font-size: 12px;
+    border: none;
+    cursor: pointer;
+}

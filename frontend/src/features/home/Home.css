@@ -1,0 +1,385 @@
+/* src/features/home/Home.css */
+
+.home-container {
+    width: 100%;
+    height: 100%;
+    /* 부모(AppMainHome)의 높이 100%를 상속 */
+    background-color: var(--color-흰색);
+    /* Scroll Snap 설정 */
+    overflow-y: scroll;
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+
+    /* Sticky Header Alignment */
+    scroll-padding-top: 60px;
+
+    position: relative;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+}
+
+/* 스크롤바 숨기기 (깔끔한 UI) */
+.home-container::-webkit-scrollbar {
+    display: none;
+}
+
+.home-container {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+
+/* === Snap Section 1: Banner === */
+.home-snap-section-1 {
+    width: 100%;
+    height: auto;
+    /* Allow height to shrink to content so bottom section is visible */
+    min-height: auto;
+    /* First "Page" fills the area under the header */
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--color-흰색);
+    padding-bottom: 5px;
+    box-sizing: border-box;
+}
+
+/* === Top Bar (Sticky) === */
+.home-top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background-color: var(--color-흰색);
+    flex-shrink: 0;
+    box-sizing: border-box;
+    /* Fix cut-off issue */
+
+    position: sticky;
+    top: 0;
+    width: 100%;
+    z-index: 1000;
+    border-bottom: 1px solid transparent;
+}
+
+.home-brand {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--color-파란색);
+}
+
+.home-profile-area {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    /* Prevent shrinking */
+}
+
+.home-profile-name {
+    font-size: 14px;
+    color: var(--color-검은색);
+    font-weight: 500;
+}
+
+.home-profile-img {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    background-color: #ddd;
+}
+
+/* Banner Wrapper */
+.home-banner-wrapper {
+    width: calc(100% - 40px);
+    /* 좌우 여백 20px씩 */
+    height: 280px;
+    /* Fixed height to allow content below to peek */
+    flex: none;
+    /* Do not expand */
+    margin: 10px 20px 10px 20px;
+    border-radius: 20px;
+    overflow: hidden;
+    background-color: #f1f1f1;
+    position: relative;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* 배너 아래에 "아래로 스크롤하세요" 유도 화살표 */
+.scroll-indicator {
+    text-align: center;
+    padding-bottom: 20px;
+    color: var(--color-회색);
+    font-size: 12px;
+    /* 애니메이션 제거 또는 유지 (선택) */
+    display: block;
+    /* Show indicator again to hint scroll */
+    /* 간격을 줄이기 위해 일단 숨김 */
+}
+
+/* ... animations removed ... */
+
+.home-banner-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.home-banner-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+}
+
+
+/* === Snap Section 2: Main Content (Schedule, Cards) === */
+.home-snap-section-2 {
+    width: 100%;
+    min-height: calc(100% - 60px);
+    /* Covers full screen when snapped */
+    height: auto;
+    /* 화면 꽉 채움 (스냅 시) */
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    background-color: var(--color-흰색);
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+/* 실제 콘텐츠 영역 (상단 타이틀바 제외, 하단 탭바 제외) */
+.home-content-inner {
+    flex: 1;
+    overflow-y: auto;
+    /* 내부 스크롤 허용 (화면이 작을 경우) */
+    padding: 20px 20px 80px 20px;
+    /* Bottom Nav 고려 */
+    display: flex;
+    flex-direction: column;
+    /* justify-content: space-evenly; 콘텐츠가 적으면 균등 배분 */
+}
+
+/* 내부 스크롤바 숨기기 */
+.home-content-inner::-webkit-scrollbar {
+    display: none;
+}
+
+.home-content-inner {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+
+/* --- Sections Styles --- */
+.home-section-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--color-검은색);
+    margin-bottom: 12px;
+    margin-top: 10px;
+}
+
+/* Schedule */
+.home-schedule-container {
+    background-color: var(--color-흰색);
+    border-radius: 10px;
+    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+    padding: 0 0 10px 0;
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.schedule-header-row {
+    display: flex;
+    background-color: var(--color-파란색);
+    color: var(--color-흰색);
+    padding: 8px 0;
+    margin-bottom: 8px;
+}
+
+.schedule-day-header {
+    flex: 1;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.schedule-slots-row {
+    display: flex;
+    justify-content: space-around;
+    padding: 0 10px;
+}
+
+.schedule-slot {
+    width: 13%;
+    /* 반응형 */
+    height: 0;
+    padding-bottom: 20%;
+    /* Aspect Ratio 유지 */
+    background-color: var(--color-흰색);
+    border-radius: 8px;
+    box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+    border: 1px solid #f1f1f1;
+    position: relative;
+    font-size: 11px;
+}
+
+.schedule-slot-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.schedule-slot.today {
+    background-color: var(--color-옅은-회색);
+    border: 1px solid var(--color-파란색);
+}
+
+.schedule-slot.event {
+    background-color: rgba(255, 107, 107, 0.7);
+    color: white;
+}
+
+.schedule-today-label {
+    margin-top: 2px;
+    font-weight: bold;
+    color: var(--color-검은색);
+    font-size: 10px;
+}
+
+/* My Item Cards (Room, Clan) */
+.home-card-box {
+    border: 1px solid var(--color-파란색);
+    border-radius: 10px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 80px;
+    margin-bottom: 16px;
+    background-color: white;
+    text-align: center;
+}
+
+/* Empty State */
+.empty-state-text {
+    font-size: 14px;
+    color: var(--color-검은색);
+    margin-bottom: 8px;
+}
+
+.btn-action-small {
+    background-color: var(--color-파란색);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 6px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+/* Active State */
+.active-item-row {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    gap: 12px;
+}
+
+.active-item-img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #eee;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.active-item-info {
+    flex: 1;
+    text-align: left;
+    min-width: 0;
+    /* for truncation */
+}
+
+.active-item-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--color-검은색);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.active-item-sub {
+    font-size: 12px;
+    color: var(--color-회색);
+}
+
+.btn-more-text {
+    font-size: 12px;
+    color: var(--color-검은색);
+    text-decoration: none;
+    align-self: flex-end;
+    white-space: nowrap;
+}
+
+/* Practice Room Placeholder */
+.practice-placeholder {
+    width: 100%;
+    height: 60px;
+    background-color: var(--color-옅은-회색);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-회색);
+    font-size: 13px;
+    margin-bottom: 20px;
+}
+
+/* --- Bottom Nav --- */
+.home-bottom-nav {
+    position: absolute;
+    /* Section 2 하단에 고정 */
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background-color: var(--color-흰색);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border-top: 1px solid #f1f1f1;
+    z-index: 100;
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-검은색);
+    text-decoration: none;
+    width: 50px;
+}
+
+.nav-icon {
+    width: 24px;
+    height: 24px;
+    margin-bottom: 2px;
+}

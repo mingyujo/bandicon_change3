@@ -1,0 +1,152 @@
+/* src/features/clan/ClanDetail.css */
+
+.clan-detail-container {
+    padding-bottom: 80px;
+    /* Space for BottomNav */
+}
+
+
+
+/* Header */
+.clan-detail-header {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    background-color: var(--color-흰색);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.clan-detail-title {
+    font-size: 20px;
+    font-weight: 400;
+    color: var(--color-검은색);
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    text-align: center;
+    flex: 1;
+    margin-right: 24px;
+    /* Balance back icon */
+}
+
+/* Info Section (Top) */
+.clan-info-section {
+    display: flex;
+    padding: 24px 24px;
+    align-items: center;
+    /* Vertically center */
+    gap: 16px;
+    /* consistent spacing */
+}
+
+.clan-info-image-wrapper {
+    width: 72px;
+    height: 72px;
+    min-width: 72px;
+    /* Prevent flex shrinking */
+    min-height: 72px;
+    flex-shrink: 0;
+}
+
+.clan-info-img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    /* Remove list-item/inline gap */
+    border-radius: 50%;
+    object-fit: cover;
+    /* Crucial for preventing squash */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.clan-text-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: left;
+    /* Ensure left alignment */
+    min-width: 0;
+    /* Prevent flex overflow */
+}
+
+.clan-name-large {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--color-검은색);
+    margin-bottom: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.clan-desc-short {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.clan-member-count-text {
+    font-size: 12px;
+    color: #999;
+}
+
+.clan-join-action-btn {
+    padding: 8px 16px;
+    border-radius: 24px;
+    font-size: 13px;
+    font-weight: 600;
+    border: 1px solid #eee;
+    background-color: #f8f9fa;
+    color: var(--color-검은색);
+    cursor: pointer;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+
+.clan-join-action-btn:active {
+    background-color: #eee;
+}
+
+.clan-join-action-btn.completed {
+    background-color: var(--color-파란색);
+    color: white;
+    border-color: var(--color-파란색);
+}
+
+/* Youtube Embed Section */
+.clan-youtube-section {
+    width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.youtube-embed-wrapper {
+    width: 100%;
+    border-radius: 12px;
+    overflow: hidden;
+    /* Aspect Ratio 16:9 trick or just auto height */
+    position: relative;
+    padding-bottom: 56.25%;
+    /* 16:9 */
+    height: 0;
+    background-color: #000;
+}
+
+.youtube-iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+/* Member View Grid (Placeholders for now if needed, but task is Non-Member) */

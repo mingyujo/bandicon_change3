@@ -1,0 +1,234 @@
+/* frontend/src/features/support/CustomerCenter.css */
+
+/* Tabs */
+.tab-container {
+    position: absolute;
+    top: 100px;
+    /* Adjusted from 112px */
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    /* Space between tabs */
+}
+
+.tab-item {
+    font-size: 20px;
+    font-weight: 500;
+    cursor: pointer;
+    position: relative;
+    padding-bottom: 5px;
+}
+
+.tab-item.active {
+    color: #083344;
+    /* cyan-950 */
+}
+
+.tab-item.inactive {
+    color: #64748b;
+    /* slate-500 */
+}
+
+.tab-indicator {
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    /* Default center */
+    transform: translateX(-50%);
+    width: 96px;
+    /* w-24 */
+    height: 3px;
+    background-color: #083344;
+    /* cyan-950 */
+    border-radius: 5px;
+    transition: left 0.3s ease;
+}
+
+/* Content Area */
+.content-area-scroll {
+    position: absolute;
+    top: 160px;
+    bottom: 80px;
+    /* Leave space for bottom nav */
+    width: 100%;
+    overflow-y: auto;
+    padding: 0 17px;
+    /* Matches left-[17px] */
+    box-sizing: border-box;
+}
+
+/* Section Title */
+.section-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.section-title {
+    font-size: 20px;
+    color: #083344;
+}
+
+.fold-btn {
+    width: 64px;
+    /* w-16 */
+    height: 24px;
+    /* h-6 */
+    border-radius: 10px;
+    border: 1px solid rgba(100, 116, 139, 0.05);
+    /* slate-500/5 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.fold-btn.folded {
+    background-color: #0ea5e9;
+    /* sky-500 */
+    color: white;
+}
+
+.fold-btn.unfolded {
+    background-color: #f1f5f9;
+    /* slate-100 */
+    color: #083344;
+}
+
+/* Accordion List */
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 30px;
+    transition: max-height 0.3s ease;
+    overflow: hidden;
+    padding: 10px;
+    /* Essential to prevent shadow clipping */
+    margin: 0 -10px;
+    /* Counteract padding to maintain alignment if width constrained, or use box-sizing logic */
+}
+
+/* History Item with Jae-ne Shadow */
+/* History Item with Jae-ne Shadow */
+.history-item {
+    width: 100%;
+    background-color: white;
+    border-radius: 20px;
+    /* Jae-ne Shadow: 1px 1px 5px but with slight opacity for UI niceness, user insisted on matching Profile white box */
+    box-shadow: 1px 1px 5px 0px rgba(0, 0, 0, 0.25);
+    border: none;
+    padding: 20px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.history-title {
+    font-size: 16px;
+    color: #083344;
+}
+
+.history-content {
+    font-size: 16px;
+    color: #083344;
+    line-height: 1.4;
+}
+
+.history-date {
+    font-size: 12px;
+    color: #64748b;
+    /* slate-500 */
+    margin-top: 5px;
+}
+
+.answer-badge {
+    background-color: #0ea5e9;
+    /* sky-500 */
+    color: white;
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    align-self: flex-start;
+    margin-bottom: 5px;
+}
+
+.admin-reply {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #f1f5f9;
+}
+
+.admin-title {
+    color: #0ea5e9;
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+
+/* Write Form */
+.write-form-container {
+    margin-top: 20px;
+}
+
+.form-label {
+    font-size: 20px;
+    color: #083344;
+    margin-bottom: 10px;
+}
+
+.input-field {
+    width: 100%;
+    height: 32px;
+    /* h-8 */
+    background-color: #f1f5f9;
+    /* slate-100 */
+    border-radius: 10px;
+    border: none;
+    box-shadow: 1px 1px 1px 0px rgba(0, 0, 0, 0.25);
+    padding: 0 15px;
+    font-size: 16px;
+    color: #083344;
+    margin-bottom: 10px;
+    box-sizing: border-box;
+}
+
+.textarea-field {
+    width: 100%;
+    height: 96px;
+    /* h-24 */
+    background-color: #f1f5f9;
+    /* slate-100 */
+    border-radius: 10px;
+    border: none;
+    box-shadow: 1px 1px 1px 0px rgba(0, 0, 0, 0.25);
+    padding: 10px 15px;
+    /* adjusted padding */
+    font-size: 16px;
+    color: #083344;
+    margin-bottom: 20px;
+    box-sizing: border-box;
+    resize: none;
+}
+
+.submit-btn {
+    width: 128px;
+    /* w-32 */
+    height: 36px;
+    /* h-9 */
+    background-color: #0ea5e9;
+    /* sky-500 */
+    border-radius: 10px;
+    color: white;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+    display: block;
+    margin: 0 auto;
+    /* Center button */
+}
+
+/* Bottom Nav Placeholder is handled globally */

@@ -1,0 +1,43 @@
+/* Sub Header Styles */
+.sub-header-container {
+    width: 100%;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    background: white;
+    flex-shrink: 0;
+    padding: 0 10px;
+    position: relative;
+    /* Use standard Flex but ensure balanced left/right for center title */
+    justify-content: space-between;
+}
+
+.sub-header-left,
+.sub-header-right {
+    width: 60px;
+    /* Fixed width for side areas to ensure title is exactly centered */
+    display: flex;
+    align-items: center;
+}
+
+.sub-header-right {
+    justify-content: flex-end;
+}
+
+.sub-header-back-btn {
+    padding: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sub-header-title {
+    font-size: 18px;
+    color: #052c42;
+    /* var(--color-검은색) */
+    font-weight: 600;
+    text-align: center;
+    flex: 1;
+    /* Take remaining space */
+}

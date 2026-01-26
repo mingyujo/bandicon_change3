@@ -1,0 +1,160 @@
+/* MyRooms.css */
+
+.my-room-scroll-container {
+    flex: 1;
+    width: 100%;
+    overflow-y: auto;
+    padding: 0 20px calc(80px + env(safe-area-inset-bottom)) 20px;
+    /* Precise match + Safe Area */
+    box-sizing: border-box;
+}
+
+/* Scrollbar hiding removed to match RoomList default behavior */
+
+.my-room-header {
+    display: flex;
+    align-items: center;
+    padding: 10px 10px 10px 5px;
+    /* Tighter padding for mobile perception */
+    background: white;
+    position: sticky;
+    /* Sticky positioning for responsiveness */
+    top: 0;
+    z-index: 10;
+    flex-shrink: 0;
+    width: 100%;
+    box-sizing: border-box;
+    border-bottom: 1px solid #f1f5f9;
+    /* Visual definition */
+    margin-bottom: 0;
+}
+
+.back-btn {
+    border: none;
+    background: none;
+    padding: 10px;
+    /* Touch target */
+    margin: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.header-title {
+    font-size: 20px;
+    font-weight: 700;
+    /* Bold to match RoomList standard */
+    color: #083344;
+    margin: 0 0 0 10px;
+}
+
+.my-room-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 10px 0 0 0;
+    /* Top spacing, no side padding (handled by container) */
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.my-room-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0px 1px 5px rgba(0, 0, 0, 0.15);
+    /* Soft shadow */
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.1s;
+    position: relative;
+    border: 1px solid #f1f5f9;
+    /* Subtle border */
+}
+
+.my-room-card:active {
+    transform: scale(0.98);
+}
+
+.room-img-wrapper {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    /* Circle image */
+    overflow: hidden;
+    flex-shrink: 0;
+    margin-right: 16px;
+    border: 1px solid #e2e8f0;
+}
+
+.room-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.room-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+}
+
+.room-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: #083344;
+    margin-bottom: 2px;
+}
+
+.room-song {
+    font-size: 12px;
+    color: #083344;
+}
+
+.room-artist {
+    font-size: 12px;
+    color: #64748B;
+    /* Slate 500 */
+}
+
+.room-status-col {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: flex-start;
+    height: 100%;
+    gap: 16px;
+    /* Gap between session name and 'Ended' if both exist */
+    min-width: 60px;
+}
+
+.session-badge {
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.session-badge.text-gray {
+    color: #64748B;
+    /* Slate 500 */
+}
+
+.session-badge.text-orange {
+    color: #F59E0B;
+    /* Amber 500 - Orange */
+}
+
+.ended-badge {
+    font-size: 12px;
+    color: #64748B;
+}
+
+.empty-state {
+    text-align: center;
+    color: #94a3b8;
+    margin-top: 40px;
+}

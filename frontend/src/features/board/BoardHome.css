@@ -1,0 +1,226 @@
+/* BoardHome.css */
+
+.board-scroll-container {
+    flex: 1;
+    width: 100%;
+    overflow-y: auto;
+    padding: 0 20px calc(80px + env(safe-area-inset-bottom)) 20px;
+    box-sizing: border-box;
+    background-color: #f8fafc;
+    /* Slight bg color for contrast if needed, but usually MobileLayout is slate-50 */
+}
+
+.board-home-header {
+    display: flex;
+    align-items: center;
+    padding: 20px 20px 10px 20px;
+    /* Standard 20px */
+    background: white;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    flex-shrink: 0;
+    width: 100%;
+    box-sizing: border-box;
+    /* Optional: border-bottom: 1px solid #f1f5f9; */
+}
+
+.header-title-large {
+    font-size: 20px;
+    /* text-xl */
+    font-weight: 700;
+    /* Bold */
+    color: #083344;
+}
+
+/* Sections */
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 20px;
+    margin-bottom: 12px;
+}
+
+.hot-icon {
+    color: #F87171;
+    /* red-400 */
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.hot-text {
+    color: #F87171;
+    /* red-400 */
+    font-size: 16px;
+    /* text-base */
+    font-weight: 700;
+}
+
+.section-title-row {
+    margin-top: 32px;
+    margin-bottom: 12px;
+}
+
+.section-title {
+    color: #083344;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+/* Cards */
+.hot-posts-card {
+    background: white;
+    border-radius: 12px;
+    /* Rounded 10/12px */
+    box-shadow: 1px 1px 5px 0px rgba(0, 0, 0, 0.1);
+    padding: 0;
+    /* Padding inside items */
+    overflow: hidden;
+}
+
+.hot-post-item {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.hot-post-item:active {
+    background-color: #f8fafc;
+}
+
+.hot-post-item.border-b {
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.post-main-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.post-title-text {
+    font-size: 16px;
+    color: #083344;
+    font-weight: 400;
+    flex: 1;
+    margin-right: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.post-date {
+    font-size: 10px;
+    color: #64748B;
+    /* slate-500 */
+    margin-top: 4px;
+    /* Align slightly with text metrics */
+}
+
+.post-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 4px;
+}
+
+.author-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.user-icon-small {
+    width: 12px;
+    height: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.author-name {
+    font-size: 10px;
+    color: #083344;
+}
+
+.stats-info {
+    display: flex;
+    gap: 8px;
+}
+
+.stat-badge {
+    background-color: #f1f5f9;
+    /* slate-100 */
+    border-radius: 10px;
+    padding: 2px 8px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 16px;
+}
+
+.stat-count {
+    font-size: 10px;
+    color: #083344;
+    line-height: 1;
+}
+
+/* Board List */
+.board-list-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 1px 1px 5px 0px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    padding: 0;
+}
+
+.board-link-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 16px;
+    /* Taller padding for list items */
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.board-link-item:active {
+    background-color: #f8fafc;
+}
+
+.board-link-item.border-b {
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.board-name {
+    font-size: 16px;
+    color: #083344;
+    font-weight: 400;
+}
+
+.arrow-icon {
+    color: #083344;
+    display: flex;
+    align-items: center;
+}
+
+.empty-hot-state {
+    padding: 40px 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100px;
+    /* Ensure minimum height */
+}
+
+.empty-state-message {
+    color: #94a3b8;
+    /* slate-400 */
+    font-size: 14px;
+    text-align: center;
+}

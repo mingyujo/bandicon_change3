@@ -1,0 +1,397 @@
+/* ClanBoardList.css */
+
+.clan-board-container {
+    width: 100%;
+    height: 100%;
+    background-color: #fff;
+    padding-bottom: 80px;
+    /* BottomNav space */
+    position: relative;
+}
+
+.clan-board-header {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    background: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.back-btn {
+    border: none;
+    background: none;
+    cursor: pointer;
+    padding: 8px;
+    margin-right: 8px;
+}
+
+.header-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #083344;
+}
+
+/* Hot Section */
+.hot-section {
+    padding: 0 16px;
+    margin-bottom: 20px;
+}
+
+.hot-label-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.hot-icon {
+    font-size: 16px;
+    color: #F87171;
+    font-weight: bold;
+    margin-right: 4px;
+}
+
+.hot-text {
+    font-size: 16px;
+    color: #F87171;
+    font-weight: bold;
+}
+
+.hot-card {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 1px 1px 5px 0px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+}
+
+.hot-post-item {
+    padding: 12px 16px;
+    border-bottom: 1px solid #eeeeee;
+    cursor: pointer;
+}
+
+.hot-post-item:last-child {
+    border-bottom: none;
+}
+
+.hot-post-title {
+    font-size: 16px;
+    color: #083344;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.hot-post-date {
+    font-size: 10px;
+    color: #64748B;
+    grid-column-start: 2;
+    text-align: right;
+}
+
+.hot-post-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.hot-post-meta-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.author-wrap {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: #F1F5F9;
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
+
+.author-name {
+    font-size: 10px;
+    color: #083344;
+}
+
+.count-wrap {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    background: #F1F5F9;
+    padding: 2px 6px;
+    border-radius: 10px;
+}
+
+.count-text {
+    font-size: 10px;
+    color: #083344;
+}
+
+.hot-post-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+/* Board List Section */
+.board-list-section {
+    padding: 0 16px;
+}
+
+.list-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.list-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #083344;
+}
+
+.create-board-btn {
+    background: #F1F5F9;
+    border: 1px solid rgba(100, 116, 139, 0.05);
+    border-radius: 10px;
+    padding: 4px 12px;
+    font-size: 12px;
+    color: #083344;
+    cursor: pointer;
+}
+
+.board-list-card {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 1px 1px 5px 0px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+    padding: 10px 0;
+}
+
+.board-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+    text-decoration: none;
+}
+
+.board-item:last-child {
+    border-bottom: none;
+}
+
+.board-item-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.delete-btn {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #F87171;
+    color: #fff;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+}
+
+.board-item-name {
+    font-size: 16px;
+    color: #083344;
+}
+
+.board-arrow {
+    transform: rotate(90deg);
+    /* 아이콘이 위쪽 화살표라 90도 돌림 */
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Delete Board Modal */
+.delete-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    /* Increased to cover header */
+    backdrop-filter: blur(2px);
+    /* Optional: adds subtle blur to background */
+}
+
+.delete-modal-content {
+    width: 320px;
+    /* Increased from 240px to prevent text break */
+    height: auto;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.12);
+    position: relative;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    /* Changed from center to left align per typical modal */
+}
+
+.delete-modal-title {
+    color: #083344;
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    text-align: left;
+    font-family: 'Inter', sans-serif;
+    line-height: 1.4;
+    word-break: keep-all;
+    /* Prevent awkward word breaks */
+}
+
+.delete-modal-desc {
+    color: #64748B;
+    font-size: 14px;
+    /* Slightly smaller for description */
+    font-weight: 400;
+    margin-bottom: 24px;
+    text-align: left;
+    font-family: 'Inter', sans-serif;
+    word-break: keep-all;
+}
+
+.delete-modal-actions {
+    display: flex;
+    gap: 8px;
+    /* Space between buttons */
+    width: 100%;
+    justify-content: flex-end;
+    /* Align buttons to right per image */
+}
+
+.delete-modal-btn {
+    padding: 6px 16px;
+    /* Dynamic width based on text */
+    min-width: 60px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    border: none;
+    font-weight: 500;
+}
+
+.delete-modal-btn.cancel {
+    background: #F1F5F9;
+    color: #64748B;
+}
+
+
+/* Create Board Modal */
+.create-board-modal-content {
+    /* w-80 h-36 relative bg-white rounded-[20px] overflow-hidden */
+    width: 320px;
+    height: 180px;
+    /* Slightly increased height to accommodate Header */
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* Center items horizontally */
+}
+
+.create-modal-header {
+    width: 100%;
+    padding: 12px 16px;
+    display: flex;
+    justify-content: flex-start;
+}
+
+.create-back-btn {
+    background: none;
+    border: none;
+    font-size: 14px;
+    color: #64748B;
+    /* Slate-500ish or per image */
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    padding: 0;
+}
+
+.create-input-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.create-board-input {
+    /* w-72 h-10 bg-slate-100 rounded-[10px] */
+    width: 288px;
+    /* w-72 = 18rem = 288px */
+    height: 40px;
+    background: #F1F5F9;
+    /* Slate-100 */
+    border: 1px solid #E2E8F0;
+    /* Border per Tailwind default for slate-200 maybe, user said border shadow */
+    border-radius: 10px;
+    padding: 0 12px;
+    font-size: 16px;
+    color: #083344;
+    outline: none;
+    box-shadow: 1px 1px 1px 0px rgba(0, 0, 0, 0.25);
+}
+
+.create-board-input::placeholder {
+    color: #64748B;
+    /* Text-slate-500 */
+    font-size: 14px;
+}
+
+.create-board-submit-btn {
+    /* w-52 h-9 bg-sky-500 rounded-[10px] */
+    width: 208px;
+    /* w-52 = 13rem = 208px */
+    height: 36px;
+    background: #0EA5E9;
+    /* Sky-500 */
+    border-radius: 10px;
+    border: none;
+    color: white;
+    font-size: 16px;
+    font-weight: 400;
+    margin-top: 24px;
+    /* Spacing from input */
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

@@ -1,0 +1,165 @@
+/* VoteListModal.css */
+.vote-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.vote-list-container {
+    width: 320px;
+    height: 440px;
+    background-color: white;
+    border-radius: 20px;
+    padding: 24px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    animation: scaleUp 0.1s ease-out;
+}
+
+.vote-list-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.vote-back-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #64748B;
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    position: absolute;
+    left: 0;
+}
+
+.vote-list-title {
+    width: 100%;
+    text-align: center;
+    font-size: 20px;
+    font-family: 'Comfortaa', sans-serif;
+    /* Fallback */
+    color: #083344;
+    font-weight: 700;
+}
+
+.vote-list-scroll {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-bottom: 10px;
+}
+
+.vote-list-scroll::-webkit-scrollbar {
+    width: 4px;
+}
+
+.vote-list-scroll::-webkit-scrollbar-thumb {
+    background-color: #CBD5E1;
+    border-radius: 4px;
+}
+
+/* Vote Items */
+.vote-item {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    /* shadow-[1px_1px_5px_0px_rgba(0,0,0,0.25)] */
+    transition: transform 0.1s;
+}
+
+.vote-item:active {
+    transform: scale(0.98);
+}
+
+.vote-item-title {
+    font-size: 16px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 85%;
+}
+
+.vote-arrow {
+    width: 14px;
+    height: 14px;
+}
+
+/* Styles variations */
+/* Unvoted: Sky Blue bg, White text */
+.vote-item.unvoted {
+    background-color: #0EA5E9;
+    /* bg-sky-500 */
+    color: white;
+}
+
+.vote-item.unvoted .vote-arrow {
+    color: white;
+}
+
+/* Voted: White bg, Dark text */
+.vote-item.voted {
+    background-color: white;
+    color: #083344;
+    /* text-cyan-950 */
+    border: 1px solid #F1F5F9;
+}
+
+.vote-item.voted .vote-arrow {
+    color: #083344;
+}
+
+/* Expired: White bg, Gray text */
+.vote-item.expired {
+    background-color: white;
+    color: #64748B;
+    /* text-slate-500 */
+    border: 1px solid #F1F5F9;
+}
+
+.vote-item.expired .vote-arrow {
+    color: #64748B;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes scaleUp {
+    from {
+        transform: scale(0.95);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}

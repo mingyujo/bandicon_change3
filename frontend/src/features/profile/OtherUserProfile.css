@@ -1,0 +1,186 @@
+.friend-profile-body {
+    flex: 1;
+    overflow-y: auto;
+    background-color: white;
+    padding: 10px 15px;
+    padding-bottom: 80px;
+    /* Ensure content is not hidden behind Nav */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.friend-profile-card {
+    width: 100%;
+    /* w-96 roughly, or full width with padding */
+    height: 140px;
+    /* Based on visual approximation, design allows varying height */
+    /* Design used absolute: h-14 (56px) for the stats box? No, Container is big.*/
+    /* Screenshot shows a card looking container wrapper? No, "Rectangle 120" is a shadow box for the STATS? */
+    /* Visual analysis:
+       There is a Profile Image (Left).
+       Name/Affiliation (Center-Left).
+       A Shadow Box (Right) containing Stats.
+    */
+    /* Let's adjust structure to match Design EXACTLY */
+}
+
+/* Re-evaluating Design HTML Structure from prompt */
+/*
+  w-96 h-[852px] (Body)
+  Rectangle 120 (Stats Box): w-44 h-14 left-[208px] top-[113px] bg-white rounded-[20px] shadow...
+  Name: left-[102px] top-[121px]
+  Ellipse 21 (Image): left-[18px] top-[108px]
+  
+  So:
+  Image is at x=18
+  Name is at x=102
+  Stats Box is at x=208 (Right side)
+  
+  This is a row layout.
+  Image | Name | Stats Box
+*/
+
+.friend-profile-card {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    position: relative;
+    margin-top: 0px;
+    /* Reduced from 20px to fix 'shifted down' */
+}
+
+.friend-img-box {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 1.5px solid #083344;
+    overflow: hidden;
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+.friend-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.friend-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    /* Reduced from 4px */
+    margin-right: auto;
+    min-width: 0;
+    justify-content: center;
+    /* Center vertically */
+}
+
+.friend-name {
+    color: #083344;
+    font-size: 16px;
+    font-family: 'Inter', sans-serif;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+}
+
+.friend-affil {
+    color: #64748B;
+    font-size: 12px;
+    font-family: 'Inter', sans-serif;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+}
+
+.friend-stats {
+    width: 176px;
+    height: 56px;
+    background-color: white;
+    border-radius: 20px;
+    box-shadow: 1px 1px 5px 0px rgba(0, 0, 0, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0 4px;
+    /* Reduced padding to fit text */
+    position: relative;
+}
+
+/* Vertical Divider in Stats Box */
+.friend-stats::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 10%;
+    height: 80%;
+    width: 1px;
+    background-color: #F1F5F9;
+}
+
+.stat-row {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+}
+
+.stat-label {
+    color: #083344;
+    font-size: 11px;
+    /* Reduced to fit 'Mood Maker' */
+    font-weight: 500;
+    white-space: nowrap;
+    /* Prevent wrapping */
+}
+
+.stat-value {
+    color: #083344;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+
+/* Header Buttons */
+.friend-delete-btn {
+    width: 64px;
+    /* w-16 */
+    height: 28px;
+    /* h-7 */
+    background-color: #F87171;
+    /* red-400 */
+    border-radius: 10px;
+    border: 1px solid rgba(100, 116, 139, 0.05);
+    color: white;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.friend-chat-btn {
+    width: 80px;
+    /* w-20 */
+    height: 28px;
+    /* h-7 */
+    background-color: #0EA5E9;
+    /* sky-500 */
+    border-radius: 10px;
+    border: 1px solid rgba(100, 116, 139, 0.05);
+    color: white;
+    font-size: 16px;
+    /* Design says text-base? */
+    /* Label "채팅하기" size 16px. */
+    font-weight: 400;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}

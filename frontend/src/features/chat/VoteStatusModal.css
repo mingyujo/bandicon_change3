@@ -1,0 +1,280 @@
+/* VoteStatusModal.css */
+.vote-status-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index: 1050;
+    /* Higher than Detail Modal */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.vote-status-container {
+    width: 340px;
+    height: 625px;
+    background-color: white;
+    border-radius: 20px;
+    padding: 24px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    animation: scaleUp 0.1s ease-out;
+}
+
+.vote-status-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.vote-status-back {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #64748B;
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    padding: 0;
+}
+
+.vote-status-title {
+    width: 100%;
+    text-align: center;
+    font-size: 20px;
+    font-family: 'Comfortaa', sans-serif;
+    color: #083344;
+    font-weight: 700;
+    padding-right: 20px;
+    /* Balance back button */
+}
+
+.vote-status-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 4px;
+    /* Space for scrollbar */
+}
+
+.vote-status-scroll::-webkit-scrollbar {
+    width: 4px;
+}
+
+.vote-status-scroll::-webkit-scrollbar-thumb {
+    background-color: #CBD5E1;
+    border-radius: 4px;
+}
+
+/* Option Result Block */
+.vote-result-block {
+    margin-bottom: 24px;
+}
+
+.vote-result-bar-area {
+    position: relative;
+    width: 100%;
+    height: 40px;
+    border-radius: 10px;
+    background-color: white;
+    border: 1px solid #64748B;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    margin-bottom: 12px;
+    overflow: hidden;
+}
+
+.vote-result-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    background-color: #0EA5E9;
+    /* Sky blue */
+    z-index: 0;
+}
+
+.vote-result-fill.secondary {
+    background-color: #F1F5F9;
+    /* Slate 100 */
+}
+
+.vote-result-text {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    font-size: 16px;
+    font-weight: 500;
+    color: #083344;
+}
+
+.vote-result-text.light {
+    color: white;
+}
+
+.vote-result-percent {
+    position: relative;
+    z-index: 1;
+    font-size: 12px;
+    font-weight: 700;
+    color: #083344;
+}
+
+.vote-result-percent.light {
+    color: white;
+}
+
+/* Participants Grid */
+.vote-participant-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    padding-left: 10px;
+}
+
+.vote-participant-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.vote-participant-avatar {
+    width: 20px;
+    /* 10px in design seems too small, adjusting */
+    height: 20px;
+    border-radius: 50%;
+    border: 1px solid #083344;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    background: #f0f0f0;
+}
+
+.vp-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.vote-participant-name {
+    font-size: 12px;
+    /* Adjusted */
+    color: #083344;
+    font-family: 'Inter', sans-serif;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 60px;
+}
+
+/* Comments Section */
+.vote-status-divider {
+    width: 100%;
+    height: 1px;
+    background-color: #E2E8F0;
+    margin: 20px 0;
+}
+
+.vote-comments-section {
+    padding-bottom: 20px;
+}
+
+.vote-comments-label {
+    font-size: 12px;
+    color: #64748B;
+    margin-bottom: 12px;
+}
+
+.vote-comment-item {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.vc-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #ccc;
+    flex-shrink: 0;
+    border-radius: 50%;
+    overflow: hidden;
+}
+
+.vc-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.vc-bubble {
+    padding: 8px 12px;
+    background-color: white;
+    border: 1px solid #0EA5E9;
+    /* Sky 500 */
+    border-radius: 10px;
+    font-size: 12px;
+    color: #083344;
+    font-family: 'Comfortaa', sans-serif;
+    max-width: 200px;
+}
+
+.vc-time {
+    font-size: 10px;
+    color: #64748B;
+    text-align: right;
+    margin-top: 2px;
+}
+
+/* Mine Styling */
+.vote-comment-item.mine {
+    flex-direction: row-reverse;
+}
+
+.vote-comment-item.mine .vc-avatar {
+    display: none;
+}
+
+.vote-comment-item.mine .vc-bubble {
+    background-color: #0EA5E9;
+    color: white;
+    border: none;
+}
+
+
+/* Comment Input */
+.vote-status-input-area {
+    margin-top: auto;
+    position: relative;
+    display: flex;
+    gap: 8px;
+}
+
+.vote-status-input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #64748B;
+    border-radius: 10px;
+    font-size: 12px;
+    color: #64748B;
+}
+
+.vote-status-btn {
+    padding: 0 16px;
+    background-color: #0EA5E9;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+}

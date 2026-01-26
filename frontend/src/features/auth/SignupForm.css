@@ -1,0 +1,488 @@
+/* src/features/auth/SignupForm.css */
+
+.signup-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: var(--color-흰색);
+    /* #ffffff replacement */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Inter', sans-serif;
+    color: var(--color-검은색);
+    /* #083344 -> #052c42 replacement */
+    padding: 20px;
+    box-sizing: border-box;
+    overflow: hidden;
+    z-index: 9999;
+}
+
+.signup-container .signup-content-wrapper {
+    width: 100%;
+    max-width: 400px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding-bottom: 20px;
+    box-sizing: border-box;
+}
+
+.signup-container .signup-header {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    gap: 20px;
+    font-size: 16px;
+    font-weight: 400;
+    padding-top: 10px;
+    flex-shrink: 0;
+}
+
+.signup-container .header-link {
+    color: var(--color-검은색);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.signup-container .header-link.active {
+    font-weight: 700;
+}
+
+.signup-container .logo-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-height: 100px;
+    width: 100%;
+}
+
+.signup-container .logo-image {
+    width: 120px;
+    height: auto;
+    max-height: 20vh;
+    border-radius: 6px;
+    object-fit: cover;
+    margin-bottom: 8px;
+}
+
+@media (max-height: 700px) {
+    .signup-container .logo-image {
+        width: 80px;
+        margin-bottom: 4px;
+    }
+
+    .signup-container .brand-title {
+        font-size: 24px !important;
+    }
+
+    .signup-container .brand-subtitle {
+        font-size: 13px !important;
+    }
+}
+
+.signup-container .brand-title {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    /* Matching text-style-bandicon-글씨체 */
+    font-size: 32px;
+    color: var(--color-파란색);
+    /* #00bdf8 */
+    line-height: 1.2;
+    text-align: center;
+    transform: translateX(-50px);
+    /* Move left MORE (increased) */
+    margin-right: -30px;
+}
+
+.signup-container .brand-subtitle {
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--color-검은색);
+    margin-top: 4px;
+    text-align: center;
+    transform: translateX(50px);
+    /* Move right MORE (increased) */
+}
+
+.signup-container .signup-card {
+    width: 100%;
+    background: var(--color-흰색);
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    box-sizing: border-box;
+    flex-shrink: 0;
+}
+
+@media (max-height: 700px) {
+    .signup-container .signup-card {
+        padding: 16px;
+        gap: 12px;
+    }
+}
+
+.signup-container .card-title {
+    font-size: 20px;
+    font-weight: 500;
+    margin: 0;
+    color: var(--color-검은색);
+}
+
+.signup-container .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.signup-container .input-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-검은색);
+}
+
+.signup-container .phone-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.signup-container .input-gray-bar {
+    background-color: var(--color-옅은-회색);
+    /* #f1f4f8 */
+    border-radius: 8px;
+    padding: 12px;
+    border: 1px solid transparent;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    color: #334155;
+    /* Maintaining slate color for text inside input usually good, but could be '검은색' */
+    flex: 1;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.signup-container .input-gray-bar:focus {
+    outline: none;
+    border-color: var(--color-파란색);
+    background-color: var(--color-흰색);
+}
+
+.signup-container .btn-verify {
+    background-color: var(--color-옅은-회색);
+    border-radius: 8px;
+    padding: 0 12px;
+    height: 42px;
+    font-size: 13px;
+    color: var(--color-회색);
+    /* #6c7e8b */
+    border: none;
+    cursor: pointer;
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+.signup-container .btn-confirm-small {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: var(--color-파란색);
+    color: var(--color-흰색);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+}
+
+.signup-container .btn-next {
+    width: 100%;
+    height: 48px;
+    background-color: var(--color-옅은-회색);
+    color: var(--color-회색);
+    border-radius: 8px;
+    border: none;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.signup-container .btn-next.primary {
+    background-color: var(--color-파란색);
+    color: var(--color-흰색);
+}
+
+.signup-container .verification-input-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.signup-container .verification-input-wrapper input {
+    padding-right: 60px;
+}
+
+.signup-container .form-step-2 {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+
+/* Active state for btn-verify */
+.signup-container .btn-verify.active {
+    background-color: var(--color-파란색);
+    color: var(--color-흰색);
+    cursor: pointer;
+}
+
+.signup-container .btn-verify.active:hover {
+    background-color: #0284c7;
+    /* Darker blue */
+}
+
+/* --- Result Popup Styles (Find ID / Find Password) --- */
+/* Translating Tailwind w-80 h-11 relative bg-white rounded-[10px] ... */
+.result-popup-container {
+    position: relative;
+    width: 320px;
+    /* w-80 */
+    height: 44px;
+    /* h-11 */
+    background-color: var(--color-흰색);
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    display: flex;
+    /* easier layout than absolute */
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+}
+
+.result-popup-text {
+    font-size: 16px;
+    color: #475569;
+    /* text-cyan-950 roughly */
+    font-weight: 400;
+}
+
+.result-popup-btn-wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.result-popup-btn {
+    width: 64px;
+    /* w-16 */
+    height: 24px;
+    /* h-6 */
+    background-color: var(--color-파란색);
+    /* bg-sky-500 */
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--color-흰색);
+    font-size: 16px;
+    cursor: pointer;
+    font-weight: 400;
+}
+
+/* --- Step 2 Specific Styles --- */
+
+.signup-container .step2-header {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.signup-container .verified-badge {
+    color: var(--color-회색);
+    font-size: 13px;
+    margin-bottom: 2px;
+}
+
+.signup-container .step2-scroll-area {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 5px;
+    /* space for scrollbar */
+    margin-bottom: 20px;
+    /* Hide scrollbar for clean UI if desired, but padding-right helps */
+}
+
+.signup-container .step2-scroll-area::-webkit-scrollbar {
+    width: 6px;
+}
+
+.signup-container .step2-scroll-area::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 3px;
+}
+
+.signup-container .input-group-step2 {
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.signup-container .input-gray-box-step2 {
+    background-color: var(--color-옅은-회색);
+    /* #f1f4f8 usually */
+    border-radius: 10px;
+    padding: 10px 14px;
+    border: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    color: var(--color-검은색);
+    width: 100%;
+    box-sizing: border-box;
+    height: 40px;
+    box-shadow: 1px 1px 1px 0px rgba(0, 0, 0, 0.05);
+}
+
+.signup-container .input-gray-box-step2:focus {
+    outline: 1px solid var(--color-파란색);
+    background-color: var(--color-흰색);
+}
+
+/* Skills Section */
+.signup-container .skills-section {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.signup-container .skills-header {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+}
+
+.signup-container .skills-title {
+    font-size: 16px;
+    color: var(--color-검은색);
+}
+
+.signup-container .skills-subtitle {
+    font-size: 12px;
+    color: var(--color-검은색);
+}
+
+.signup-container .skill-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.signup-container .skill-label-text {
+    width: 80px;
+    font-size: 15px;
+    color: var(--color-검은색);
+    flex-shrink: 0;
+}
+
+/* Custom Range Slider */
+.signup-container .skill-range-input {
+    -webkit-appearance: none;
+    appearance: none;
+    /* Standard property */
+    width: 100%;
+    background: transparent;
+    cursor: pointer;
+    flex: 1;
+}
+
+/* Track */
+.signup-container .skill-range-input::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 8px;
+    cursor: pointer;
+    background: transparent;
+    /* Transparent to let input background (gradient) show */
+    border-radius: 10px;
+    box-shadow: inset 1px 1px 1px rgba(0, 0, 0, 0.1);
+}
+
+/* Thumb */
+.signup-container .skill-range-input::-webkit-slider-thumb {
+    height: 18px;
+    width: 8px;
+    border-radius: 10px;
+    background: var(--color-파란색);
+    cursor: pointer;
+    -webkit-appearance: none;
+    margin-top: -5px;
+    /* Centers thumb on track */
+    box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Agreements */
+.signup-container .agreements-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.signup-container .checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.signup-container .checkbox-row input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: var(--color-파란색);
+}
+
+.signup-container .checkbox-text {
+    font-size: 13px;
+    color: var(--color-검은색);
+}
+
+.signup-container .text-gray {
+    color: var(--color-회색);
+}
+
+/* Final Button */
+.signup-container .btn-final-signup {
+    width: 100%;
+    height: 48px;
+    background-color: var(--color-파란색);
+    /* Sky 500 */
+    color: var(--color-흰색);
+    border-radius: 10px;
+    border: none;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.signup-container .btn-final-signup:disabled {
+    background-color: #cbd5e1;
+    cursor: not-allowed;
+    box-shadow: none;
+}

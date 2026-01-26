@@ -1,0 +1,169 @@
+/* src/features/clan/ClanHome.css */
+
+.clan-home-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0 20px 80px 20px;
+    /* Top handled by Sticky Header or spacing */
+    overflow-y: auto;
+    box-sizing: border-box;
+    background-color: var(--color-흰색);
+}
+
+/* Header Section (Title + Create Button) */
+.clan-home-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 0 10px 0;
+    position: sticky;
+    top: 0;
+    background-color: var(--color-흰색);
+    z-index: 10;
+}
+
+.clan-page-title {
+    font-size: 20px;
+    font-weight: 700;
+    /* font-normal in image but looks like heading, sticking to 700 or 400 based on preference. User image said 'font-normal' but looked boldish compared to body? Let's use 400 for 'Inter' usually looks clean. Actually image detail says 'font-normal' but in 'MyClans' user wanted consistent. I will use standard header weight 700 or inherit. Let's use 400 as per explicit image annotation if possible? No, annotation says "font-normal". Okay. */
+    font-weight: 400;
+    color: var(--color-검은색);
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+}
+
+.btn-create-clan {
+    background-color: var(--color-파란색);
+    /* Sky Blue */
+    color: var(--color-흰색);
+    border: none;
+    padding: 6px 12px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Search Bar */
+.clan-search-bar {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 44px;
+    border: 1px solid var(--color-파란색);
+    border-radius: 10px;
+    /* Rounded corners */
+    padding: 0 12px;
+    box-sizing: border-box;
+    margin-bottom: 20px;
+    background-color: var(--color-흰색);
+}
+
+.search-icon {
+    width: 20px;
+    height: 20px;
+    color: var(--color-파란색);
+    margin-right: 8px;
+}
+
+.search-input {
+    border: none;
+    outline: none;
+    flex: 1;
+    font-size: 16px;
+    color: var(--color-검은색);
+    background: transparent;
+}
+
+.search-input::placeholder {
+    color: #94a3b8;
+    /* Slate-400 equivalent for placeholder */
+}
+
+/* Clan List */
+.clan-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Clan Card - Reusing style similar to MyClans but ensuring consistency */
+.clan-home-card {
+    background: var(--color-흰색);
+    width: 100%;
+    height: 96px;
+    border-radius: 10px;
+    box-shadow: 1px 1px 5px 0px rgba(0, 0, 0, 0.25);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    box-sizing: border-box;
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+.clan-home-card:active {
+    transform: scale(0.98);
+}
+
+.clan-card-img {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 16px;
+    flex-shrink: 0;
+}
+
+.clan-card-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    overflow: hidden;
+    /* Prevent text overflow */
+}
+
+.clan-card-name {
+    color: var(--color-검은색);
+    font-size: 16px;
+    font-weight: 400;
+    /* font-normal */
+    font-family: 'Inter', sans-serif;
+    line-height: 1.2;
+}
+
+.clan-card-desc {
+    color: var(--color-검은색);
+    font-size: 12px;
+    font-weight: 400;
+    font-family: 'Inter', sans-serif;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+}
+
+.clan-card-members {
+    color: var(--color-검은색);
+    font-size: 12px;
+    font-weight: 400;
+    font-family: 'Inter', sans-serif;
+    margin-top: 2px;
+    line-height: 1.2;
+}
+
+/* Empty State */
+.clan-empty-state {
+    text-align: center;
+    color: var(--color-검은색-70);
+    margin-top: 40px;
+    font-size: 14px;
+}
+
+/* Create Form Modal/Overlay styles if needed, user didn't specify, but I'll add basic if I keep inline */

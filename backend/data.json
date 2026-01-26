@@ -1,0 +1,867 @@
+[
+{
+  "model": "admin.logentry",
+  "pk": 1,
+  "fields": {
+    "action_time": "2025-11-09T07:46:49.778Z",
+    "user": 1,
+    "content_type": 20,
+    "object_id": "1",
+    "object_repr": "retsmood",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 2,
+  "fields": {
+    "action_time": "2025-11-09T07:59:49.066Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "2",
+    "object_repr": "2222",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 3,
+  "fields": {
+    "action_time": "2025-11-09T08:01:05.175Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "2",
+    "object_repr": "2222",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Email\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 4,
+  "fields": {
+    "action_time": "2025-11-09T08:01:22.717Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "2",
+    "object_repr": "2222",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Nickname\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 5,
+  "fields": {
+    "action_time": "2025-11-09T08:09:32.541Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "3",
+    "object_repr": "cho",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 6,
+  "fields": {
+    "action_time": "2025-11-09T08:11:49.987Z",
+    "user": 1,
+    "content_type": 25,
+    "object_id": "2",
+    "object_repr": "chomg0812 -> retsmood",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Status\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 7,
+  "fields": {
+    "action_time": "2025-11-09T08:12:22.279Z",
+    "user": 1,
+    "content_type": 25,
+    "object_id": "2",
+    "object_repr": "cho -> retsmood",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"User\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 8,
+  "fields": {
+    "action_time": "2025-11-09T08:12:31.692Z",
+    "user": 1,
+    "content_type": 25,
+    "object_id": "2",
+    "object_repr": "cho -> retsmood",
+    "action_flag": 2,
+    "change_message": "[]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 9,
+  "fields": {
+    "action_time": "2025-11-09T08:13:27.619Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "3",
+    "object_repr": "cho",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 10,
+  "fields": {
+    "action_time": "2025-11-09T08:14:00.766Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "1",
+    "object_repr": "cho",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Role\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 11,
+  "fields": {
+    "action_time": "2025-11-09T08:15:28.248Z",
+    "user": 1,
+    "content_type": 20,
+    "object_id": "2",
+    "object_repr": "test",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 12,
+  "fields": {
+    "action_time": "2025-11-16T12:22:36.705Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "4",
+    "object_repr": "3333",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 13,
+  "fields": {
+    "action_time": "2025-11-16T12:23:15.903Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "4",
+    "object_repr": "3333",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Nickname\", \"Email\", \"Role\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 14,
+  "fields": {
+    "action_time": "2025-11-16T12:40:46.605Z",
+    "user": 1,
+    "content_type": 20,
+    "object_id": "1",
+    "object_repr": "retsmood",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Members\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 15,
+  "fields": {
+    "action_time": "2025-11-16T13:34:09.946Z",
+    "user": 1,
+    "content_type": 25,
+    "object_id": "1",
+    "object_repr": "ClanJoinRequest object (1)",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Status\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 16,
+  "fields": {
+    "action_time": "2025-11-16T13:35:33.609Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "5",
+    "object_repr": "4444",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 17,
+  "fields": {
+    "action_time": "2025-11-16T13:53:54.396Z",
+    "user": 1,
+    "content_type": 20,
+    "object_id": "3",
+    "object_repr": "test2",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 18,
+  "fields": {
+    "action_time": "2025-11-17T14:33:56.807Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "5",
+    "object_repr": "4444",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Nickname\", \"Email\"]}}]"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "86pgont7rj8599c6dbevnjgr7h72ji5k",
+  "fields": {
+    "session_data": ".eJxVjEEOwiAQRe_C2hBaKAMu3fcMZJgZpWpoUtqV8e7apAvd_vfef6mE21rS1mRJE6uz6tTpd8tID6k74DvW26xprusyZb0r-qBNjzPL83K4fwcFW_nWkYINEKKHDsRQBC_OQR-AjRF2xpHFSP1AViwjQ_CZxUczYMarp6jeH8FhN8I:1vI07s:96hb0MDP9j-TeMCwEHBeSBSe2A-HdIyM6-5ne0QYPCI",
+    "expire_date": "2025-11-23T07:46:16.169Z"
+  }
+},
+{
+  "model": "user_app.user",
+  "pk": 1,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$Eomk39dvdefMKkUrxnabAn$y7U97516g+tx+35YpJL+hRJx145LtXABIxVsYFEW6II=",
+    "last_login": "2025-11-21T06:13:45.139Z",
+    "is_superuser": true,
+    "username": "chomg0812",
+    "first_name": "",
+    "last_name": "",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2025-11-08T15:37:09.993Z",
+    "nickname": "cho",
+    "email": "chomg0812@gmail.com",
+    "profile_img": "",
+    "introduction": "",
+    "instruments": [],
+    "genres": [],
+    "region": "",
+    "score": 100,
+    "created_at": "2025-11-08T15:37:10.277Z",
+    "role": "MANAGER",
+    "status": "approved",
+    "groups": [],
+    "user_permissions": [],
+    "friends": []
+  }
+},
+{
+  "model": "user_app.user",
+  "pk": 2,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$Fqw661dJS7JIe9dBeS6Vfm$MMIvWnjTuOdpRV9npxlgBFzqylEMqOXDewBJ9Zm1Qv0=",
+    "last_login": "2025-11-09T08:01:34.217Z",
+    "is_superuser": false,
+    "username": "2222",
+    "first_name": "",
+    "last_name": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-11-09T07:59:47.870Z",
+    "nickname": "2222",
+    "email": "chomg0812@naver.com",
+    "profile_img": "",
+    "introduction": "",
+    "instruments": [],
+    "genres": [],
+    "region": "",
+    "score": 100,
+    "created_at": "2025-11-09T07:59:49.053Z",
+    "role": "MEMBER",
+    "status": "approved",
+    "groups": [],
+    "user_permissions": [],
+    "friends": []
+  }
+},
+{
+  "model": "user_app.user",
+  "pk": 4,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$JCXBlCiBFPbsYZloMTrQyc$SQBWsB1epFD1RN3WkkmvbTPemCE3ckKU8jmhuoaro68=",
+    "last_login": "2025-11-17T14:34:16.094Z",
+    "is_superuser": false,
+    "username": "3333",
+    "first_name": "",
+    "last_name": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-11-16T12:22:36.207Z",
+    "nickname": "3333",
+    "email": "omgch08@gmail.com",
+    "profile_img": "",
+    "introduction": "",
+    "instruments": [],
+    "genres": [],
+    "region": "",
+    "score": 100,
+    "created_at": "2025-11-16T12:22:36.702Z",
+    "role": "ADMIN",
+    "status": "approved",
+    "groups": [],
+    "user_permissions": [],
+    "friends": []
+  }
+},
+{
+  "model": "user_app.user",
+  "pk": 5,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$f7C2AcDuRvG4EB1XHS3ihH$iUlLvFKXiVMejwUPz7CapAKSkAa3HRxnSMUV2Pk9ULM=",
+    "last_login": "2025-11-17T14:32:10Z",
+    "is_superuser": false,
+    "username": "4444",
+    "first_name": "",
+    "last_name": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-11-16T13:35:33.077Z",
+    "nickname": "4444",
+    "email": "chomg2003@naver.com",
+    "profile_img": "",
+    "introduction": "",
+    "instruments": [],
+    "genres": [],
+    "region": "",
+    "score": 100,
+    "created_at": "2025-11-16T13:35:33.606Z",
+    "role": "MEMBER",
+    "status": "approved",
+    "groups": [],
+    "user_permissions": [],
+    "friends": []
+  }
+},
+{
+  "model": "room_app.room",
+  "pk": 1,
+  "fields": {
+    "title": "dsgsd",
+    "song": "dsgsd",
+    "artist": "dsgds",
+    "description": "dsg",
+    "is_private": false,
+    "password": null,
+    "manager_nickname": "cho",
+    "confirmed": false,
+    "ended": false,
+    "created_at": "2025-11-09T09:56:51.713Z",
+    "confirmed_at": null,
+    "ended_at": null,
+    "clan": null
+  }
+},
+{
+  "model": "room_app.room",
+  "pk": 2,
+  "fields": {
+    "title": "ㅇㄴㄹ",
+    "song": "ㅇㄴㄹㄴ",
+    "artist": "ㄴㅇㄹ",
+    "description": null,
+    "is_private": false,
+    "password": null,
+    "manager_nickname": "cho",
+    "confirmed": false,
+    "ended": false,
+    "created_at": "2025-11-22T02:04:06.430Z",
+    "confirmed_at": null,
+    "ended_at": null,
+    "clan": null
+  }
+},
+{
+  "model": "room_app.room",
+  "pk": 3,
+  "fields": {
+    "title": "test1",
+    "song": "test1",
+    "artist": "test1",
+    "description": null,
+    "is_private": false,
+    "password": null,
+    "manager_nickname": "cho",
+    "confirmed": false,
+    "ended": false,
+    "created_at": "2025-11-22T09:30:29.128Z",
+    "confirmed_at": null,
+    "ended_at": null,
+    "clan": null
+  }
+},
+{
+  "model": "room_app.room",
+  "pk": 4,
+  "fields": {
+    "title": "sdfa",
+    "song": "sdfa",
+    "artist": "sdf",
+    "description": null,
+    "is_private": false,
+    "password": null,
+    "manager_nickname": "cho",
+    "confirmed": false,
+    "ended": false,
+    "created_at": "2025-11-22T09:44:23.037Z",
+    "confirmed_at": null,
+    "ended_at": null,
+    "clan": null
+  }
+},
+{
+  "model": "room_app.room",
+  "pk": 5,
+  "fields": {
+    "title": "ㅇㄴㅁ",
+    "song": "ㅇㄴㅁ",
+    "artist": "ㄴㅁㅇ",
+    "description": null,
+    "is_private": false,
+    "password": null,
+    "manager_nickname": "cho",
+    "confirmed": false,
+    "ended": false,
+    "created_at": "2025-11-22T09:55:03.185Z",
+    "confirmed_at": null,
+    "ended_at": null,
+    "clan": null
+  }
+},
+{
+  "model": "room_app.session",
+  "pk": 1,
+  "fields": {
+    "room": 1,
+    "session_name": "보컬",
+    "participant_nickname": null
+  }
+},
+{
+  "model": "room_app.session",
+  "pk": 2,
+  "fields": {
+    "room": 1,
+    "session_name": "리드기타",
+    "participant_nickname": null
+  }
+},
+{
+  "model": "room_app.session",
+  "pk": 3,
+  "fields": {
+    "room": 2,
+    "session_name": "보컬",
+    "participant_nickname": "cho"
+  }
+},
+{
+  "model": "room_app.session",
+  "pk": 4,
+  "fields": {
+    "room": 2,
+    "session_name": "리드기타",
+    "participant_nickname": null
+  }
+},
+{
+  "model": "room_app.session",
+  "pk": 5,
+  "fields": {
+    "room": 2,
+    "session_name": "리듬기타",
+    "participant_nickname": null
+  }
+},
+{
+  "model": "room_app.session",
+  "pk": 6,
+  "fields": {
+    "room": 2,
+    "session_name": "베이스",
+    "participant_nickname": null
+  }
+},
+{
+  "model": "room_app.session",
+  "pk": 7,
+  "fields": {
+    "room": 2,
+    "session_name": "드럼",
+    "participant_nickname": null
+  }
+},
+{
+  "model": "room_app.session",
+  "pk": 8,
+  "fields": {
+    "room": 3,
+    "session_name": "보컬",
+    "participant_nickname": "cho"
+  }
+},
+{
+  "model": "room_app.session",
+  "pk": 9,
+  "fields": {
+    "room": 3,
+    "session_name": "리드기타",
+    "participant_nickname": null
+  }
+},
+{
+  "model": "room_app.session",
+  "pk": 10,
+  "fields": {
+    "room": 3,
+    "session_name": "리듬기타",
+    "participant_nickname": null
+  }
+},
+{
+  "model": "room_app.session",
+  "pk": 11,
+  "fields": {
+    "room": 3,
+    "session_name": "베이스",
+    "participant_nickname": null
+  }
+},
+{
+  "model": "room_app.session",
+  "pk": 12,
+  "fields": {
+    "room": 4,
+    "session_name": "보컬",
+    "participant_nickname": "cho"
+  }
+},
+{
+  "model": "room_app.session",
+  "pk": 13,
+  "fields": {
+    "room": 4,
+    "session_name": "리드기타",
+    "participant_nickname": null
+  }
+},
+{
+  "model": "room_app.session",
+  "pk": 14,
+  "fields": {
+    "room": 5,
+    "session_name": "보컬",
+    "participant_nickname": "cho"
+  }
+},
+{
+  "model": "room_app.session",
+  "pk": 15,
+  "fields": {
+    "room": 5,
+    "session_name": "리드기타",
+    "participant_nickname": null
+  }
+},
+{
+  "model": "room_app.sessionreservation",
+  "pk": 2,
+  "fields": {
+    "session": 4,
+    "user": 1,
+    "created_at": "2025-11-22T09:29:45.564Z"
+  }
+},
+{
+  "model": "room_app.sessionreservation",
+  "pk": 3,
+  "fields": {
+    "session": 3,
+    "user": 1,
+    "created_at": "2025-11-22T09:29:48.532Z"
+  }
+},
+{
+  "model": "board_app.board",
+  "pk": 1,
+  "fields": {
+    "board_type": "general",
+    "name": "자유게시판"
+  }
+},
+{
+  "model": "board_app.board",
+  "pk": 2,
+  "fields": {
+    "board_type": "beginner",
+    "name": "초보자게시판"
+  }
+},
+{
+  "model": "board_app.post",
+  "pk": 1,
+  "fields": {
+    "author": 1,
+    "board": 1,
+    "clan_board": null,
+    "title": "ㅇㄴㄹㄴ",
+    "content": "ㄴㅇㄹㄴ",
+    "image_url": null,
+    "created_at": "2025-11-19T05:08:56.355Z",
+    "is_anonymous": false,
+    "updated_at": "2025-11-19T05:08:56.355Z",
+    "likes": [
+      1
+    ],
+    "scraps": []
+  }
+},
+{
+  "model": "board_app.post",
+  "pk": 2,
+  "fields": {
+    "author": 1,
+    "board": 1,
+    "clan_board": null,
+    "title": "ㄴㅇㅁㄹ",
+    "content": "ㄴㅇㄹ",
+    "image_url": null,
+    "created_at": "2025-11-19T05:09:14.874Z",
+    "is_anonymous": false,
+    "updated_at": "2025-11-19T05:09:14.874Z",
+    "likes": [
+      1
+    ],
+    "scraps": []
+  }
+},
+{
+  "model": "board_app.post",
+  "pk": 3,
+  "fields": {
+    "author": 1,
+    "board": 1,
+    "clan_board": null,
+    "title": "sdfds",
+    "content": "dsaf",
+    "image_url": null,
+    "created_at": "2025-11-19T05:38:27.514Z",
+    "is_anonymous": false,
+    "updated_at": "2025-11-19T05:38:27.514Z",
+    "likes": [],
+    "scraps": []
+  }
+},
+{
+  "model": "board_app.post",
+  "pk": 4,
+  "fields": {
+    "author": 1,
+    "board": 2,
+    "clan_board": null,
+    "title": "ㄴㅇㄹㅇ",
+    "content": "ㅇㄴㄹ",
+    "image_url": null,
+    "created_at": "2025-11-19T05:44:52.412Z",
+    "is_anonymous": false,
+    "updated_at": "2025-11-19T05:44:52.412Z",
+    "likes": [
+      1
+    ],
+    "scraps": []
+  }
+},
+{
+  "model": "board_app.comment",
+  "pk": 1,
+  "fields": {
+    "post": 2,
+    "author": 1,
+    "content": "ㄴㅇㄹ",
+    "created_at": "2025-11-19T05:44:14.435Z",
+    "updated_at": "2025-11-19T05:44:14.435Z",
+    "parent": null
+  }
+},
+{
+  "model": "clan_app.clan",
+  "pk": 1,
+  "fields": {
+    "name": "retsmood",
+    "description": "",
+    "owner": 1,
+    "image": "",
+    "created_at": "2025-11-09T17:05:23Z",
+    "members": [
+      1
+    ],
+    "admins": []
+  }
+},
+{
+  "model": "clan_app.clan",
+  "pk": 2,
+  "fields": {
+    "name": "test",
+    "description": "",
+    "owner": 1,
+    "image": "",
+    "created_at": "2025-11-09T17:05:23.134Z",
+    "members": [
+      1
+    ],
+    "admins": []
+  }
+},
+{
+  "model": "clan_app.clan",
+  "pk": 3,
+  "fields": {
+    "name": "test2",
+    "description": "",
+    "owner": 1,
+    "image": "",
+    "created_at": "2025-11-16T13:38:33Z",
+    "members": [
+      1,
+      2,
+      4
+    ],
+    "admins": []
+  }
+},
+{
+  "model": "clan_app.clanjoinrequest",
+  "pk": 1,
+  "fields": {
+    "clan": 1,
+    "user": 2,
+    "status": "approved",
+    "requested_at": "2025-11-09T17:05:23Z"
+  }
+},
+{
+  "model": "clan_app.clanchat",
+  "pk": 1,
+  "fields": {
+    "clan": 1,
+    "sender": 1,
+    "message": "",
+    "timestamp": "2025-11-22T11:59:43.974Z"
+  }
+},
+{
+  "model": "clan_app.clanchat",
+  "pk": 2,
+  "fields": {
+    "clan": 1,
+    "sender": 1,
+    "message": "",
+    "timestamp": "2025-11-22T11:59:47.239Z"
+  }
+},
+{
+  "model": "clan_app.clanchat",
+  "pk": 3,
+  "fields": {
+    "clan": 1,
+    "sender": 1,
+    "message": "ㄴㅇㄹ",
+    "timestamp": "2025-11-22T12:34:01.063Z"
+  }
+},
+{
+  "model": "clan_app.clanchat",
+  "pk": 4,
+  "fields": {
+    "clan": 1,
+    "sender": 1,
+    "message": "ㄴㅇㄹ",
+    "timestamp": "2025-11-22T12:34:03.793Z"
+  }
+},
+{
+  "model": "clan_app.clanannouncement",
+  "pk": 1,
+  "fields": {
+    "clan": 1,
+    "author": 1,
+    "title": "test",
+    "content": "test",
+    "created_at": "2025-11-16T15:42:22.232Z",
+    "is_pinned": false
+  }
+},
+{
+  "model": "clan_app.clanannouncement",
+  "pk": 2,
+  "fields": {
+    "clan": 3,
+    "author": 1,
+    "title": "test",
+    "content": "test",
+    "created_at": "2025-11-16T18:29:49.733Z",
+    "is_pinned": false
+  }
+},
+{
+  "model": "clan_app.clanannouncement",
+  "pk": 3,
+  "fields": {
+    "clan": 3,
+    "author": 1,
+    "title": "test2",
+    "content": "test2",
+    "created_at": "2025-11-17T14:31:28.437Z",
+    "is_pinned": false
+  }
+},
+{
+  "model": "clan_app.clanboard",
+  "pk": 1,
+  "fields": {
+    "clan": 2,
+    "author": 1,
+    "title": "test",
+    "content": null,
+    "created_at": "2025-11-16T15:53:14.012Z",
+    "category": "free"
+  }
+},
+{
+  "model": "clan_app.clanboard",
+  "pk": 2,
+  "fields": {
+    "clan": 2,
+    "author": 1,
+    "title": "test",
+    "content": null,
+    "created_at": "2025-11-16T16:52:46.321Z",
+    "category": "free"
+  }
+}
+]

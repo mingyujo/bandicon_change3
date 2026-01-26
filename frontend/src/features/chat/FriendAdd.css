@@ -1,0 +1,134 @@
+/* FriendAdd.css */
+.friend-add-page {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background-color: white;
+    position: relative;
+}
+
+.sub-header {
+    display: flex;
+    align-items: center;
+    padding: 15px 22px;
+    gap: 15px;
+    height: 50px;
+    /* Explicit height to help alignment */
+}
+
+.back-btn {
+    cursor: pointer;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Removed transform */
+}
+
+.friend-add-title {
+    font-size: 18px;
+    /* Increased to 18px */
+    font-weight: 600;
+    color: #083344;
+    font-family: 'Inter', sans-serif;
+    line-height: 24px;
+    /* Match icon height */
+    margin: 0;
+    display: flex;
+    align-items: center;
+    padding-top: 0;
+    /* Clear manual offset */
+}
+
+.friend-add-content {
+    padding: 20px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.add-search-bar {
+    width: 100%;
+    height: 48px;
+    border: 1px solid #0EA5E9;
+    /* sky-500 */
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    padding: 0 15px;
+    background-color: white;
+}
+
+.search-icon-area {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 10px;
+}
+
+.add-search-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 16px;
+    color: #334155;
+    font-family: 'Inter', sans-serif;
+}
+
+.add-search-input::placeholder {
+    color: #64748B;
+    /* slate-500 */
+}
+
+.search-result-card {
+    width: 100%;
+    height: 70px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 1px 1px 5px 0px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    justify-content: space-between;
+}
+
+.result-user-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.result-user-img {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1.3px solid #083344;
+    object-fit: cover;
+}
+
+.result-user-name {
+    font-size: 16px;
+    font-weight: 500;
+    color: #083344;
+    font-family: 'Inter', sans-serif;
+}
+
+.plus-action-btn {
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #0EA5E9;
+    /* Blue requested */
+}
+
+.not-found-msg {
+    text-align: center;
+    color: #64748B;
+    margin-top: 20px;
+}

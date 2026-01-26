@@ -1,0 +1,163 @@
+/* CreatePost.css */
+
+.create-post-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 10px;
+    height: 50px;
+    /* Fixed App Bar Height */
+    background: white;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    flex-shrink: 0;
+    width: 100%;
+    box-sizing: border-box;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.back-btn {
+    border: none;
+    background: none;
+    padding: 10px;
+    margin: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.create-post-container {
+    flex: 1;
+    width: 100%;
+    overflow-y: auto;
+    /* Sufficient padding for bottom button and nav */
+    padding: 20px 20px calc(140px + env(safe-area-inset-bottom)) 20px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    position: relative;
+    /* For floating button absolute positioning if chosen, but flex is safer */
+}
+
+/* Labels */
+label {
+    display: block;
+    font-size: 16px;
+    color: #083344;
+    margin-bottom: 10px;
+}
+
+/* Inputs */
+.input-wrapper-gray,
+.textarea-wrapper-gray {
+    background: #F1F5F9;
+    /* slate-100 */
+    border-radius: 10px;
+    box-shadow: 1px 1px 1px 0px rgba(0, 0, 0, 0.1);
+    /* Subtle shadow per design */
+    padding: 10px 15px;
+}
+
+.input-wrapper-gray {
+    height: 48px;
+    display: flex;
+    align-items: center;
+}
+
+.textarea-wrapper-gray {
+    height: 320px;
+    /* Big height per design */
+    padding: 15px;
+}
+
+.input-wrapper-gray input,
+.textarea-wrapper-gray textarea {
+    width: 100%;
+    height: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 16px;
+    color: #083344;
+    resize: none;
+    font-family: inherit;
+}
+
+/* Attachment Row */
+.attachment-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px;
+    /* Spacing */
+}
+
+.file-upload-btn {
+    background: #F1F5F9;
+    border-radius: 10px;
+    padding: 0 16px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    box-shadow: 1px 1px 1px 0px rgba(0, 0, 0, 0.1);
+    white-space: nowrap;
+    margin-bottom: 0;
+    /* Reset label margin */
+    font-size: 12px;
+    color: #083344;
+    flex-shrink: 0;
+}
+
+.youtube-input-box {
+    flex: 1;
+    height: 36px;
+    background: #F1F5F9;
+    border-radius: 10px;
+    box-shadow: 1px 1px 1px 0px rgba(0, 0, 0, 0.1);
+    padding: 0 12px;
+    display: flex;
+    align-items: center;
+}
+
+.youtube-input-box input {
+    width: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 12px;
+    color: #083344;
+}
+
+.youtube-input-box input::placeholder {
+    color: #64748B;
+}
+
+
+/* Submit Button */
+.submit-area {
+    margin-top: 40px;
+    display: flex;
+    justify-content: center;
+}
+
+.create-submit-btn {
+    width: 140px;
+    height: 48px;
+    background: #0EA5E9;
+    /* sky-500 */
+    border-radius: 10px;
+    color: white;
+    font-size: 16px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

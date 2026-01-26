@@ -1,0 +1,49 @@
+/* Shared Layout Styles */
+/* Shared Layout Styles */
+/* Shared Layout Styles */
+.mobile-layout-wrapper {
+    width: 100%;
+    height: 100vh;
+    background-color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    overflow: hidden;
+    /* padding-top: 20px; */
+}
+
+.mobile-layout-wrapper * {
+    box-sizing: border-box;
+}
+
+.mobile-layout-container {
+    width: 100%;
+    max-width: 430px;
+    height: 100%;
+    background-color: white;
+    position: relative;
+    /* box-shadow: 0 0 15px rgba(0, 0, 0, 0.1); */
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    /* Allow scrolling */
+    padding-bottom: 60px;
+    /* Space for Fixed BottomNav */
+    overscroll-behavior-y: none;
+    /* Prevent bounce */
+}
+
+/* Hide Scrollbar for MobileLayout */
+.mobile-layout-container::-webkit-scrollbar {
+    display: none;
+}
+
+.mobile-layout-container {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* Chat Layout Specialization */
+.mobile-layout-container.chat-layout {
+    overflow-y: hidden;
+}
